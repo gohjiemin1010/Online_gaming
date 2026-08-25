@@ -1000,7 +1000,7 @@ with tab_perf:
 # TAB 3: Single Prediction Result & Insights
 # ------------------------------------------
 with tab_pred:
-    st.markdown("### 🎯 Prediction Result & Insights")
+    st.markdown("###  Prediction Result & Insights")
     if predict_btn:
         # 1. 准备输入数据
         input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
@@ -1058,24 +1058,30 @@ with tab_pred:
         st.markdown("---")
         
         # 4. 优化玩家资料的展示方式 (使用 Metric 卡片排版)
+        # 4. 优化玩家资料的展示方式 (使用 4列 x 3行 的 Metric 卡片排版)
         st.markdown("#### 👤 Player Profile Evaluated")
         p_col1, p_col2, p_col3, p_col4 = st.columns(4)
         
         with p_col1:
-            st.metric("Demographics", f"Age {age} | {gender}")
-            st.metric("Location", location)
+            st.metric("Age", age)
+            st.metric("Play Time", f"{play_time} hrs")
+            st.metric("Player Level", f"Lv. {player_level}")
             
         with p_col2:
-            st.metric("Game Genre", genre)
-            st.metric("Difficulty", difficulty)
+            st.metric("Gender", gender)
+            st.metric("Avg Session", f"{avg_duration} mins")
+            st.metric("Achievements", achievements)
             
         with p_col3:
-            st.metric("Play Time", f"{play_time} hrs")
+            st.metric("Location", location)
             st.metric("Sessions/Week", sessions)
+            st.metric("In-Game Purchase", "Yes" if in_purchases == 1 else "No")
             
         with p_col4:
-            st.metric("Player Level", f"Lv. {player_level}")
-            st.metric("In-Game Purchase", "Yes" if in_purchases == 1 else "No")
+            st.metric("Game Genre", genre)
+            st.metric("Difficulty", difficulty)
+            # 最后一个卡片可以用来放一个小彩蛋，或者直接留空
+            st.metric("Profile Status", "Evaluated ✅")
             
     else:
         st.info("👈 Please enter player details in the sidebar and click 'Predict' to view detailed results.")
