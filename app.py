@@ -127,7 +127,7 @@ models_dict, le_dict, scaler, feature_cols, summary_df, detailed_reports = train
 # ==========================================
 # 4. Sidebar: User Input (Single Prediction)
 # ==========================================
-st.sidebar.markdown("### 🔮 Player Engagement Predictor")
+st.sidebar.markdown("###  Player Engagement Predictor")
 selected_model_name = st.sidebar.selectbox("Select Model", list(models_dict.keys()), index=1)
 
 st.sidebar.markdown("**Player Features**")
@@ -182,7 +182,7 @@ with tab_eda:
 
     with sub1:
         # Dataset Preview using number_input
-        st.markdown("#### 🔍 Dataset Preview")
+        st.markdown("####  Dataset Preview")
         st.write("Use the +/- buttons or type a number to view more rows.")
         row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
         st.dataframe(df.head(row_count), use_container_width=True)
@@ -190,7 +190,7 @@ with tab_eda:
         st.markdown("---")
         
         # Statistical Summaries Dropdown (From Jupyter Notebook)
-        st.markdown("#### 📋 Statistical Summaries")
+        st.markdown("####  Statistical Summaries")
         summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
         
         if summary_choice == "Numerical Summary":
@@ -213,7 +213,7 @@ with tab_eda:
                     st.dataframe(vc, hide_index=True, use_container_width=True)
 
     with sub2:
-        st.markdown("#### 📊 Features Distribution")
+        st.markdown("####  Features Distribution")
         st.write("Select any feature (Numerical or Categorical) to view its distribution.")
         
         # Combine all relevant columns for the dropdown
@@ -249,7 +249,7 @@ with tab_eda:
             st.pyplot(fig)
 
     with sub3:
-        st.markdown("#### 🔗 Advanced Correlation Analysis")
+        st.markdown("####  Advanced Correlation Analysis")
         col9, col10 = st.columns(2)
         with col9:
             fig, ax = plt.subplots(figsize=(6, 4))
@@ -286,7 +286,7 @@ with tab_eda:
         st.plotly_chart(fig_vs, use_container_width=True)
 
         st.markdown("---")
-        st.markdown("##### 🌡️ Correlation Heatmap (Numerical Features)")
+        st.markdown("#####  Correlation Heatmap (Numerical Features)")
         fig, ax = plt.subplots(figsize=(10, 6))
         numeric_cols_df = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
         corr_matrix = numeric_cols_df.corr()
