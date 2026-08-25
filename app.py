@@ -197,7 +197,6 @@ with tab_eda:
     
     st.markdown("---")
     
-    # Combines everything into 2 main sub-tabs to allow Heatmap to flow below Versus section
     sub1, sub2 = st.tabs(["Basic Data Understanding", "Exploratory Visualizations"])
 
     with sub1:
@@ -235,7 +234,6 @@ with tab_eda:
         st.markdown("####  Features Distribution")
         st.write("Select a feature to view its distribution based on your exploratory analysis.")
         
-        # 'All' is now the default selection
         dist_choice = st.selectbox("Select Feature to Visualize:", 
                                    ["All", "EngagementLevel", "GameGenre", "Age", "PlayTimeHours"], index=0)
         
@@ -286,7 +284,6 @@ with tab_eda:
             sns.despine()
             dist_figs.append(fig_dist4)
 
-        # Render Distribution Figures neatly in rows of 2
         for i in range(0, len(dist_figs), 2):
             col_a, col_b = st.columns(2)
             with col_a:
@@ -297,25 +294,32 @@ with tab_eda:
 
         st.markdown("---")
         
-        # --- VERSUS SECTION ---
-        st.markdown("#### ⚔️ Interactive Feature vs Feature Explorer")
-        st.write("Compare features exactly as analyzed in the exploratory phase.")
+        # --- VERSUS & NOTEBOOK EXPLORER SECTION (SINGLE SELECTOR) ---
+        st.markdown("####  Interactive Feature vs Feature Explorer")
+        st.write("Select a specific relationship graph from your Jupyter Notebook or view All.")
         
-        col_x, col_y = st.columns(2)
-        with col_x:
-            # Dropdown exactly matching ipynb X-axis available combos, 'All' is default
-            x_axis = st.selectbox("Select X-Axis Feature:", 
-                                  ["All", "Age", "EngagementLevel", "GameDifficulty", "GameGenre", "Location", "PlayerLevel"], index=0)
-        with col_y:
-            # Dropdown exactly matching ipynb Y-axis available combos, 'All' is default
-            y_axis = st.selectbox("Select Y-Axis Feature:", 
-                                  ["All", "AchievementsUnlocked", "AvgSessionDurationMinutes", "EngagementLevel", "Gender", "InGamePurchases", "PlayTimeHours", "SessionsPerWeek"], index=0)
-            
-        show_all = (x_axis == "All" or y_axis == "All")
+        analysis_choice = st.selectbox(
+            "Select Analysis Graph:",
+            [
+                "All",
+                "Player Level vs. Achievements Unlocked",
+                "In-Game Purchase Rate by Game Genre",
+                "Session Duration Density by Game Difficulty",
+                "Game Genre Preferences by Gender",
+                "Player Engagement Levels by Geographic Location",
+                "Weekly Sessions Based on Game Difficulty",
+                "Age vs. Average Session Duration",
+                "In-Game Purchase Rate by Location",
+                "Achievements Unlocked per Game Difficulty",
+                "Play Time Hours by Engagement Level"
+            ],
+            index=0
+        )
+        
         figures_to_plot = []
 
-        # Graph 1: Player Level vs Achievements
-        if show_all or (x_axis == "PlayerLevel" and y_axis == "AchievementsUnlocked"):
+        # 1. Player Level vs Achievements Unlocked
+        if analysis_choice == "All" or analysis_choice == "Player Level vs. Achievements Unlocked":
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.scatterplot(data=df, x='PlayerLevel', y='AchievementsUnlocked', hue='EngagementLevel',
                             palette={'Low':'#99ff99', 'Medium':'#ff9999', 'High':'#66b3ff'}, alpha=0.7, ax=ax)
@@ -325,8 +329,8 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 2: Game Genre vs InGamePurchases
-        if show_all or (x_axis == "GameGenre" and y_axis == "InGamePurchases"):
+        # 2. In-Game Purchase Rate by Game Genre
+        if analysis_choice == "All" or analysis_choice == "In-Game Purchase Rate by Game Genre":
             fig, ax = plt.subplots(figsize=(8, 5))
             genre_purchase = df.groupby('GameGenre')['InGamePurchases'].mean().sort_values().reset_index()
             sns.barplot(data=genre_purchase, x='GameGenre', y='InGamePurchases', palette='mako', ax=ax)
@@ -338,8 +342,8 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 3: GameDifficulty vs AvgSessionDurationMinutes
-        if show_all or (x_axis == "GameDifficulty" and y_axis == "AvgSessionDurationMinutes"):
+        # 3. Session Duration Density by Game Difficulty
+        if analysis_choice == "All" or analysis_choice == "Session Duration Density by Game Difficulty":
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.kdeplot(data=df, x='AvgSessionDurationMinutes', hue='GameDifficulty', fill=True, alpha=0.5,
                         palette={'Easy':'#3498db', 'Medium':'#e74c3c', 'Hard':'#2ecc71'}, ax=ax)
@@ -348,8 +352,8 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 4: GameGenre vs Gender
-        if show_all or (x_axis == "GameGenre" and y_axis == "Gender"):
+        # 4. Game Genre Preferences by Gender
+        if analysis_choice == "All" or analysis_choice == "Game Genre Preferences by Gender":
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.countplot(data=df, x='GameGenre', hue='Gender', palette='Set2', ax=ax)
             ax.set_title('Game Genre Preferences by Gender', fontsize=14, weight='bold')
@@ -358,8 +362,8 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 5: Location vs EngagementLevel
-        if show_all or (x_axis == "Location" and y_axis == "EngagementLevel"):
+        # 5. Player Engagement Levels by Geographic Location
+        if analysis_choice == "All" or analysis_choice == "Player Engagement Levels by Geographic Location":
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.countplot(data=df, x='Location', hue='EngagementLevel', 
                           order=['Other', 'USA', 'Europe', 'Asia'], 
@@ -371,8 +375,8 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 6: GameDifficulty vs SessionsPerWeek
-        if show_all or (x_axis == "GameDifficulty" and y_axis == "SessionsPerWeek"):
+        # 6. Weekly Sessions Based on Game Difficulty
+        if analysis_choice == "All" or analysis_choice == "Weekly Sessions Based on Game Difficulty":
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.boxplot(data=df, x='GameDifficulty', y='SessionsPerWeek', 
                         order=['Easy', 'Medium', 'Hard'], palette='Wistia', ax=ax)
@@ -382,14 +386,14 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 7: Age vs AvgSessionDurationMinutes
-        if show_all or (x_axis == "Age" and y_axis == "AvgSessionDurationMinutes"):
+        # 7. Age vs. Average Session Duration
+        if analysis_choice == "All" or analysis_choice == "Age vs. Average Session Duration":
             jfig = sns.jointplot(data=df, x='Age', y='AvgSessionDurationMinutes', kind='hex', color='#4CB391', height=6)
             jfig.fig.suptitle('Age vs. Average Session Duration', fontsize=14, weight='bold', y=1.03)
             figures_to_plot.append(jfig.fig)
 
-        # Graph 8: Location vs InGamePurchases
-        if show_all or (x_axis == "Location" and y_axis == "InGamePurchases"):
+        # 8. In-Game Purchase Rate by Location
+        if analysis_choice == "All" or analysis_choice == "In-Game Purchase Rate by Location":
             fig, ax = plt.subplots(figsize=(8, 5))
             loc_purchase = df.groupby('Location')['InGamePurchases'].mean().loc[['Asia', 'Europe', 'Other', 'USA']].reset_index()
             sns.barplot(data=loc_purchase, x='Location', y='InGamePurchases', palette='cubehelix', ax=ax)
@@ -401,8 +405,8 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 9: GameDifficulty vs AchievementsUnlocked
-        if show_all or (x_axis == "GameDifficulty" and y_axis == "AchievementsUnlocked"):
+        # 9. Achievements Unlocked per Game Difficulty
+        if analysis_choice == "All" or analysis_choice == "Achievements Unlocked per Game Difficulty":
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.stripplot(data=df, x='GameDifficulty', y='AchievementsUnlocked', 
                           order=['Easy', 'Medium', 'Hard'], palette='Dark2', ax=ax, jitter=True)
@@ -412,8 +416,8 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Graph 10: EngagementLevel vs PlayTimeHours
-        if show_all or (x_axis == "EngagementLevel" and y_axis == "PlayTimeHours"):
+        # 10. Play Time Hours by Engagement Level
+        if analysis_choice == "All" or analysis_choice == "Play Time Hours by Engagement Level":
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.violinplot(
                 data=df, x='EngagementLevel', y='PlayTimeHours', 
@@ -427,21 +431,18 @@ with tab_eda:
             sns.despine()
             figures_to_plot.append(fig)
 
-        # Render Versus Figures neatly in rows of 2 (Throws a warning if they mismatch entirely)
-        if not figures_to_plot:
-            st.warning("⚠️ No specific chart available for this exact feature combination in the notebook. Please select 'All' to view available graphs or choose a valid pair.")
-        else:
-            for i in range(0, len(figures_to_plot), 2):
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    st.pyplot(figures_to_plot[i])
-                with col_b:
-                    if i + 1 < len(figures_to_plot):
-                        st.pyplot(figures_to_plot[i+1])
+        # Render figures cleanly in rows of 2
+        for i in range(0, len(figures_to_plot), 2):
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.pyplot(figures_to_plot[i])
+            with col_b:
+                if i + 1 < len(figures_to_plot):
+                    st.pyplot(figures_to_plot[i+1])
 
         st.markdown("---")
 
-        # --- CORRELATION HEATMAP SECTION (Moved below Versus) ---
+        # --- CORRELATION HEATMAP SECTION (Positioned right below Versus) ---
         st.markdown("####  Correlation Heatmap")
         st.write("Correlation of target variable among each numerical column.")
         
@@ -449,10 +450,8 @@ with tab_eda:
         numeric_cols_df = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
         corr_matrix = numeric_cols_df.corr()
         
-        # Create mask
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
         
-        # Plot Heatmap mimicking ipynb style
         sns.heatmap(
             corr_matrix, mask=mask, annot=True, cmap='vlag', 
             fmt=".2f", linewidths=1, cbar_kws={"shrink": .8}, 
@@ -481,7 +480,6 @@ with tab_perf:
     with col_perf2:
         st.markdown("##### Overall Accuracy Comparison (All Models)")
         
-        # Bar chart comparing all models
         fig_summary = px.bar(
             summary_df.sort_values("Accuracy", ascending=True), 
             x="Accuracy", 
