@@ -4,26 +4,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
+import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 
+# ==========================================
 # 1. Page Configuration
-st.set_page_config(page_title="Online Gaming Behavior Dashboard", layout="wide")
+# ==========================================
+st.set_page_config(page_title="Online Gaming Analytics", page_icon="🎮", layout="wide")
+st.markdown("## 🎮 Online Gaming Behavior Analysis & Prediction")
 
-# Use markdown for a smaller, single-line title
-st.markdown("### 🎮 Online Gaming Behavior Analysis & Prediction Dashboard")
-
-# Set Seaborn theme and remove top/right borders
-sns.set_theme(style="white", context="notebook", font_scale=1.1)
+# Set Seaborn theme
+sns.set_theme(style="white", context="notebook", font_scale=1.0)
 plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
-# 2. Load Data
+# ==========================================
+# 2. Data Loading & Caching
+# ==========================================
 @st.cache_data
 def load_data():
     df = pd.read_csv('online_gaming_behavior_dataset.csv')
@@ -31,7 +34,9 @@ def load_data():
 
 df = load_data()
 
-# 3. Train Machine Learning Models & Calculate Metrics
+# ==========================================
+# 3. Model Training & Metrics Calculation
+# ==========================================
 @st.cache_resource
 def train_models(df):
     df_model = df.copy()
@@ -52,37 +57,47 @@ def train_models(df):
     
     # Initialize 4 Models
     models = {
-        "Random Forest": RandomForestClassifier(n_estimators=50, random_state=42),
-        "Logistic Regression": LogisticRegression(max_iter=1000),
+        "Logistic Regression (Baseline)": LogisticRegression(max_iter=1000),
         "Decision Tree": DecisionTreeClassifier(random_state=42),
-        "K-Nearest Neighbors": KNeighborsClassifier(n_neighbors=5)
+        "K-Nearest Neighbors (KNN)": KNeighborsClassifier(n_neighbors=5),
+        "Random Forest (Champion)": RandomForestClassifier(n_estimators=50, random_state=42)
     }
     
     trained_models = {}
-    metrics = {}
+    summary_metrics = []
+    detailed_reports = {}
     target_names = le_dict['EngagementLevel'].classes_
     
-    # Train all 4 models and save metrics (output_dict=True for table rendering later)
     for name, model in models.items():
         model.fit(X_train, y_train)
         pred = model.predict(X_test_scaled)
         trained_models[name] = model
-        metrics[name] = {
-            "Accuracy": accuracy_score(y_test, pred),
-            "Report": classification_report(y_test, pred, target_names=target_names, output_dict=True)
-        }
         
-    return trained_models, le_dict, scaler, X.columns, metrics
+        # Calculate scores
+        acc = accuracy_score(y_test, pred)
+        prec = precision_score(y_test, pred, average='weighted', zero_division=0)
+        rec = recall_score(y_test, pred, average='weighted', zero_division=0)
+        f1 = f1_score(y_test, pred, average='weighted', zero_division=0)
+        
+        summary_metrics.append({
+            "Model": name, "Accuracy": acc, "Precision": prec, "Recall": rec, "F1-Score": f1
+        })
+        
+        detailed_reports[name] = classification_report(y_test, pred, target_names=target_names, output_dict=True)
+        
+    summary_df = pd.DataFrame(summary_metrics)
+    
+    return trained_models, le_dict, scaler, X.columns, summary_df, detailed_reports
 
-models_dict, le_dict, scaler, feature_cols, model_metrics = train_models(df)
+models_dict, le_dict, scaler, feature_cols, summary_df, detailed_reports = train_models(df)
 
 # ==========================================
-# Sidebar: User Input & Prediction System
+# 4. Sidebar: User Input (Single Prediction)
 # ==========================================
-st.sidebar.header("🔮 Player Engagement Predictor")
-selected_model_name = st.sidebar.selectbox("Select Prediction Model", list(models_dict.keys()))
+st.sidebar.markdown("### 🔮 Single Player Prediction")
+selected_model_name = st.sidebar.selectbox("Select Model", list(models_dict.keys()), index=3)
 
-# Input widgets
+st.sidebar.markdown("**Player Features**")
 age = st.sidebar.slider("Age", int(df['Age'].min()), int(df['Age'].max()), 25)
 gender = st.sidebar.selectbox("Gender", df['Gender'].unique())
 location = st.sidebar.selectbox("Location", df['Location'].unique())
@@ -91,53 +106,79 @@ play_time = st.sidebar.number_input("Play Time (Hours)", 0.0, 24.0, 10.0)
 in_purchases = st.sidebar.selectbox("In-Game Purchases", [0, 1])
 difficulty = st.sidebar.selectbox("Game Difficulty", df['GameDifficulty'].unique())
 sessions = st.sidebar.slider("Sessions Per Week", int(df['SessionsPerWeek'].min()), int(df['SessionsPerWeek'].max()), 5)
-avg_duration = st.sidebar.slider("Avg Session Duration (Minutes)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
+avg_duration = st.sidebar.slider("Avg Session Duration (Mins)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
 player_level = st.sidebar.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
 achievements = st.sidebar.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
 
-if st.sidebar.button("Predict Engagement Level"):
-    input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
-                                difficulty, sessions, avg_duration, player_level, achievements]], 
-                              columns=feature_cols)
-    
-    for col in ['Gender', 'Location', 'GameGenre', 'GameDifficulty']:
-        input_data[col] = le_dict[col].transform(input_data[col])
+predict_btn = st.sidebar.button("🚀 Predict Risk / Engagement", use_container_width=True)
+
+# ==========================================
+# 5. Main Content: 5 Professional Tabs
+# ==========================================
+tab_pred, tab_eda, tab_perf, tab_batch, tab_about = st.tabs([
+    "🎯 Prediction Result", "📊 Data Exploration", "📈 Model Performance", "📁 Batch Prediction", "ℹ️ About"
+])
+
+# ------------------------------------------
+# TAB 1: Single Prediction Result
+# ------------------------------------------
+with tab_pred:
+    st.markdown("### Player Engagement Prediction")
+    if predict_btn:
+        input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
+                                    difficulty, sessions, avg_duration, player_level, achievements]], 
+                                  columns=feature_cols)
         
-    input_scaled = scaler.transform(input_data)
+        for col in ['Gender', 'Location', 'GameGenre', 'GameDifficulty']:
+            input_data[col] = le_dict[col].transform(input_data[col])
+            
+        input_scaled = scaler.transform(input_data)
+        model = models_dict[selected_model_name]
+        pred_encoded = model.predict(input_scaled)[0]
+        prediction = le_dict['EngagementLevel'].inverse_transform([pred_encoded])[0]
+        
+        st.success("Prediction completed successfully!")
+        
+        # Display result nicely
+        col_res1, col_res2 = st.columns([1, 2])
+        with col_res1:
+            st.metric(label="Predicted Engagement Level", value=prediction)
+            st.info(f"Model Used: {selected_model_name}")
+        with col_res2:
+            st.write("**Player Profile Summary:**")
+            st.write(f"- **Genre & Difficulty:** {genre} | {difficulty}")
+            st.write(f"- **Activity:** {play_time} Hours/Week | {sessions} Sessions")
+            st.write(f"- **Progression:** Level {player_level} | {achievements} Achievements")
+    else:
+        st.info("👈 Please enter player details in the sidebar and click 'Predict' to view results.")
+
+# ------------------------------------------
+# TAB 2: Data Exploration
+# ------------------------------------------
+with tab_eda:
+    st.markdown("### Exploratory Data Analysis")
     
-    # Predict using the selected model
-    model = models_dict[selected_model_name]
-    pred_encoded = model.predict(input_scaled)[0]
-    prediction = le_dict['EngagementLevel'].inverse_transform([pred_encoded])[0]
+    # Dataset Overview Metrics (Like in the video)
+    st.markdown("##### Dataset Overview")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total Players (Rows)", f"{df.shape[0]:,}")
+    m2.metric("Total Features (Columns)", df.shape[1])
+    m3.metric("Avg Play Time", f"{df['PlayTimeHours'].mean():.1f} hrs")
+    m4.metric("Avg Player Level", f"{df['PlayerLevel'].mean():.0f}")
     
-    st.sidebar.success(f"🎯 Prediction Success! Predicted Engagement Level: **{prediction}**")
+    st.markdown("---")
+    
+    # Sub-tabs for 15 charts
+    sub1, sub2, sub3 = st.tabs(["Basic Data Understanding", "Player Behavior Distribution", "In-Depth Correlation Analysis"])
 
-# Simplified Quick Metrics Expander in Sidebar
-with st.sidebar.expander("📊 Quick Model Accuracy"):
-    st.markdown(f"**Model:** {selected_model_name}")
-    st.markdown(f"**Accuracy:** {model_metrics[selected_model_name]['Accuracy']:.2%}")
-
-# ==========================================
-# Main Page: Two Main Tabs Layout
-# ==========================================
-st.markdown("---")
-main_tab1, main_tab2 = st.tabs(["📊 Data Exploration", "🤖 Model Performance"])
-
-# ---------------------------------------------------------
-# MAIN TAB 1: DATA EXPLORATION (The 15 Charts)
-# ---------------------------------------------------------
-with main_tab1:
-    st.markdown("#### Data Exploration & Visualization")
-    t1, t2, t3 = st.tabs(["Basic Data Understanding", "Player Behavior Distribution", "In-Depth Correlation Analysis"])
-
-    with t1:
+    with sub1:
         col1, col2 = st.columns(2)
         with col1:
             fig, ax = plt.subplots(figsize=(6, 4))
             sns.countplot(data=df, x='EngagementLevel', hue='EngagementLevel', order=['Low', 'Medium', 'High'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax, legend=False)
             ax.set_title('Distribution of Engagement Levels', pad=15)
             ax.bar_label(ax.containers[0], padding=3)
-            ax.margins(y=0.2) # Adds 20% top margin to prevent overlap
+            ax.margins(y=0.2) 
             sns.despine()
             fig.tight_layout() 
             st.pyplot(fig)
@@ -147,7 +188,7 @@ with main_tab1:
             sns.countplot(data=df, y='GameGenre', hue='GameGenre', palette='crest', ax=ax, legend=False)
             ax.set_title('Popularity of Game Genres', pad=15)
             ax.bar_label(ax.containers[0], padding=3)
-            ax.margins(x=0.2) # Adds right margin to prevent horizontal overlap
+            ax.margins(x=0.2) 
             sns.despine()
             fig.tight_layout()
             st.pyplot(fig)
@@ -182,7 +223,7 @@ with main_tab1:
         fig.tight_layout()
         st.pyplot(fig)
 
-    with t2:
+    with sub2:
         col5, col6 = st.columns(2)
         with col5:
             fig, ax = plt.subplots(figsize=(6, 4))
@@ -224,7 +265,7 @@ with main_tab1:
         fig.tight_layout()
         st.pyplot(fig)
 
-    with t3:
+    with sub3:
         col9, col10 = st.columns(2)
         with col9:
             fig, ax = plt.subplots(figsize=(6, 4))
@@ -260,7 +301,7 @@ with main_tab1:
             fig.tight_layout()
             st.pyplot(fig)
 
-        st.markdown("##### Correlation Heatmap (Full Numerical Features)")
+        st.markdown("##### Correlation Heatmap (Numerical Features)")
         fig, ax = plt.subplots(figsize=(10, 6))
         numeric_cols = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
         corr_matrix = numeric_cols.corr()
@@ -269,65 +310,102 @@ with main_tab1:
         fig.tight_layout()
         st.pyplot(fig)
 
-# ---------------------------------------------------------
-# MAIN TAB 2: MODEL PERFORMANCE (Metrics Table, Graph, Summary)
-# ---------------------------------------------------------
-with main_tab2:
-    st.markdown(f"#### 📊 Performance Metrics for: **{selected_model_name}**")
+# ------------------------------------------
+# TAB 3: Model Performance
+# ------------------------------------------
+with tab_perf:
+    st.markdown("### Model Performance Evaluation")
     
-    # 1. Convert classification report dict to DataFrame
-    report_dict = model_metrics[selected_model_name]["Report"]
-    report_df = pd.DataFrame(report_dict).transpose()
+    # Overview Table for all models
+    st.markdown("##### Performance Comparison (All Models)")
+    # Apply styling to dataframe
+    styled_df = summary_df.style.format({
+        "Accuracy": "{:.4f}", "Precision": "{:.4f}", "Recall": "{:.4f}", "F1-Score": "{:.4f}"
+    }).background_gradient(cmap='Greens', subset=['Accuracy', 'F1-Score'])
+    st.dataframe(styled_df, use_container_width=True, hide_index=True)
     
-    col_table, col_graph = st.columns([1, 1.5])
-    
-    with col_table:
-        st.markdown("**Classification Report Table**")
-        # Display nicely formatted dataframe (excluding accuracy row for cleaner look)
-        display_df = report_df.drop(['accuracy'], errors='ignore')
-        st.dataframe(display_df.style.format("{:.3f}"), use_container_width=True)
-        
-    with col_graph:
-        st.markdown("**Metrics Visualization (Precision, Recall, F1-Score)**")
-        # Extract only the class metrics (High, Low, Medium) for plotting
-        class_metrics = report_df.drop(['accuracy', 'macro avg', 'weighted avg'], errors='ignore')
-        
-        # Plotly grouped bar chart for precision, recall, f1-score
-        fig_metrics = px.bar(
-            class_metrics, 
-            y=['precision', 'recall', 'f1-score'], 
-            barmode='group', 
-            text_auto='.2f',
-            title=f"Class-wise Metrics - {selected_model_name}",
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-        fig_metrics.update_layout(xaxis_title="Engagement Level Class", yaxis_title="Score", legend_title="Metrics")
-        st.plotly_chart(fig_metrics, use_container_width=True)
-
-    # 2. Summary of ALL Models
     st.markdown("---")
-    st.markdown("#### 🏆 Summary of All Prediction Models")
     
-    # Create DataFrame for all models' accuracy
-    acc_data = [{"Model": name, "Accuracy": data["Accuracy"]} for name, data in model_metrics.items()]
-    acc_df = pd.DataFrame(acc_data).sort_values(by="Accuracy", ascending=False)
+    col_perf1, col_perf2 = st.columns([1, 1.2])
     
-    col_sum1, col_sum2 = st.columns([1, 2])
-    
-    with col_sum1:
-        st.markdown("**Accuracy Comparison Table**")
-        st.dataframe(acc_df.style.format({"Accuracy": "{:.2%}"}), use_container_width=True, hide_index=True)
+    with col_perf1:
+        st.markdown(f"##### Detailed Report: `{selected_model_name}`")
+        report_dict = detailed_reports[selected_model_name]
+        report_df = pd.DataFrame(report_dict).transpose().drop(['accuracy', 'macro avg', 'weighted avg'], errors='ignore')
+        st.dataframe(report_df.style.format("{:.3f}"), use_container_width=True)
         
-    with col_sum2:
-        # Bar chart comparing all models
-        fig_summary = px.bar(
-            acc_df, 
-            x="Accuracy", 
-            y="Model", 
-            orientation='h', 
-            text_auto='.2%', 
-            color="Model",
-            title="Overall Accuracy Comparison"
+    with col_perf2:
+        st.markdown("##### Performance Comparison Graph")
+        # Melting the summary dataframe for grouped bar chart
+        melted_df = summary_df.melt(id_vars="Model", var_name="Metric", value_name="Score")
+        fig_perf = px.bar(
+            melted_df, x="Metric", y="Score", color="Model", barmode="group",
+            text_auto='.3f', color_discrete_sequence=px.colors.qualitative.Set2
         )
-        fig_summary.update_layout(xaxis=dict(range=[0, 1]), showlegend=False)
-        st.plotly_chart(fig_summary, use_container_width=True)
+        fig_perf.update_layout(yaxis=dict(range=[0, 1]), margin=dict(t=20, b=0, l=0, r=0))
+        st.plotly_chart(fig_perf, use_container_width=True)
+
+# ------------------------------------------
+# TAB 4: Batch Prediction
+# ------------------------------------------
+with tab_batch:
+    st.markdown("### Batch Prediction")
+    st.markdown("Upload a CSV file to predict engagement levels for multiple players at once.")
+    st.info("Note: The CSV must contain the exact same columns as the training data (excluding PlayerID and EngagementLevel).")
+    
+    uploaded_file = st.file_uploader("Upload Player Data CSV", type=['csv'])
+    
+    if uploaded_file is not None:
+        batch_df = pd.read_csv(uploaded_file)
+        st.write("Preview of Uploaded Data:")
+        st.dataframe(batch_df.head(), use_container_width=True)
+        
+        if st.button("Run Batch Prediction"):
+            with st.spinner("Processing data and predicting..."):
+                try:
+                    # Filter only required columns
+                    process_df = batch_df[feature_cols].copy()
+                    
+                    # Encode categorical
+                    for col in ['Gender', 'Location', 'GameGenre', 'GameDifficulty']:
+                        process_df[col] = le_dict[col].transform(process_df[col])
+                        
+                    # Scale
+                    process_scaled = scaler.transform(process_df)
+                    
+                    # Predict
+                    model = models_dict[selected_model_name]
+                    preds_encoded = model.predict(process_scaled)
+                    preds = le_dict['EngagementLevel'].inverse_transform(preds_encoded)
+                    
+                    # Add prediction to original df
+                    batch_df['Predicted_Engagement'] = preds
+                    
+                    st.success(f"Successfully generated predictions for {len(batch_df)} players!")
+                    st.dataframe(batch_df[['Predicted_Engagement'] + feature_cols.tolist()], use_container_width=True)
+                    
+                except Exception as e:
+                    st.error(f"Error processing file. Please ensure columns match perfectly. Error: {e}")
+
+# ------------------------------------------
+# TAB 5: About This Project
+# ------------------------------------------
+with tab_about:
+    st.markdown("### About This Project")
+    st.markdown("""
+    This application uses Machine Learning to predict **Player Engagement Levels** (Low, Medium, High) based on player behavior and demographics.
+    
+    #### ⚙️ 4 Base Models Evaluated:
+    1. **Logistic Regression:** Used as a baseline linear model.
+    2. **K-Nearest Neighbors (KNN):** Evaluates players based on similarity to others.
+    3. **Decision Tree:** Uses branching logic to categorize players based on thresholds.
+    4. **Random Forest:** An ensemble of decision trees, acting as the **Champion Model** due to its robustness against overfitting.
+    
+    #### 📂 Features Used:
+    - **Demographics:** Age, Gender, Location
+    - **Preferences:** Game Genre, Game Difficulty
+    - **Activity:** Play Time (Hours), Sessions Per Week, Avg Session Duration
+    - **Progression:** Player Level, Achievements Unlocked, In-Game Purchases
+    
+    *Disclaimer: This is for educational and portfolio purposes.*
+    """)
