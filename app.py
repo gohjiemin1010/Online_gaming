@@ -7,11 +7,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, classification_report
 
 # 1. Page Configuration
 st.set_page_config(page_title="Online Gaming Behavior Dashboard", layout="wide")
-st.title("🎮 Online Gaming Behavior Analysis & Prediction Dashboard")
-st.markdown("Based on Exploratory Data Analysis and Machine Learning Models.")
+
+# Use markdown for a smaller, single-line title and removed the subtitle
+st.markdown("### 🎮 Online Gaming Behavior Analysis & Prediction Dashboard")
 
 # Set Seaborn theme and remove top/right borders
 sns.set_theme(style="white", context="notebook", font_scale=1.1)
@@ -26,7 +28,7 @@ def load_data():
 
 df = load_data()
 
-# 3. Train Machine Learning Models
+# 3. Train Machine Learning Models & Calculate Metrics
 @st.cache_resource
 def train_models(df):
     df_model = df.copy()
@@ -43,18 +45,34 @@ def train_models(df):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
     
     # Model 1: Random Forest
     rf = RandomForestClassifier(n_estimators=50, random_state=42)
     rf.fit(X_train, y_train)
+    rf_pred = rf.predict(X_test_scaled)
     
     # Model 2: Logistic Regression
     lr = LogisticRegression(max_iter=1000)
     lr.fit(X_train, y_train)
+    lr_pred = lr.predict(X_test_scaled)
     
-    return rf, lr, le_dict, scaler, X.columns
+    # Calculate Metrics
+    target_names = le_dict['EngagementLevel'].classes_
+    metrics = {
+        "Random Forest": {
+            "Accuracy": accuracy_score(y_test, rf_pred),
+            "Report": classification_report(y_test, rf_pred, target_names=target_names)
+        },
+        "Logistic Regression": {
+            "Accuracy": accuracy_score(y_test, lr_pred),
+            "Report": classification_report(y_test, lr_pred, target_names=target_names)
+        }
+    }
+    
+    return rf, lr, le_dict, scaler, X.columns, metrics
 
-rf_model, lr_model, le_dict, scaler, feature_cols = train_models(df)
+rf_model, lr_model, le_dict, scaler, feature_cols, model_metrics = train_models(df)
 
 # ==========================================
 # Sidebar: User Input & Prediction System
@@ -90,6 +108,12 @@ if st.sidebar.button("Predict Engagement Level"):
     
     st.sidebar.success(f"🎯 Prediction Success! Predicted Engagement Level: **{prediction}**")
 
+# Model Performance Metrics Expander
+with st.sidebar.expander("📊 View Model Performance Metrics"):
+    st.markdown(f"**Model:** {selected_model_name}")
+    st.markdown(f"**Accuracy:** {model_metrics[selected_model_name]['Accuracy']:.2%}")
+    st.text(model_metrics[selected_model_name]['Report'])
+
 # ==========================================
 # Main Page: Data Visualizations (15 Charts)
 # ==========================================
@@ -100,25 +124,25 @@ st.header("📈 Data Exploration & Visualization")
 t1, t2, t3 = st.tabs(["Basic Data Understanding", "Player Behavior Distribution", "In-Depth Correlation Analysis"])
 
 with t1:
-    st.subheader("Basic Dataset Overview & Categorical Variables")
-    
     col1, col2 = st.columns(2)
     with col1:
         # Chart 1
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.countplot(data=df, x='EngagementLevel', hue='EngagementLevel', order=['Low', 'Medium', 'High'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax, legend=False)
-        ax.set_title('Distribution of Engagement Levels')
+        ax.set_title('Distribution of Engagement Levels', pad=15)
         ax.bar_label(ax.containers[0], padding=3)
+        ax.margins(y=0.2) # Added margin to prevent overlap
         sns.despine()
-        fig.tight_layout() # This prevents overlapping
+        fig.tight_layout() 
         st.pyplot(fig)
         
     with col2:
         # Chart 2
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.countplot(data=df, y='GameGenre', hue='GameGenre', palette='crest', ax=ax, legend=False)
-        ax.set_title('Popularity of Game Genres')
+        ax.set_title('Popularity of Game Genres', pad=15)
         ax.bar_label(ax.containers[0], padding=3)
+        ax.margins(x=0.2) # Added margin to prevent overlap for horizontal bars
         sns.despine()
         fig.tight_layout()
         st.pyplot(fig)
@@ -128,8 +152,9 @@ with t1:
         # Chart 3
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.countplot(data=df, x='Gender', hue='Gender', palette='Set2', ax=ax, legend=False)
-        ax.set_title('Gender Distribution')
+        ax.set_title('Gender Distribution', pad=15)
         ax.bar_label(ax.containers[0], padding=3)
+        ax.margins(y=0.2)
         sns.despine()
         fig.tight_layout()
         st.pyplot(fig)
@@ -138,8 +163,9 @@ with t1:
         # Chart 4
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.countplot(data=df, x='Location', hue='Location', palette='muted', ax=ax, legend=False)
-        ax.set_title('Location Distribution')
+        ax.set_title('Location Distribution', pad=15)
         ax.bar_label(ax.containers[0], padding=3)
+        ax.margins(y=0.2)
         sns.despine()
         fig.tight_layout()
         st.pyplot(fig)
@@ -147,15 +173,14 @@ with t1:
     # Chart 5
     fig, ax = plt.subplots(figsize=(8, 4))
     sns.countplot(data=df, x='GameDifficulty', hue='GameDifficulty', palette='Blues', ax=ax, legend=False)
-    ax.set_title('Game Difficulty Breakdown')
+    ax.set_title('Game Difficulty Breakdown', pad=15)
     ax.bar_label(ax.containers[0], padding=3)
+    ax.margins(y=0.2)
     sns.despine()
     fig.tight_layout()
     st.pyplot(fig)
 
 with t2:
-    st.subheader("Numerical Variables Distribution (Histogram + KDE)")
-    
     col5, col6 = st.columns(2)
     with col5:
         # Chart 6
@@ -203,8 +228,6 @@ with t2:
     st.pyplot(fig)
 
 with t3:
-    st.subheader("Advanced Correlation & Cross-Variable Analysis")
-    
     col9, col10 = st.columns(2)
     with col9:
         # Chart 11
