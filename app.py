@@ -79,7 +79,7 @@ div.stButton > button:first-child:hover {
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("## 🎮 Online Gaming Behavior Analysis & Prediction")
+st.markdown("##  Online Gaming Behavior Analysis & Prediction")
 
 # Set Seaborn theme matching ipynb
 sns.set_theme(style="white", context="notebook", font_scale=1.1)
@@ -1049,7 +1049,7 @@ with tab_pred:
         st.markdown("---")
         
         # 4. Player Profile Layout (4 columns x 3 rows Metric Cards)
-        st.markdown("#### 👤 Player Profile Evaluated")
+        st.markdown("####  Player Profile Evaluated")
         p_col1, p_col2, p_col3, p_col4 = st.columns(4)
         
         with p_col1:
