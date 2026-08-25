@@ -13,9 +13,28 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import accuracy_score, classification_report
 
 # ==========================================
-# 1. Page Configuration
+# 1. Page Configuration & Custom CSS (For 3D Cards)
 # ==========================================
 st.set_page_config(page_title="Online Gaming Analytics", page_icon="🎮", layout="wide")
+
+# Custom CSS for 3D Shadow and Hover Animation on Metric Cards
+st.markdown("""
+<style>
+[data-testid="stMetric"] {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* 3D Shadow effect */
+    border-top: 4px solid #4A90E2; /* Blue top border */
+    transition: all 0.3s ease; /* Smooth animation */
+}
+[data-testid="stMetric"]:hover {
+    transform: translateY(-5px); /* Moves up slightly when hovered */
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2); /* Shadow gets bigger */
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.markdown("## 🎮 Online Gaming Behavior Analysis & Prediction")
 
 # Set Seaborn theme
@@ -146,25 +165,18 @@ with tab_pred:
 with tab_eda:
     st.markdown("### Exploratory Data Analysis")
     
-    # Beautiful Boxed Metric Cards
+    # Beautiful 3D Animated Metric Cards
     st.markdown("##### Dataset Overview")
     m1, m2, m3, m4, m5 = st.columns(5)
-    with m1:
-        with st.container(border=True):
-            st.metric("Total Players", f"{df.shape[0]:,}")
-    with m2:
-        with st.container(border=True):
-            st.metric("Total Features", df.shape[1])
-    with m3:
-        with st.container(border=True):
-            st.metric("Avg Play Time", f"{df['PlayTimeHours'].mean():.1f} hrs")
-    with m4:
-        with st.container(border=True):
-            st.metric("Avg Player Level", f"{df['PlayerLevel'].mean():.0f}")
+    
+    # We removed st.container(border=True) because the CSS handles the styling beautifully now!
+    with m1: st.metric("Total Players", f"{df.shape[0]:,}")
+    with m2: st.metric("Total Features", df.shape[1])
+    with m3: st.metric("Avg Play Time", f"{df['PlayTimeHours'].mean():.1f} hrs")
+    with m4: st.metric("Avg Player Level", f"{df['PlayerLevel'].mean():.0f}")
     with m5:
-        with st.container(border=True):
-            freq_eng = df['EngagementLevel'].mode()[0]
-            st.metric("Most Frequent Engagement", freq_eng)
+        freq_eng = df['EngagementLevel'].mode()[0]
+        st.metric("Most Frequent Engagement", freq_eng)
     
     st.markdown("---")
     
@@ -172,9 +184,10 @@ with tab_eda:
     sub1, sub2, sub3 = st.tabs(["Basic Data Understanding", "Player Behavior Distribution", "In-Depth Correlation Analysis"])
 
     with sub1:
-        # Dataset Preview Dropdown
+        # Dataset Preview using number_input (+ / - buttons)
         st.markdown("#### 🔍 Dataset Preview")
-        row_count = st.selectbox("Select number of rows to display:", [5, 10, 20, 50, 100])
+        st.write("Use the +/- buttons or type a number to view more rows.")
+        row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
         st.dataframe(df.head(row_count), use_container_width=True)
         
         st.markdown("---")
@@ -185,7 +198,6 @@ with tab_eda:
         
         if summary_choice == "Numerical Summary":
             st.markdown("**Full Dataset Statistical Profile (Numerical)**")
-            # Mimicking the Jupyter Notebook logic
             num_desc = df.describe().T
             num_desc['range'] = num_desc['max'] - num_desc['min']
             num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
@@ -195,7 +207,6 @@ with tab_eda:
         elif summary_choice == "Categorical Summary":
             st.markdown("**Categorical Features Value Counts**")
             cat_cols = df.select_dtypes(include=['object']).columns
-            # Display categorical summaries as clean side-by-side tables
             table_cols = st.columns(len(cat_cols))
             for i, col in enumerate(cat_cols):
                 with table_cols[i]:
@@ -206,12 +217,10 @@ with tab_eda:
 
     with sub2:
         st.markdown("#### 📊 Numerical Features Distribution")
-        # Dropdown to select a specific numerical column or "All"
         num_cols = df.select_dtypes(include=['int64', 'float64']).columns.drop('PlayerID', errors='ignore').tolist()
         dist_choice = st.selectbox("Select Feature to Visualize:", ["All"] + num_cols)
         
         if dist_choice == "All":
-            # Show all numerical distributions in a grid
             grid_cols = st.columns(2)
             for i, col in enumerate(num_cols):
                 with grid_cols[i % 2]:
@@ -222,7 +231,6 @@ with tab_eda:
                     fig.tight_layout()
                     st.pyplot(fig)
         else:
-            # Show only the selected column
             fig, ax = plt.subplots(figsize=(10, 5))
             sns.histplot(df[dist_choice], bins=25, kde=True, color='#9b59b6', edgecolor='white', ax=ax)
             ax.set_title(f'{dist_choice} Distribution', pad=15)
@@ -249,10 +257,31 @@ with tab_eda:
             fig.tight_layout()
             st.pyplot(fig)
 
-        st.markdown("##### Correlation Heatmap (Numerical Features)")
+        st.markdown("---")
+        
+        # =========================================
+        # NEW: Interactive Feature vs Feature Explorer
+        # =========================================
+        st.markdown("#### ⚔️ Interactive Feature vs Feature Explorer")
+        st.write("Select any two numerical features to see how they correlate with each other and player engagement.")
+        
+        col_x, col_y = st.columns(2)
+        with col_x:
+            x_axis = st.selectbox("Select X-Axis Feature:", num_cols, index=0)
+        with col_y:
+            y_axis = st.selectbox("Select Y-Axis Feature:", num_cols, index=len(num_cols)-1)
+            
+        # Using a sample of 2000 so the scatter plot loads fast and doesn't look messy
+        fig_vs = px.scatter(df.sample(2000, random_state=42), x=x_axis, y=y_axis, color="EngagementLevel", 
+                            title=f"Scatter Plot: {x_axis} vs {y_axis}", opacity=0.7,
+                            color_discrete_sequence=px.colors.qualitative.Pastel)
+        st.plotly_chart(fig_vs, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("##### 🌡️ Correlation Heatmap (Numerical Features)")
         fig, ax = plt.subplots(figsize=(10, 6))
-        numeric_cols = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
-        corr_matrix = numeric_cols.corr()
+        numeric_cols_df = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
+        corr_matrix = numeric_cols_df.corr()
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
         sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='vlag', fmt=".2f", linewidths=1, ax=ax, center=0)
         fig.tight_layout()
