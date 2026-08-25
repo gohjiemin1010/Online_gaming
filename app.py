@@ -867,7 +867,7 @@ with tab_perf:
     # =========================================================
 
     st.markdown("---")
-    st.markdown("## 📊 Overall Model Comparison")
+    st.markdown("##  Overall Model Comparison")
 
     # Exact values from the notebook final comparison
     comparison_df = pd.DataFrame({
@@ -997,11 +997,12 @@ with tab_perf:
     )
 
 # ------------------------------------------
-# TAB 3: Single Prediction Result 
+# TAB 3: Single Prediction Result & Insights
 # ------------------------------------------
 with tab_pred:
-    st.markdown("### Prediction Result")
+    st.markdown("### 🎯 Prediction Result & Insights")
     if predict_btn:
+        # 1. 准备输入数据
         input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
                                     difficulty, sessions, avg_duration, player_level, achievements]], 
                                   columns=feature_cols)
@@ -1011,16 +1012,70 @@ with tab_pred:
             
         input_scaled = scaler.transform(input_data)
         model = models_dict[selected_model_name]
+        
+        # 2. 获取预测类别和预测概率
         pred_encoded = model.predict(input_scaled)[0]
         prediction = le_dict['EngagementLevel'].inverse_transform([pred_encoded])[0]
         
-        st.success(f"Prediction completed successfully using **{selected_model_name}**!")
-        st.metric(label="Predicted Engagement Level", value=prediction)
+        probabilities = model.predict_proba(input_scaled)[0]
+        classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
+        prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
         
-        st.write("---")
-        st.write("**Player Profile Summary Evaluated:**")
-        st.write(f"- **Genre & Difficulty:** {genre} | {difficulty}")
-        st.write(f"- **Activity:** {play_time} Hours/Week | {sessions} Sessions")
-        st.write(f"- **Progression:** Level {player_level} | {achievements} Achievements")
+        st.success(f"Prediction completed successfully using **{selected_model_name}**!")
+        
+        # 3. 布局设计：左边放预测结果和建议，右边放概率图
+        col_res, col_prob = st.columns([1, 1.2])
+        
+        with col_res:
+            st.metric(label="Predicted Engagement Level", value=prediction)
+            
+            # 增加业务洞察/建议 (Business Recommendation)
+            st.markdown("#### 💡 Actionable Insight")
+            if prediction == "Low":
+                st.warning("**Retention Risk!** Consider sending re-engagement emails, offering free starter packs, or suggesting easier game modes.")
+            elif prediction == "Medium":
+                st.info("**Steady Player.** Good potential for growth. Try offering limited-time quests or unlocking mid-tier achievements to increase sessions.")
+            else:
+                st.success("**Highly Engaged!** Ideal target for premium in-game purchases, exclusive VIP events, or beta testing new features.")
+                
+        with col_prob:
+            st.markdown("#### Model Confidence (Probabilities)")
+            # 使用横向柱状图展示模型对三个类别的预测概率
+            fig_prob = px.bar(
+                prob_df, x="Probability", y="Engagement Level", 
+                orientation='h', text_auto='.1%', 
+                color="Engagement Level",
+                color_discrete_map={'Low': '#ff9999', 'Medium': '#66b3ff', 'High': '#99ff99'}
+            )
+            fig_prob.update_layout(
+                xaxis=dict(range=[0, 1], tickformat=".0%"), 
+                showlegend=False, 
+                height=250, 
+                margin=dict(l=0, r=0, t=30, b=0)
+            )
+            st.plotly_chart(fig_prob, use_container_width=True)
+        
+        st.markdown("---")
+        
+        # 4. 优化玩家资料的展示方式 (使用 Metric 卡片排版)
+        st.markdown("#### 👤 Player Profile Evaluated")
+        p_col1, p_col2, p_col3, p_col4 = st.columns(4)
+        
+        with p_col1:
+            st.metric("Demographics", f"Age {age} | {gender}")
+            st.metric("Location", location)
+            
+        with p_col2:
+            st.metric("Game Genre", genre)
+            st.metric("Difficulty", difficulty)
+            
+        with p_col3:
+            st.metric("Play Time", f"{play_time} hrs")
+            st.metric("Sessions/Week", sessions)
+            
+        with p_col4:
+            st.metric("Player Level", f"Lv. {player_level}")
+            st.metric("In-Game Purchase", "Yes" if in_purchases == 1 else "No")
+            
     else:
-        st.info("👈 Please enter player details in the sidebar and click 'Predict' to view results.")
+        st.info("👈 Please enter player details in the sidebar and click 'Predict' to view detailed results.")
