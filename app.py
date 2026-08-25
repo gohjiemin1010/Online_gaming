@@ -17,7 +17,7 @@ from sklearn.metrics import accuracy_score, classification_report
 # ==========================================
 st.set_page_config(page_title="Online Gaming Analytics", page_icon="🎮", layout="wide")
 
-# Custom CSS for Full Purple Theme, 3D Cards, Larger Tabs, and Spacing
+# Custom CSS for Purple Theme, 3D Cards, Larger Tabs, and Spacing
 st.markdown("""
 <style>
 /* Move the main title up by reducing top padding */
@@ -55,26 +55,10 @@ div.stButton > button:first-child {
 div.stButton > button:first-child:hover {
     background-color: #5b0b9c !important;
 }
-
-/* ========================================================= */
-/* OVERRIDE STREAMLIT RED COLOR TO PURPLE FOR SLIDERS & INPUTS */
-/* ========================================================= */
-/* Sliders Track and Thumb */
-div[data-baseweb="slider"] > div > div > div > div {
-    background-color: #6A0DAD !important; 
-}
-div[data-baseweb="slider"] > div > div > div[role="slider"] {
-    background-color: #6A0DAD !important;
-    border-color: #6A0DAD !important;
-}
-/* Number input focus borders */
-div[data-baseweb="input"]:focus-within {
-    border-color: #6A0DAD !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("## Online Gaming Behavior Analysis & Prediction Dashboard")
+st.markdown("## 🎮 Online Gaming Behavior Analysis & Prediction")
 
 # Set Seaborn theme
 sns.set_theme(style="white", context="notebook", font_scale=1.0)
@@ -143,7 +127,7 @@ models_dict, le_dict, scaler, feature_cols, summary_df, detailed_reports = train
 # ==========================================
 # 4. Sidebar: User Input (Single Prediction)
 # ==========================================
-st.sidebar.markdown("### Player Engagement Predictor")
+st.sidebar.markdown("### 🔮 Player Engagement Predictor")
 selected_model_name = st.sidebar.selectbox("Select Model", list(models_dict.keys()), index=1)
 
 st.sidebar.markdown("**Player Features**")
@@ -162,7 +146,7 @@ achievements = st.sidebar.slider("Achievements Unlocked", int(df['AchievementsUn
 predict_btn = st.sidebar.button("Predict Engagement", use_container_width=True)
 
 # Quick Metrics in Sidebar
-with st.sidebar.expander("Quick Model Accuracy"):
+with st.sidebar.expander("📊 Quick Model Accuracy"):
     current_acc = summary_df[summary_df['Model'] == selected_model_name]['Accuracy'].values[0]
     st.markdown(f"**Model:** {selected_model_name}")
     st.markdown(f"**Accuracy:** {current_acc:.2%}")
@@ -198,7 +182,7 @@ with tab_eda:
 
     with sub1:
         # Dataset Preview using number_input
-        st.markdown("#### Dataset Preview")
+        st.markdown("#### 🔍 Dataset Preview")
         st.write("Use the +/- buttons or type a number to view more rows.")
         row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
         st.dataframe(df.head(row_count), use_container_width=True)
@@ -206,7 +190,7 @@ with tab_eda:
         st.markdown("---")
         
         # Statistical Summaries Dropdown (From Jupyter Notebook)
-        st.markdown("#### Statistical Summaries")
+        st.markdown("#### 📋 Statistical Summaries")
         summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
         
         if summary_choice == "Numerical Summary":
@@ -229,55 +213,80 @@ with tab_eda:
                     st.dataframe(vc, hide_index=True, use_container_width=True)
 
     with sub2:
-        st.markdown("#### Features Distribution")
+        st.markdown("#### 📊 Features Distribution")
+        st.write("Select any feature (Numerical or Categorical) to view its distribution.")
         
-        # Strictly from your Jupyter Notebook
-        notebook_features = ['Age', 'PlayTimeHours', 'SessionsPerWeek', 'AvgSessionDurationMinutes']
-        dist_choice = st.selectbox("Select Feature to Visualize:", ["All"] + notebook_features)
+        # Combine all relevant columns for the dropdown
+        all_features = df.columns.drop(['PlayerID'], errors='ignore').tolist()
+        dist_choice = st.selectbox("Select Feature to Visualize:", ["All"] + all_features)
         
         if dist_choice == "All":
+            # Display all features in a grid
             grid_cols = st.columns(2)
-            for i, col in enumerate(notebook_features):
+            for i, col in enumerate(all_features):
                 with grid_cols[i % 2]:
                     fig, ax = plt.subplots(figsize=(6, 4))
-                    sns.histplot(df[col], bins=25, kde=True, color='#6A0DAD', edgecolor='white', ax=ax)
+                    if df[col].dtype in ['int64', 'float64']:
+                        sns.histplot(df[col], bins=25, kde=True, color='#6A0DAD', edgecolor='white', ax=ax)
+                    else:
+                        sns.countplot(data=df, x=col, palette='Purples', ax=ax)
                     ax.set_title(f'{col} Distribution', pad=15)
                     ax.margins(y=0.2)
                     sns.despine()
                     fig.tight_layout()
                     st.pyplot(fig)
         else:
+            # Display single selected feature
             fig, ax = plt.subplots(figsize=(10, 5))
-            sns.histplot(df[dist_choice], bins=25, kde=True, color='#6A0DAD', edgecolor='white', ax=ax)
+            if df[dist_choice].dtype in ['int64', 'float64']:
+                sns.histplot(df[dist_choice], bins=25, kde=True, color='#6A0DAD', edgecolor='white', ax=ax)
+            else:
+                sns.countplot(data=df, x=dist_choice, palette='Purples', ax=ax)
             ax.set_title(f'{dist_choice} Distribution', pad=15)
             ax.margins(y=0.2)
             sns.despine()
             fig.tight_layout()
             st.pyplot(fig)
 
+    with sub3:
+        st.markdown("#### 🔗 Advanced Correlation Analysis")
+        col9, col10 = st.columns(2)
+        with col9:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            sns.boxplot(data=df, x='EngagementLevel', y='PlayTimeHours', hue='EngagementLevel', order=['Low', 'Medium', 'High'], palette='Purples', ax=ax, legend=False)
+            ax.set_title('Play Time vs Engagement Level')
+            sns.despine()
+            fig.tight_layout()
+            st.pyplot(fig)
+            
+        with col10:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            sns.boxplot(data=df, x='EngagementLevel', y='PlayerLevel', hue='EngagementLevel', order=['Low', 'Medium', 'High'], palette='Purples', ax=ax, legend=False)
+            ax.set_title('Player Level vs Engagement Level')
+            sns.despine()
+            fig.tight_layout()
+            st.pyplot(fig)
+
         st.markdown("---")
         
-        # Interactive Feature vs Feature Explorer (Moved to Features Distribution tab)
-        st.markdown("#### Interactive Feature vs Feature Explorer")
-        st.write("Compare distributions across Engagement Levels based on your notebook analysis.")
+        # Interactive Feature vs Feature Explorer
+        st.markdown("#### ⚔️ Interactive Feature vs Feature Explorer")
+        st.write("Select any two numerical features to see how they correlate with each other and player engagement.")
         
-        # Strictly based on your Jupyter Notebook variables
-        vs_features = ['PlayTimeHours', 'PlayerLevel']
-        vs_y_axis = st.selectbox("Select Y-Axis Feature to compare against EngagementLevel:", vs_features)
+        num_cols = df.select_dtypes(include=['int64', 'float64']).columns.drop('PlayerID', errors='ignore').tolist()
+        col_x, col_y = st.columns(2)
+        with col_x:
+            x_axis = st.selectbox("Select X-Axis Feature:", num_cols, index=0)
+        with col_y:
+            y_axis = st.selectbox("Select Y-Axis Feature:", num_cols, index=len(num_cols)-1)
             
-        fig, ax = plt.subplots(figsize=(8, 5))
-        sns.violinplot(data=df, x='EngagementLevel', y=vs_y_axis, hue='EngagementLevel', 
-                       order=['Low', 'Medium', 'High'], palette='Purples', inner='quartile', ax=ax, legend=False)
-        ax.set_title(f'{vs_y_axis} by Engagement Level', pad=15)
-        sns.despine()
-        fig.tight_layout()
-        st.pyplot(fig)
+        fig_vs = px.scatter(df.sample(2000, random_state=42), x=x_axis, y=y_axis, color="EngagementLevel", 
+                            title=f"Scatter Plot: {x_axis} vs {y_axis}", opacity=0.7,
+                            color_discrete_sequence=['#6A0DAD', '#9b59b6', '#d2b4de']) # Purple theme
+        st.plotly_chart(fig_vs, use_container_width=True)
 
-
-    with sub3:
-        st.markdown("#### Advanced Correlation Analysis")
-        st.write("Numerical Features Correlation Heatmap")
-        
+        st.markdown("---")
+        st.markdown("##### 🌡️ Correlation Heatmap (Numerical Features)")
         fig, ax = plt.subplots(figsize=(10, 6))
         numeric_cols_df = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
         corr_matrix = numeric_cols_df.corr()
@@ -316,7 +325,7 @@ with tab_perf:
         st.plotly_chart(fig_summary, use_container_width=True)
 
 # ------------------------------------------
-# TAB 3: Single Prediction Result
+# TAB 3: Single Prediction Result (Moved to the end)
 # ------------------------------------------
 with tab_pred:
     st.markdown("### Prediction Result")
