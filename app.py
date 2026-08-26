@@ -1,6 +1,3 @@
-import os
-import glob
-import re  
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -79,15 +76,6 @@ div.stButton > button:first-child {
 }
 div.stButton > button:first-child:hover {
     background-color: #5b0b9c !important;
-}
-
-/* About Us Custom Feature Box */
-.feature-box {
-    padding: 20px;
-    border-radius: 10px;
-    background-color: #f8f9fa;
-    border-left: 5px solid #6A0DAD;
-    margin-bottom: 15px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -192,14 +180,14 @@ if predict_btn:
         st.success("Analysis complete! 👉 Please view the 'Prediction Result' tab on the right.")
 
 # ==========================================
-# 5. Main Content: Tabs Layout (Added 'About Us')
+# 5. Main Content: Tabs Layout
 # ==========================================
-tab_eda, tab_perf, tab_pred, tab_about = st.tabs([
-    " Data Exploration", " Model Performance", " Prediction Result", " About Us"
+tab_eda, tab_perf, tab_pred = st.tabs([
+    "Data Exploration", "Model Performance", "Prediction Result"
 ])
 
 # ------------------------------------------
-# TAB 1: Data Exploration
+# TAB 1: Data Exploration (KEPT EXACTLY AS USER REQUESTED)
 # ------------------------------------------
 with tab_eda:
     st.markdown("### Exploratory Data Analysis")
@@ -314,7 +302,7 @@ with tab_eda:
 
         st.markdown("---")
         
-        # --- VERSUS & NOTEBOOK EXPLORER SECTION ---
+        # --- VERSUS & NOTEBOOK EXPLORER SECTION (SINGLE SELECTOR) ---
         st.markdown("####  Interactive Feature vs Feature Explorer")
         st.write("Select a specific relationship graph from your Jupyter Notebook or view All.")
         
@@ -451,8 +439,8 @@ with tab_eda:
 
         st.markdown("---")
 
-        # --- CORRELATION HEATMAP SECTION ---
-        st.markdown("#### 🔗 Correlation Heatmap")
+        # --- CORRELATION HEATMAP SECTION (Positioned right below Versus) ---
+        st.markdown("####  Correlation Heatmap")
         st.write("Correlation of target variable among each numerical column.")
         
         fig_corr, ax_corr = plt.subplots(figsize=(12, 9))
@@ -471,43 +459,709 @@ with tab_eda:
         fig_corr.tight_layout()
         st.pyplot(fig_corr)
 
+
 # ------------------------------------------
 # TAB 2: Model Performance
 # ------------------------------------------
 with tab_perf:
+
     st.markdown("### Model Performance Evaluation")
-    
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.dataframe(summary_df.style.format({"Accuracy": "{:.2%}"}), use_container_width=True)
-    
-    with col2:
-        fig = px.bar(summary_df, x='Accuracy', y='Model', color='Model', 
-                     title='Model Accuracy Comparison', text_auto='.2%', 
-                     color_discrete_sequence=['#6A0DAD', '#8A2BE2', '#9b59b6', '#D8BFD8'])
-        fig.update_layout(xaxis=dict(range=[0.7, 1.0]))
-        st.plotly_chart(fig, use_container_width=True)
-        
+
+    # =========================================================
+    # 1. HORIZONTAL MODEL BUTTON BAR
+    # =========================================================
+
+    performance_models = [
+        "Logistic Regression",
+        "Random Forest",
+        "KNN",
+        "XGBoost"
+    ]
+
+    # Default selected model
+    if "performance_model" not in st.session_state:
+        st.session_state.performance_model = "XGBoost"
+
+    current_perf_model = st.session_state.performance_model
+
+    # Four horizontal buttons
+    btn_cols = st.columns(4)
+
+    for i, model_name in enumerate(performance_models):
+        with btn_cols[i]:
+
+            # Add check mark to currently selected model
+            button_label = (
+                f"✓ {model_name}"
+                if current_perf_model == model_name
+                else model_name
+            )
+
+            if st.button(
+                button_label,
+                key=f"perf_model_btn_{i}",
+                use_container_width=True
+            ):
+                st.session_state.performance_model = model_name
+                st.rerun()
+
+    selected_perf_model = st.session_state.performance_model
+
     st.markdown("---")
-    st.markdown("#### Detailed View")
-    
-    model_choice = st.selectbox("Select Model for Detailed Analysis:", list(models_dict.keys()), index=1)
-    
-    report_df = pd.DataFrame(detailed_reports[model_choice]).transpose()
-    
-    c1, c2 = st.columns([1, 1])
-    with c1:
-        st.markdown(f"**Classification Report: {model_choice}**")
-        st.dataframe(report_df.style.format("{:.2f}"), use_container_width=True)
-        
-    with c2:
-        st.markdown(f"**Confusion Matrix: {model_choice}**")
-        fig_cm, ax_cm = plt.subplots(figsize=(5, 4))
-        sns.heatmap(confusion_matrices[model_choice], annot=True, fmt='d', cmap='Purples', 
-                    xticklabels=target_names, yticklabels=target_names, ax=ax_cm)
-        ax_cm.set_ylabel('Actual')
-        ax_cm.set_xlabel('Predicted')
-        st.pyplot(fig_cm)
+
+    # =========================================================
+    # 2. NOTEBOOK-BASED CLASSIFICATION REPORTS
+    # =========================================================
+
+    classification_reports = {
+
+        "Logistic Regression": {
+            "Low": {
+                "precision": 0.89,
+                "recall": 0.90,
+                "f1-score": 0.90,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.89,
+                "recall": 0.92,
+                "f1-score": 0.90,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.95,
+                "recall": 0.88,
+                "f1-score": 0.91,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.91,
+                "recall": 0.90,
+                "f1-score": 0.90,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.91,
+                "recall": 0.90,
+                "f1-score": 0.90,
+                "support": 8007
+            },
+            "accuracy": 0.9040
+        },
+
+        "Random Forest": {
+            "Low": {
+                "precision": 0.95,
+                "recall": 0.96,
+                "f1-score": 0.96,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.94,
+                "recall": 0.96,
+                "f1-score": 0.95,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.97,
+                "recall": 0.92,
+                "f1-score": 0.94,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.96,
+                "recall": 0.95,
+                "f1-score": 0.95,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.95,
+                "recall": 0.95,
+                "f1-score": 0.95,
+                "support": 8007
+            },
+            "accuracy": 0.9510
+        },
+
+        "KNN": {
+            "Low": {
+                "precision": 0.93,
+                "recall": 0.71,
+                "f1-score": 0.80,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.78,
+                "recall": 0.96,
+                "f1-score": 0.86,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.96,
+                "recall": 0.78,
+                "f1-score": 0.86,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.89,
+                "recall": 0.81,
+                "f1-score": 0.84,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.86,
+                "recall": 0.85,
+                "f1-score": 0.84,
+                "support": 8007
+            },
+            "accuracy": 0.8461
+        },
+
+        "XGBoost": {
+            "Low": {
+                "precision": 0.97,
+                "recall": 0.98,
+                "f1-score": 0.97,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.96,
+                "recall": 0.97,
+                "f1-score": 0.97,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.98,
+                "recall": 0.95,
+                "f1-score": 0.97,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.97,
+                "recall": 0.97,
+                "f1-score": 0.97,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.97,
+                "recall": 0.97,
+                "f1-score": 0.97,
+                "support": 8007
+            },
+            "accuracy": 0.9694
+        }
+    }
+
+    # =========================================================
+    # 3. NOTEBOOK-BASED CONFUSION MATRICES
+    # =========================================================
+
+    confusion_matrices = {
+
+        "Logistic Regression": np.array([
+            [1867, 198, 0],
+            [220, 3555, 100],
+            [6, 245, 1816]
+        ]),
+
+        "Random Forest": np.array([
+            [1990, 75, 0],
+            [94, 3731, 50],
+            [0, 173, 1894]
+        ]),
+
+        "KNN": np.array([
+            [1461, 603, 1],
+            [102, 3708, 65],
+            [13, 448, 1606]
+        ]),
+
+        "XGBoost": np.array([
+            [2020, 45, 0],
+            [70, 3773, 32],
+            [0, 98, 1969]
+        ])
+    }
+
+    # Exact color schemes used in notebook
+    confusion_colors = {
+        "Logistic Regression": "Blues",
+        "Random Forest": "Greens",
+        "KNN": "Purples",
+        "XGBoost": "OrRd"
+    }
+
+    # =========================================================
+    # 4. MODEL TITLE + ACCURACY
+    # =========================================================
+
+    selected_report = classification_reports[selected_perf_model]
+
+    st.markdown(
+        f"### {selected_perf_model}"
+    )
+
+    model_accuracy = selected_report["accuracy"]
+
+    st.metric(
+        label="Testing Set Accuracy",
+        value=f"{model_accuracy:.2%}"
+    )
+
+    # =========================================================
+    # 5. CLASSIFICATION REPORT + CONFUSION MATRIX
+    # =========================================================
+
+    report_col, cm_col = st.columns([1, 1])
+
+    # ---------------------------------------------------------
+    # LEFT: CLASSIFICATION REPORT
+    # ---------------------------------------------------------
+    with report_col:
+
+        st.markdown("#### Classification Report")
+
+        report_rows = []
+
+        # Class rows
+        for class_name in ["Low", "Medium", "High"]:
+            row = selected_report[class_name]
+
+            report_rows.append({
+                "Class": class_name,
+                "Precision": row["precision"],
+                "Recall": row["recall"],
+                "F1-Score": row["f1-score"],
+                "Support": row["support"]
+            })
+
+        # Accuracy row
+        report_rows.append({
+            "Class": "Accuracy",
+            "Precision": np.nan,
+            "Recall": np.nan,
+            "F1-Score": selected_report["accuracy"],
+            "Support": 8007
+        })
+
+        # Macro Average
+        macro = selected_report["macro avg"]
+
+        report_rows.append({
+            "Class": "Macro Avg",
+            "Precision": macro["precision"],
+            "Recall": macro["recall"],
+            "F1-Score": macro["f1-score"],
+            "Support": macro["support"]
+        })
+
+        # Weighted Average
+        weighted = selected_report["weighted avg"]
+
+        report_rows.append({
+            "Class": "Weighted Avg",
+            "Precision": weighted["precision"],
+            "Recall": weighted["recall"],
+            "F1-Score": weighted["f1-score"],
+            "Support": weighted["support"]
+        })
+
+        report_df_display = pd.DataFrame(report_rows)
+
+        st.dataframe(
+            report_df_display.style.format({
+                "Precision": "{:.2f}",
+                "Recall": "{:.2f}",
+                "F1-Score": "{:.2f}",
+                "Support": "{:.0f}"
+            }),
+            use_container_width=True,
+            hide_index=True
+        )
+
+    # ---------------------------------------------------------
+    # RIGHT: CONFUSION MATRIX
+    # ---------------------------------------------------------
+    with cm_col:
+
+        st.markdown("#### Confusion Matrix")
+
+        cm = confusion_matrices[selected_perf_model]
+
+        fig_cm, ax_cm = plt.subplots(figsize=(6, 5))
+
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap=confusion_colors[selected_perf_model],
+            xticklabels=["Low", "Medium", "High"],
+            yticklabels=["Low", "Medium", "High"],
+            ax=ax_cm,
+            cbar=True
+        )
+
+        ax_cm.set_title(
+            f"Confusion Matrix ({selected_perf_model} - Optimized)",
+            fontsize=14,
+            fontweight="bold",
+            pad=15
+        )
+
+        ax_cm.set_xlabel("Predicted Engagement", fontsize=11)
+        ax_cm.set_ylabel("Actual Engagement", fontsize=11)
+
+        plt.tight_layout()
+
+        st.pyplot(fig_cm, use_container_width=True)
+
+    # =========================================================
+    # 5b. ROC CURVE DATA (per-class AUC read from notebook plots)
+    # =========================================================
+
+    roc_auc_scores = {
+        "Logistic Regression": {"Low": 0.98, "Medium": 0.94, "High": 0.96},
+        "Random Forest":       {"Low": 0.99, "Medium": 0.98, "High": 0.99},
+        "KNN":                 {"Low": 0.96, "Medium": 0.93, "High": 0.95},
+        "XGBoost":             {"Low": 1.00, "Medium": 0.98, "High": 0.99},
+    }
+
+    roc_class_colors = {"Low": "red", "Medium": "orange", "High": "green"}
+
+    def generate_roc_curve(target_auc, n_points=300):
+        """
+        Reconstructs a smooth ROC curve shaped to hit an exact target AUC,
+        using the standard binormal ROC model. The notebook's roc_curve()
+        call produced thousands of raw (fpr, tpr) points from the test-set
+        probabilities that aren't stored anywhere except inside the plotted
+        PNG, so this regenerates a curve visually equivalent to the
+        notebook's, calibrated to the exact AUC the notebook reported.
+        """
+        target_auc = min(max(target_auc, 0.5001), 0.9999)
+        a = np.sqrt(2) * norm.ppf(target_auc)
+        fpr = np.linspace(0.0001, 0.9999, n_points)
+        tpr = norm.cdf(a + norm.ppf(fpr))
+        tpr = np.clip(tpr, 0, 1)
+        fpr = np.concatenate([[0.0], fpr, [1.0]])
+        tpr = np.concatenate([[0.0], tpr, [1.0]])
+        return fpr, tpr
+
+    # =========================================================
+    # 5c. FEATURE IMPORTANCE DATA (read from notebook plots)
+    # =========================================================
+
+    feature_importance_data = {
+        "Logistic Regression": {
+            "TotalWeeklyMinutes": 6.00,
+            "SessionsPerWeek": 0.90,
+            "AvgSessionDurationMinutes": 0.80,
+            "AchievementsUnlocked": 0.35,
+            "AchievementRate": 0.25,
+            "PlayerLevel": 0.10,
+            "AgeGroup_Adult": 0.05,
+            "Age": 0.03,
+            "AgeGroup_YoungAdult": 0.02,
+            "Location_USA": 0.01,
+        },
+        "Random Forest": {
+            "TotalWeeklyMinutes": 0.510,
+            "SessionsPerWeek": 0.210,
+            "AvgSessionDurationMinutes": 0.120,
+            "AchievementRate": 0.055,
+            "PlayerLevel": 0.025,
+            "AchievementsUnlocked": 0.022,
+            "PlayTimeHours": 0.015,
+            "Age": 0.008,
+            "GameDifficulty": 0.004,
+            "Gender_Male": 0.003,
+        },
+        "KNN": {
+            "TotalWeeklyMinutes": 0.260,
+            "SessionsPerWeek": 0.170,
+            "AvgSessionDurationMinutes": 0.105,
+            "AchievementsUnlocked": 0.013,
+            "AchievementRate": 0.006,
+            "PlayerLevel": 0.004,
+            "Gender_Male": 0.003,
+            "PlayTimeHours": 0.002,
+            "InGamePurchases": 0.001,
+            "Location_USA": 0.001,
+        },
+        "XGBoost": {
+            "TotalWeeklyMinutes": 0.685,
+            "AchievementsUnlocked": 0.065,
+            "PlayerLevel": 0.050,
+            "AchievementRate": 0.035,
+            "SessionsPerWeek": 0.028,
+            "AvgSessionDurationMinutes": 0.012,
+            "Location_Europe": 0.007,
+            "GameGenre_Strategy": 0.006,
+            "Age": 0.005,
+            "GameDifficulty": 0.005,
+        },
+    }
+
+    # Exact bar color + axis label + title used per model in the notebook
+    feature_importance_style = {
+        "Logistic Regression": {
+            "color": "teal",
+            "xlabel": "Mean Absolute Coefficient (Impact)",
+            "title": "Top 10 Feature Importance",
+        },
+        "Random Forest": {
+            "color": "forestgreen",
+            "xlabel": "Feature Importance Score",
+            "title": "Top 10 Feature Importance",
+        },
+        "KNN": {
+            "color": "rebeccapurple",
+            "xlabel": "Mean Accuracy Drop Upon Permutation",
+            "title": "Top 10 Permutation Feature Importance",
+        },
+        "XGBoost": {
+            "color": "orangered",
+            "xlabel": "Feature Importance Score",
+            "title": "Top 10 Feature Importance",
+        },
+    }
+
+    st.markdown("---")
+    st.markdown("#### ROC Curve & Feature Importance")
+
+    roc_col, feat_col = st.columns([1, 1])
+
+    # ---------------------------------------------------------
+    # LEFT: MULTI-CLASS ROC CURVE
+    # ---------------------------------------------------------
+    with roc_col:
+
+        st.markdown("##### Multi-Class ROC Curve")
+
+        fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
+
+        for class_name, color in roc_class_colors.items():
+            target_auc = roc_auc_scores[selected_perf_model][class_name]
+            fpr, tpr = generate_roc_curve(target_auc)
+            ax_roc.plot(
+                fpr, tpr,
+                color=color, lw=2,
+                label=f"{class_name} (AUC = {target_auc:.2f})"
+            )
+
+        ax_roc.plot([0, 1], [0, 1], "k--", lw=2)
+
+        ax_roc.set_title(
+            f"Multi-Class ROC Curve ({selected_perf_model})",
+            fontsize=14, fontweight="bold", pad=15
+        )
+        ax_roc.set_xlabel("False Positive Rate", fontsize=11)
+        ax_roc.set_ylabel("True Positive Rate", fontsize=11)
+        ax_roc.legend(loc="lower right")
+
+        plt.tight_layout()
+
+        st.pyplot(fig_roc, use_container_width=True)
+
+    # ---------------------------------------------------------
+    # RIGHT: TOP 10 FEATURE IMPORTANCE
+    # ---------------------------------------------------------
+    with feat_col:
+
+        style = feature_importance_style[selected_perf_model]
+
+        st.markdown(f"##### {style['title']}")
+
+        feat_imp = pd.Series(feature_importance_data[selected_perf_model])
+        feat_imp = feat_imp.sort_values(ascending=True)
+
+        fig_feat, ax_feat = plt.subplots(figsize=(6, 5))
+
+        feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
+
+        ax_feat.set_title(
+            f"{style['title']} ({selected_perf_model})",
+            fontsize=14, fontweight="bold", pad=15
+        )
+        ax_feat.set_xlabel(style["xlabel"], fontsize=11)
+
+        plt.tight_layout()
+
+        st.pyplot(fig_feat, use_container_width=True)
+
+    # =========================================================
+    # 6. MODEL PARAMETERS FROM NOTEBOOK
+    # =========================================================
+
+    model_parameters = {
+
+        "Logistic Regression": {
+            "Regularization (C)": "0.1",
+            "Solver": "lbfgs"
+        },
+
+        "Random Forest": {
+            "Trees (n_estimators)": "100",
+            "Max Depth": "20",
+            "Min Samples Split": "5",
+            "Min Samples Leaf": "2"
+        },
+
+        "KNN": {
+            "K (n_neighbors)": "43",
+            "Weights": "uniform",
+            "Metric": "manhattan"
+        },
+
+        "XGBoost": {
+            "Max Depth": "7",
+            "Learning Rate": "0.1",
+            "Trees (n_estimators)": "100"
+        }
+    }
+
+    with st.expander("⚙️ Optimized Hyperparameters", expanded=False):
+
+        params = model_parameters[selected_perf_model]
+
+        param_cols = st.columns(len(params))
+
+        for i, (param_name, param_value) in enumerate(params.items()):
+            with param_cols[i]:
+                st.metric(param_name, param_value)
+
+    # =========================================================
+    # 7. SUMMARY OF ALL MODELS
+    # =========================================================
+
+    st.markdown("---")
+    st.markdown("##  Overall Model Comparison")
+
+    # Exact values from the notebook final comparison
+    comparison_df = pd.DataFrame({
+        "Model": [
+            "Logistic Regression",
+            "Random Forest",
+            "KNN",
+            "XGBoost"
+        ],
+        "Accuracy": [
+            0.9040,
+            0.9510,
+            0.8461,
+            0.9694
+        ],
+        "Precision": [
+            0.9051,
+            0.9516,
+            0.8641,
+            0.9696
+        ],
+        "Recall": [
+            0.9040,
+            0.9510,
+            0.8461,
+            0.9694
+        ],
+        "F1-Score": [
+            0.9041,
+            0.9510,
+            0.8444,
+            0.9694
+        ],
+        "AUC": [
+            0.9571,
+            0.9852,
+            0.9404,
+            0.9892
+        ]
+    })
+
+    # ---------------------------------------------------------
+    # SUMMARY TABLE
+    # ---------------------------------------------------------
+
+    st.markdown("#### Performance Summary Table")
+
+    summary_display = comparison_df.copy()
+
+    for col in ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]:
+        summary_display[col] = summary_display[col].map(
+            lambda x: f"{x:.2%}"
+        )
+
+    st.dataframe(
+        summary_display,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    # ---------------------------------------------------------
+    # SUMMARY GRAPH
+    # ---------------------------------------------------------
+
+    st.markdown("#### Final Algorithm Comparison")
+
+    # Convert to long format exactly like notebook
+    plot_df = comparison_df.melt(
+        id_vars="Model",
+        value_vars=["Accuracy", "F1-Score", "AUC"],
+        var_name="Metric",
+        value_name="Score"
+    )
+
+    fig_summary, ax_summary = plt.subplots(figsize=(12, 7))
+
+    sns.barplot(
+        data=plot_df,
+        x="Model",
+        y="Score",
+        hue="Metric",
+        palette="viridis",
+        ax=ax_summary
+    )
+
+    ax_summary.set_title(
+        "Final Algorithm Comparison: Accuracy, F1-Score & AUC",
+        fontsize=16,
+        fontweight="bold",
+        pad=15
+    )
+
+    ax_summary.set_xlabel(
+        "Machine Learning Model",
+        fontsize=12
+    )
+
+    ax_summary.set_ylabel(
+        "Score (0.0 to 1.0)",
+        fontsize=12
+    )
+
+    ax_summary.set_ylim(0, 1.15)
+
+    # Legend outside the graph
+    ax_summary.legend(
+        bbox_to_anchor=(1.01, 1),
+        loc="upper left",
+        title="Metrics"
+    )
+
+    # Display exact values on top of bars
+    for container in ax_summary.containers:
+        ax_summary.bar_label(
+            container,
+            fmt="%.3f",
+            padding=3
+        )
+
+    sns.despine()
+
+    plt.tight_layout()
+
+    st.pyplot(
+        fig_summary,
+        use_container_width=True
+    )
 
 # ------------------------------------------
 # TAB 3: Single Prediction Result & Insights
@@ -594,94 +1248,3 @@ with tab_pred:
             
     else:
         st.info("👈 Please enter player details in the sidebar and click 'Predict' to view detailed results.")
-
-# ------------------------------------------
-# TAB 4: About Us (Completely Redesigned)
-# ------------------------------------------
-with tab_about:
-    st.markdown("""
-    <div style='text-align: center; padding: 20px;'>
-        <h2 style='color: #6A0DAD; font-weight: bold;'>🕹️ Welcome to the Online Gaming Analytics Portal</h2>
-        <p style='font-size: 18px; color: #555;'>Empowering Game Developers, Publishers, and Marketers with Data-Driven Player Insights.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-    # 1. Project Objectives
-    st.markdown("### 🎯 Core Objectives")
-    c_obj1, c_obj2, c_obj3 = st.columns(3)
-    with c_obj1:
-        st.info("**📉 Minimize Churn**\n\nIdentify at-risk players before they leave. Use our predictions to trigger personalized re-engagement campaigns and free starter packs.")
-    with c_obj2:
-        st.success("**💰 Optimize Monetization**\n\nDiscover highly engaged players who are most likely to respond to premium in-game purchases and exclusive VIP events.")
-    with c_obj3:
-        st.warning("**🎮 Enhance Gameplay**\n\nUnderstand how game difficulty, genres, and session lengths impact overall player satisfaction to tailor future updates.")
-
-    st.markdown("---")
-
-    # 2. Workflow / Pipeline Visualization
-    st.markdown("### 🚀 How the System Works")
-    st.markdown("""
-    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
-        <div style="text-align: center; width: 22%;">
-            <h1 style="color: #6A0DAD;">1️⃣</h1>
-            <p style="font-weight: bold; margin-bottom: 5px;">Data Ingestion</p>
-            <p style="font-size: 12px; color: gray;">Collects demographics, session durations, and achievement data.</p>
-        </div>
-        <div style="color: #6A0DAD; font-size: 24px;">➔</div>
-        <div style="text-align: center; width: 22%;">
-            <h1 style="color: #6A0DAD;">2️⃣</h1>
-            <p style="font-weight: bold; margin-bottom: 5px;">Preprocessing</p>
-            <p style="font-size: 12px; color: gray;">Automatically scales numeric values and encodes categorical data.</p>
-        </div>
-        <div style="color: #6A0DAD; font-size: 24px;">➔</div>
-        <div style="text-align: center; width: 22%;">
-            <h1 style="color: #6A0DAD;">3️⃣</h1>
-            <p style="font-weight: bold; margin-bottom: 5px;">Predictive Modeling</p>
-            <p style="font-size: 12px; color: gray;">Runs user profiles through optimized Machine Learning algorithms.</p>
-        </div>
-        <div style="color: #6A0DAD; font-size: 24px;">➔</div>
-        <div style="text-align: center; width: 22%;">
-            <h1 style="color: #6A0DAD;">4️⃣</h1>
-            <p style="font-weight: bold; margin-bottom: 5px;">Actionable Insights</p>
-            <p style="font-size: 12px; color: gray;">Outputs Low, Medium, or High engagement with strategic recommendations.</p>
-        </div>
-    </div>
-    <br>
-    """, unsafe_allow_html=True)
-
-    # 3. Machine Learning Engine
-    st.markdown("### 🧠 The Machine Learning Engine")
-    st.write("We evaluate player profiles using four state-of-the-art classification models. The system dynamically processes your inputs and classifies the player's engagement level, computing exact confidence probabilities.")
-    
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        with st.expander("🚀 **XGBoost** *(Active)*", expanded=True):
-            st.write("Our most powerful model. It uses advanced gradient boosting decision trees for highly accurate, fast, and reliable predictions.")
-    with c2:
-        with st.expander("🌳 **Random Forest**"):
-            st.write("An ensemble learning method that builds multiple decision trees to ensure robust, stable, and overfitting-resistant results.")
-    with c3:
-        with st.expander("📈 **Logistic Regression**"):
-            st.write("A solid baseline statistical model that provides excellent interpretability for linear relationships in player data.")
-    with c4:
-        with st.expander("📍 **K-Nearest Neighbors**"):
-            st.write("A distance-based algorithm that evaluates and classifies a player based on the most similar players in the historical dataset.")
-
-    st.markdown("---")
-
-    # 4. Tech Stack Badges
-    st.markdown("### 💻 Technology Stack")
-    st.markdown("""
-    <div style="display:flex; justify-content: flex-start; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
-        <span style="background-color: #3776AB; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🐍 Python</span>
-        <span style="background-color: #FF4B4B; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">👑 Streamlit</span>
-        <span style="background-color: #F37626; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">📊 Scikit-Learn</span>
-        <span style="background-color: #1395b8; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🚀 XGBoost</span>
-        <span style="background-color: #150458; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">📈 Plotly & Seaborn</span>
-        <span style="background-color: #150458; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🐼 Pandas</span>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<br><div style='text-align: center; color: gray; font-size: 14px; margin-top: 30px;'>Designed for Modern Game Analytics & Player Retention Strategies • Version 1.0.0</div>", unsafe_allow_html=True)
