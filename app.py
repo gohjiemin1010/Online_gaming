@@ -596,48 +596,92 @@ with tab_pred:
         st.info("👈 Please enter player details in the sidebar and click 'Predict' to view detailed results.")
 
 # ------------------------------------------
-# TAB 4: About Us (New Addition)
+# TAB 4: About Us (Completely Redesigned)
 # ------------------------------------------
 with tab_about:
-    st.markdown("###  About This Project")
-    st.write("Welcome to the **Online Gaming Behavior Analytics** platform! This system is designed to help game developers, publishers, and marketers make data-driven decisions by accurately predicting player engagement levels.")
-    
-    st.markdown("---")
-    
-    st.markdown("#### 🧠 The Machine Learning Engine")
-    st.write("To provide accurate predictions, we trained and evaluated four distinct machine learning models on gaming behavior data. The system dynamically processes your inputs and classifies the player's engagement into **Low, Medium, or High**.")
-    
-    # Grid of Models
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.success("**XGBoost (Recommended)**\n\nOur most powerful model. It uses advanced gradient boosting decision trees for highly accurate and fast predictions.")
-    with c2:
-        st.info("**Random Forest**\n\nAn ensemble learning method that builds multiple decision trees to ensure robust, stable, and overfitting-resistant results.")
-    with c3:
-        st.warning("**Logistic Regression**\n\nA solid baseline statistical model that provides excellent interpretability for linear relationships in player data.")
-    with c4:
-        st.error("**K-Nearest Neighbors**\n\nA distance-based algorithm that evaluates and classifies a player based on the most similar players in the dataset.")
-        
-    st.markdown("---")
-    
-    st.markdown("#### ⚙️ Core System Features")
-    
-    # Custom styled HTML boxes for features
     st.markdown("""
-    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <div class="feature-box" style="flex: 1; min-width: 250px;">
-            <h4>📊 Interactive EDA</h4>
-            <p>Visually explores complex gaming data, uncovering hidden trends in age, genres, and geographic locations right from your browser.</p>
-        </div>
-        <div class="feature-box" style="flex: 1; min-width: 250px;">
-            <h4>⚡ Real-Time Predictions</h4>
-            <p>Instantly profiles a player based on their unique metrics (like play time and achievements) and computes exact confidence probabilities.</p>
-        </div>
-        <div class="feature-box" style="flex: 1; min-width: 250px;">
-            <h4>💡 Actionable Insights</h4>
-            <p>Translates raw predictions into tangible business strategies, such as sending re-engagement emails to high-risk churn players.</p>
-        </div>
+    <div style='text-align: center; padding: 20px;'>
+        <h2 style='color: #6A0DAD; font-weight: bold;'>🕹️ Welcome to the Online Gaming Analytics Portal</h2>
+        <p style='font-size: 18px; color: #555;'>Empowering Game Developers, Publishers, and Marketers with Data-Driven Player Insights.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<br><div style='text-align: center; color: gray;'>Designed for Modern Game Analytics & Player Retention Strategies 🕹️</div>", unsafe_allow_html=True)
+    st.divider()
+    
+    # 1. Project Objectives
+    st.markdown("### 🎯 Core Objectives")
+    c_obj1, c_obj2, c_obj3 = st.columns(3)
+    with c_obj1:
+        st.info("**📉 Minimize Churn**\n\nIdentify at-risk players before they leave. Use our predictions to trigger personalized re-engagement campaigns and free starter packs.")
+    with c_obj2:
+        st.success("**💰 Optimize Monetization**\n\nDiscover highly engaged players who are most likely to respond to premium in-game purchases and exclusive VIP events.")
+    with c_obj3:
+        st.warning("**🎮 Enhance Gameplay**\n\nUnderstand how game difficulty, genres, and session lengths impact overall player satisfaction to tailor future updates.")
+
+    st.markdown("---")
+
+    # 2. Workflow / Pipeline Visualization
+    st.markdown("### 🚀 How the System Works")
+    st.markdown("""
+    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
+        <div style="text-align: center; width: 22%;">
+            <h1 style="color: #6A0DAD;">1️⃣</h1>
+            <p style="font-weight: bold; margin-bottom: 5px;">Data Ingestion</p>
+            <p style="font-size: 12px; color: gray;">Collects demographics, session durations, and achievement data.</p>
+        </div>
+        <div style="color: #6A0DAD; font-size: 24px;">➔</div>
+        <div style="text-align: center; width: 22%;">
+            <h1 style="color: #6A0DAD;">2️⃣</h1>
+            <p style="font-weight: bold; margin-bottom: 5px;">Preprocessing</p>
+            <p style="font-size: 12px; color: gray;">Automatically scales numeric values and encodes categorical data.</p>
+        </div>
+        <div style="color: #6A0DAD; font-size: 24px;">➔</div>
+        <div style="text-align: center; width: 22%;">
+            <h1 style="color: #6A0DAD;">3️⃣</h1>
+            <p style="font-weight: bold; margin-bottom: 5px;">Predictive Modeling</p>
+            <p style="font-size: 12px; color: gray;">Runs user profiles through optimized Machine Learning algorithms.</p>
+        </div>
+        <div style="color: #6A0DAD; font-size: 24px;">➔</div>
+        <div style="text-align: center; width: 22%;">
+            <h1 style="color: #6A0DAD;">4️⃣</h1>
+            <p style="font-weight: bold; margin-bottom: 5px;">Actionable Insights</p>
+            <p style="font-size: 12px; color: gray;">Outputs Low, Medium, or High engagement with strategic recommendations.</p>
+        </div>
+    </div>
+    <br>
+    """, unsafe_allow_html=True)
+
+    # 3. Machine Learning Engine
+    st.markdown("### 🧠 The Machine Learning Engine")
+    st.write("We evaluate player profiles using four state-of-the-art classification models. The system dynamically processes your inputs and classifies the player's engagement level, computing exact confidence probabilities.")
+    
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        with st.expander("🚀 **XGBoost** *(Active)*", expanded=True):
+            st.write("Our most powerful model. It uses advanced gradient boosting decision trees for highly accurate, fast, and reliable predictions.")
+    with c2:
+        with st.expander("🌳 **Random Forest**"):
+            st.write("An ensemble learning method that builds multiple decision trees to ensure robust, stable, and overfitting-resistant results.")
+    with c3:
+        with st.expander("📈 **Logistic Regression**"):
+            st.write("A solid baseline statistical model that provides excellent interpretability for linear relationships in player data.")
+    with c4:
+        with st.expander("📍 **K-Nearest Neighbors**"):
+            st.write("A distance-based algorithm that evaluates and classifies a player based on the most similar players in the historical dataset.")
+
+    st.markdown("---")
+
+    # 4. Tech Stack Badges
+    st.markdown("### 💻 Technology Stack")
+    st.markdown("""
+    <div style="display:flex; justify-content: flex-start; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+        <span style="background-color: #3776AB; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🐍 Python</span>
+        <span style="background-color: #FF4B4B; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">👑 Streamlit</span>
+        <span style="background-color: #F37626; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">📊 Scikit-Learn</span>
+        <span style="background-color: #1395b8; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🚀 XGBoost</span>
+        <span style="background-color: #150458; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">📈 Plotly & Seaborn</span>
+        <span style="background-color: #150458; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🐼 Pandas</span>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<br><div style='text-align: center; color: gray; font-size: 14px; margin-top: 30px;'>Designed for Modern Game Analytics & Player Retention Strategies • Version 1.0.0</div>", unsafe_allow_html=True)
