@@ -484,7 +484,7 @@ with tab_perf:
     with col2:
         fig = px.bar(summary_df, x='Accuracy', y='Model', color='Model', 
                      title='Model Accuracy Comparison', text_auto='.2%', 
-                     color_discrete_sequence=px.colors.qualitative.Purp)
+                     color_discrete_sequence=['#6A0DAD', '#8A2BE2', '#9b59b6', '#D8BFD8'])
         fig.update_layout(xaxis=dict(range=[0.7, 1.0]))
         st.plotly_chart(fig, use_container_width=True)
         
