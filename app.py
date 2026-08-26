@@ -77,6 +77,424 @@ div.stButton > button:first-child {
 div.stButton > button:first-child:hover {
     background-color: #5b0b9c !important;
 }
+
+/* ==========================================
+   ABOUT US / SYSTEM CSS
+   ========================================== */
+
+/* Hero Section */
+.about-hero {
+    background: linear-gradient(
+        135deg,
+        #6A0DAD 0%,
+        #8E44AD 50%,
+        #4A148C 100%
+    );
+    padding: 45px 35px;
+    border-radius: 22px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(106, 13, 173, 0.25);
+    margin-bottom: 10px;
+}
+
+.hero-icon {
+    font-size: 55px;
+    margin-bottom: 5px;
+}
+
+.about-hero h1 {
+    font-size: 38px;
+    margin: 5px 0 10px 0;
+    font-weight: 800;
+}
+
+.about-hero p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    opacity: 0.95;
+}
+
+.hero-tags {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.hero-tags span {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    backdrop-filter: blur(5px);
+}
+
+
+/* Introduction Card */
+.about-intro {
+    background: #ffffff;
+    border-left: 5px solid #6A0DAD;
+    border-radius: 12px;
+    padding: 20px 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.about-intro p {
+    font-size: 16px;
+    line-height: 1.7;
+    margin: 5px 0;
+}
+
+
+/* Main About Cards */
+.about-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px 20px;
+    min-height: 235px;
+    border: 1px solid #eeeeee;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.about-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 25px rgba(106,13,173,0.18);
+    border-color: #c9a0df;
+}
+
+.card-icon {
+    font-size: 38px;
+    margin-bottom: 8px;
+}
+
+.about-card h3 {
+    color: #6A0DAD;
+    margin-bottom: 10px;
+}
+
+.about-card p {
+    color: #666666;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+
+/* Workflow */
+.workflow-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #faf7fc;
+    border-radius: 18px;
+    padding: 25px 15px;
+    border: 1px solid #eadcf1;
+}
+
+.workflow-step {
+    background: white;
+    border-radius: 15px;
+    padding: 20px 15px;
+    width: 200px;
+    min-height: 190px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    transition: all 0.3s ease;
+}
+
+.workflow-step:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 18px rgba(106,13,173,0.15);
+}
+
+.workflow-number {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 12px;
+    color: #aaaaaa;
+    font-weight: bold;
+}
+
+.workflow-icon {
+    font-size: 35px;
+    margin: 12px 0 8px 0;
+}
+
+.workflow-step h4 {
+    color: #6A0DAD;
+    margin: 5px 0 8px 0;
+}
+
+.workflow-step p {
+    font-size: 12px;
+    color: #666666;
+    line-height: 1.5;
+}
+
+.workflow-arrow {
+    font-size: 25px;
+    color: #6A0DAD;
+    font-weight: bold;
+}
+
+
+/* Feature Rows */
+.feature-row {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border-left: 4px solid #6A0DAD;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    transition: all 0.25s ease;
+}
+
+.feature-row:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 15px rgba(106,13,173,0.12);
+}
+
+.feature-icon {
+    font-size: 30px;
+    margin-right: 18px;
+    min-width: 45px;
+}
+
+.feature-row h4 {
+    margin: 0 0 3px 0;
+    color: #333333;
+}
+
+.feature-row p {
+    margin: 0;
+    color: #777777;
+    font-size: 14px;
+}
+
+
+/* Model Cards */
+.model-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px 20px;
+    min-height: 250px;
+    text-align: center;
+    border: 1px solid #eeeeee;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.model-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 25px rgba(106,13,173,0.18);
+}
+
+.model-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.model-card h3 {
+    color: #6A0DAD;
+    font-size: 19px;
+    margin-bottom: 15px;
+}
+
+.model-card p {
+    color: #666666;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.best-model {
+    border: 2px solid #6A0DAD;
+    background: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #faf4ff 100%
+    );
+}
+
+.best-badge {
+    display: inline-block;
+    background: #6A0DAD;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+
+/* Engagement Cards */
+.engagement-card {
+    padding: 25px;
+    border-radius: 16px;
+    text-align: center;
+    min-height: 170px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.07);
+    transition: all 0.3s ease;
+}
+
+.engagement-card:hover {
+    transform: translateY(-6px);
+}
+
+.engagement-icon {
+    font-size: 35px;
+}
+
+.engagement-card h3 {
+    margin: 8px 0;
+}
+
+.engagement-card p {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #666666;
+}
+
+.low-card {
+    background: #fff4f4;
+    border-top: 4px solid #ff9999;
+}
+
+.medium-card {
+    background: #fffaf0;
+    border-top: 4px solid #f5c542;
+}
+
+.high-card {
+    background: #f2fff4;
+    border-top: 4px solid #66b3ff;
+}
+
+
+/* Performance Highlight */
+.performance-highlight {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: linear-gradient(
+        135deg,
+        #f8f0ff,
+        #ffffff
+    );
+    border: 2px solid #d7b5e8;
+    border-radius: 18px;
+    padding: 25px 30px;
+    box-shadow: 0 5px 18px rgba(106,13,173,0.12);
+}
+
+.performance-icon {
+    font-size: 45px;
+}
+
+.performance-highlight h2 {
+    margin: 0 0 5px 0;
+    color: #6A0DAD;
+}
+
+.performance-highlight p {
+    margin: 0;
+    color: #666666;
+}
+
+.performance-score {
+    margin-left: auto;
+    text-align: center;
+}
+
+.performance-score span {
+    display: block;
+    font-size: 35px;
+    font-weight: 800;
+    color: #6A0DAD;
+}
+
+.performance-score small {
+    color: #777777;
+}
+
+
+/* Data Flow */
+.data-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #faf7fc;
+    border-radius: 18px;
+    padding: 30px 20px;
+    border: 1px solid #eadcf1;
+}
+
+.flow-item {
+    text-align: center;
+    min-width: 140px;
+}
+
+.flow-item span {
+    display: block;
+    font-size: 35px;
+    margin-bottom: 8px;
+}
+
+.flow-item strong {
+    display: block;
+    color: #6A0DAD;
+    font-size: 16px;
+}
+
+.flow-item small {
+    color: #777777;
+    font-size: 12px;
+}
+
+.flow-line {
+    font-size: 25px;
+    color: #6A0DAD;
+    margin: 0 15px;
+}
+
+
+/* Note */
+.about-note {
+    background: #f8f8f8;
+    border-left: 4px solid #6A0DAD;
+    padding: 15px 20px;
+    border-radius: 10px;
+    color: #666666;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+/* Footer */
+.about-footer {
+    margin-top: 25px;
+    padding: 25px;
+    text-align: center;
+    border-top: 1px solid #eeeeee;
+}
+
+.about-footer h3 {
+    color: #6A0DAD;
+    margin-bottom: 5px;
+}
+
+.about-footer p {
+    color: #888888;
+    font-size: 13px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -183,7 +601,7 @@ if predict_btn:
 # 5. Main Content: Tabs Layout
 # ==========================================
 tab_eda, tab_perf, tab_pred = st.tabs([
-    "Data Exploration", "Model Performance", "Prediction Result"
+    "Data Exploration", "Model Performance", "Prediction Result", "About the System"
 ])
 
 # ------------------------------------------
@@ -1248,3 +1666,423 @@ with tab_pred:
             
     else:
         st.info("👈 Please enter player details in the sidebar and click 'Predict' to view detailed results.")
+
+# ------------------------------------------
+# TAB 4: About the System
+# ------------------------------------------
+with tab_about:
+
+    # ==========================================
+    # HERO SECTION
+    # ==========================================
+    st.markdown("""
+    <div class="about-hero">
+        <div class="hero-icon">🎮</div>
+        <h1>Online Gaming Analytics</h1>
+        <p>
+            Understanding player behaviour through
+            data analytics and machine learning.
+        </p>
+        <div class="hero-tags">
+            <span>📊 Data Analytics</span>
+            <span>🤖 Machine Learning</span>
+            <span>🔮 Player Prediction</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # SYSTEM INTRODUCTION
+    # ==========================================
+    st.markdown("### 🎯 What Is This System?")
+
+    st.markdown("""
+    <div class="about-intro">
+        <p>
+        This system analyses online gaming behaviour and uses
+        machine learning to predict a player's <b>Engagement Level</b>.
+        </p>
+
+        <p>
+        By combining exploratory data analysis, model evaluation,
+        and individual player prediction, the system transforms
+        gaming data into meaningful and easy-to-understand insights.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # FOUR MAIN PURPOSE CARDS
+    # ==========================================
+    st.markdown("### 🔍 What Does Our System Do?")
+
+    card1, card2, card3, card4 = st.columns(4)
+
+    with card1:
+        st.markdown("""
+        <div class="about-card">
+            <div class="card-icon">📊</div>
+            <h3>Explore Data</h3>
+            <p>
+                Understand player demographics, gaming behaviour,
+                distributions and relationships between features.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with card2:
+        st.markdown("""
+        <div class="about-card">
+            <div class="card-icon">🤖</div>
+            <h3>Compare Models</h3>
+            <p>
+                Evaluate four machine learning algorithms using
+                accuracy, precision, recall, F1-score and AUC.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with card3:
+        st.markdown("""
+        <div class="about-card">
+            <div class="card-icon">🔮</div>
+            <h3>Predict Engagement</h3>
+            <p>
+                Enter a player's information and predict whether
+                their engagement level is Low, Medium or High.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with card4:
+        st.markdown("""
+        <div class="about-card">
+            <div class="card-icon">💡</div>
+            <h3>Generate Insights</h3>
+            <p>
+                Provide simple actionable insights based on
+                the predicted engagement level.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # HOW THE SYSTEM WORKS
+    # ==========================================
+    st.markdown("### ⚙️ How Does It Work?")
+
+    st.markdown("""
+    <div class="workflow-container">
+
+        <div class="workflow-step">
+            <div class="workflow-number">01</div>
+            <div class="workflow-icon">📁</div>
+            <h4>Player Data</h4>
+            <p>
+                Gaming behaviour and player characteristics
+                are collected from the dataset.
+            </p>
+        </div>
+
+        <div class="workflow-arrow">➜</div>
+
+        <div class="workflow-step">
+            <div class="workflow-number">02</div>
+            <div class="workflow-icon">⚙️</div>
+            <h4>Preprocessing</h4>
+            <p>
+                Categorical variables are encoded and numerical
+                features are standardised.
+            </p>
+        </div>
+
+        <div class="workflow-arrow">➜</div>
+
+        <div class="workflow-step">
+            <div class="workflow-number">03</div>
+            <div class="workflow-icon">🤖</div>
+            <h4>Machine Learning</h4>
+            <p>
+                Four classification models learn patterns
+                from the training data.
+            </p>
+        </div>
+
+        <div class="workflow-arrow">➜</div>
+
+        <div class="workflow-step">
+            <div class="workflow-number">04</div>
+            <div class="workflow-icon">🎯</div>
+            <h4>Prediction</h4>
+            <p>
+                The selected model predicts the player's
+                engagement level and probabilities.
+            </p>
+        </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # DATA FEATURES
+    # ==========================================
+    st.markdown("### 🎮 What Player Information Do We Analyse?")
+
+    feature_data = [
+        ("👤", "Demographics", "Age, Gender and Location"),
+        ("🎮", "Gaming Behaviour", "Game Genre and Game Difficulty"),
+        ("⏱️", "Playing Activity", "Play Time, Sessions and Session Duration"),
+        ("🏆", "Progress", "Player Level and Achievements"),
+        ("💰", "Purchasing Behaviour", "In-Game Purchases")
+    ]
+
+    for icon, title, description in feature_data:
+        st.markdown(f"""
+        <div class="feature-row">
+            <div class="feature-icon">{icon}</div>
+            <div>
+                <h4>{title}</h4>
+                <p>{description}</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # MACHINE LEARNING MODELS
+    # ==========================================
+    st.markdown("### 🤖 Our Machine Learning Models")
+
+    model1, model2, model3, model4 = st.columns(4)
+
+    model_cards = [
+        (
+            model1,
+            "Logistic Regression",
+            "📈",
+            "A linear classification model that provides a simple and interpretable baseline."
+        ),
+        (
+            model2,
+            "Random Forest",
+            "🌲",
+            "An ensemble model that combines multiple decision trees for classification."
+        ),
+        (
+            model3,
+            "K-Nearest Neighbors",
+            "📍",
+            "A distance-based model that predicts engagement using similar player profiles."
+        ),
+        (
+            model4,
+            "XGBoost",
+            "🚀",
+            "A gradient boosting model that achieved the strongest overall performance."
+        )
+    ]
+
+    for col, model_name, icon, description in model_cards:
+        with col:
+            if model_name == "XGBoost":
+                st.markdown(f"""
+                <div class="model-card best-model">
+                    <div class="model-icon">{icon}</div>
+                    <h3>{model_name}</h3>
+                    <div class="best-badge">🏆 BEST PERFORMING MODEL</div>
+                    <p>{description}</p>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="model-card">
+                    <div class="model-icon">{icon}</div>
+                    <h3>{model_name}</h3>
+                    <p>{description}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # SYSTEM STATISTICS
+    # ==========================================
+    st.markdown("### 📈 System at a Glance")
+
+    best_model_row = comparison_df.loc[
+        comparison_df["Accuracy"].idxmax()
+    ]
+
+    stat1, stat2, stat3, stat4 = st.columns(4)
+
+    with stat1:
+        st.metric(
+            "🤖 ML Models",
+            "4"
+        )
+
+    with stat2:
+        st.metric(
+            "🎯 Engagement Classes",
+            "3"
+        )
+
+    with stat3:
+        st.metric(
+            "🏆 Best Model",
+            "XGBoost"
+        )
+
+    with stat4:
+        st.metric(
+            "📊 Best Accuracy",
+            f"{best_model_row['Accuracy']:.2%}"
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # ENGAGEMENT LEVELS
+    # ==========================================
+    st.markdown("### 🎯 Engagement Levels")
+
+    low_col, medium_col, high_col = st.columns(3)
+
+    with low_col:
+        st.markdown("""
+        <div class="engagement-card low-card">
+            <div class="engagement-icon">🔴</div>
+            <h3>Low Engagement</h3>
+            <p>
+                Indicates a player with relatively lower
+                engagement behaviour within the dataset.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with medium_col:
+        st.markdown("""
+        <div class="engagement-card medium-card">
+            <div class="engagement-icon">🟡</div>
+            <h3>Medium Engagement</h3>
+            <p>
+                Represents a player with a moderate level
+                of engagement behaviour.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with high_col:
+        st.markdown("""
+        <div class="engagement-card high-card">
+            <div class="engagement-icon">🟢</div>
+            <h3>High Engagement</h3>
+            <p>
+                Indicates a player showing relatively high
+                engagement behaviour within the dataset.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # MODEL PERFORMANCE HIGHLIGHT
+    # ==========================================
+    st.markdown("""
+    <div class="performance-highlight">
+        <div class="performance-icon">🏆</div>
+        <div>
+            <h2>Our Best Performing Model</h2>
+            <p>
+                XGBoost achieved the highest testing accuracy
+                among the four evaluated machine learning models.
+            </p>
+        </div>
+        <div class="performance-score">
+            <span>96.94%</span>
+            <small>Testing Accuracy</small>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # SYSTEM FLOW SUMMARY
+    # ==========================================
+    st.markdown("### 🚀 From Data to Decision")
+
+    st.markdown("""
+    <div class="data-flow">
+
+        <div class="flow-item">
+            <span>📊</span>
+            <strong>Explore</strong>
+            <small>Understand the dataset</small>
+        </div>
+
+        <div class="flow-line">→</div>
+
+        <div class="flow-item">
+            <span>🔎</span>
+            <strong>Analyse</strong>
+            <small>Discover player patterns</small>
+        </div>
+
+        <div class="flow-line">→</div>
+
+        <div class="flow-item">
+            <span>🤖</span>
+            <strong>Predict</strong>
+            <small>Classify engagement</small>
+        </div>
+
+        <div class="flow-line">→</div>
+
+        <div class="flow-item">
+            <span>💡</span>
+            <strong>Understand</strong>
+            <small>Generate useful insights</small>
+        </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ==========================================
+    # DISCLAIMER
+    # ==========================================
+    st.markdown("""
+    <div class="about-note">
+        <strong>ℹ️ Note</strong><br>
+        Predictions are analytical estimates generated from patterns
+        learned from the available dataset. They should be interpreted
+        as data-driven predictions rather than definitive assessments
+        of individual players.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ==========================================
+    # FOOTER
+    # ==========================================
+    st.markdown("""
+    <div class="about-footer">
+        <h3>🎮 Online Gaming Behavior Analysis & Prediction</h3>
+        <p>
+            Data Analytics&nbsp;&nbsp;•&nbsp;&nbsp;
+            Machine Learning&nbsp;&nbsp;•&nbsp;&nbsp;
+            Player Engagement Prediction
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
