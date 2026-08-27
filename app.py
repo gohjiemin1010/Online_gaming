@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,11 +27,11 @@ plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
-# 2. Advanced CSS (Fixed 3D Cards, Transparent Slider)
+# 2. Advanced CSS (Fixed 3D Cards, Transparent Slider, Sticky Header)
 # ==========================================
 st.markdown("""
 <style>
-.block-container { padding-top: 1.5rem !important; }
+.block-container { padding-top: 1rem !important; }
 
 /* 3D Metric Cards styling with hover effect */
 [data-testid="stMetric"] {
@@ -112,7 +113,7 @@ st.markdown("""
 
 /* Streamlit Native UI Overrides */
 button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
-    font-size: 20px !important;
+    font-size: 18px !important;
     font-weight: bold !important;
 }
 .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] p { color: #6A0DAD !important; }
@@ -128,10 +129,48 @@ div.stButton > button {
     width: 100%;
 }
 div.stButton > button:hover { background-color: #5b0b9c !important; }
+
+/* ============================================================
+   Canva-style sticky header: title + tabs on the SAME row.
+   Slides up (hidden) on scroll-down, slides back on scroll-up.
+   Targets the container created with st.container(key="sticky_header")
+   ============================================================ */
+.st-key-sticky_header {
+    position: sticky;
+    top: 0px;
+    z-index: 999999;
+    background-color: #ffffff;
+    padding: 0.6rem 1.2rem 0.2rem 1.2rem;
+    margin: 0 -1rem 0.5rem -1rem;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.04);
+    transition: transform 0.35s ease-in-out, box-shadow 0.35s ease-in-out;
+    transform: translateY(0px);
+}
+.st-key-sticky_header.header-hidden {
+    transform: translateY(-100%);
+    box-shadow: none;
+}
+/* remove default bottom margin under the tab list so the row is compact */
+.st-key-sticky_header [data-testid="stTabs"] {
+    margin-bottom: -0.6rem;
+}
+.st-key-sticky_header [data-baseweb="tab-list"] {
+    justify-content: flex-end;
+    gap: 4px;
+}
+.sticky-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #262730;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    height: 48px;
+    margin: 0;
+}
 </style>
 """, unsafe_allow_html=True)
-
-st.markdown("##  Online Gaming Behavior Analytics")
 
 # ==========================================
 # 3. Data Loading & Graph Generation (Cached)
@@ -262,13 +301,75 @@ def train_models(df):
 models_dict, le_dict, scaler, feature_cols = train_models(df)
 
 # ==========================================
-# 5. Main Tabs Layout
+# 5. Sticky Header: Title + Tabs on the same row (Canva-style)
 # ==========================================
-tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Analysis", "📊 Model Performance", "🎯 Prediction Result"])
+header = st.container(key="sticky_header")
+with header:
+    col_title, col_tabs = st.columns([1.3, 2.2], vertical_alignment="center")
+    with col_title:
+        st.markdown('<p class="sticky-title">🎮 Online Gaming Behavior Analytics</p>', unsafe_allow_html=True)
+    with col_tabs:
+        tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Analysis", "📊 Model Performance", "🎯 Prediction Result"])
 
-# ------------------------------------------
+# JS: watch scroll direction on Streamlit's scrollable container and
+# toggle the "header-hidden" class on the sticky header accordingly.
+components.html(
+    """
+    <script>
+    (function() {
+        const doc = window.parent.document;
+
+        function getScrollContainer() {
+            return doc.querySelector('[data-testid="stMain"]')
+                || doc.querySelector('section.main')
+                || doc.scrollingElement;
+        }
+
+        let lastScrollTop = 0;
+
+        function handleScroll() {
+            const container = getScrollContainer();
+            const header = doc.querySelector('.st-key-sticky_header');
+            if (!container || !header) return;
+
+            const scrollTop = container.scrollTop;
+
+            if (scrollTop > lastScrollTop && scrollTop > 80) {
+                // scrolling down -> hide
+                header.classList.add('header-hidden');
+            } else {
+                // scrolling up -> show
+                header.classList.remove('header-hidden');
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        }
+
+        function attachListener() {
+            const container = getScrollContainer();
+            if (container && !container.dataset.stickyListenerAttached) {
+                container.addEventListener('scroll', handleScroll, { passive: true });
+                container.dataset.stickyListenerAttached = "true";
+            }
+        }
+
+        attachListener();
+        // Streamlit re-renders the DOM often, so keep retrying briefly
+        // in case the container wasn't mounted yet on first attempt.
+        let tries = 0;
+        const retry = setInterval(function() {
+            attachListener();
+            tries += 1;
+            if (tries > 10) clearInterval(retry);
+        }, 500);
+    })();
+    </script>
+    """,
+    height=0,
+)
+
+# ==========================================
 # TAB 1: DATA ANALYSIS
-# ------------------------------------------
+# ==========================================
 with tab_eda:
     
     # Dataset Overview Cards
@@ -362,16 +463,16 @@ with tab_eda:
                 vc.columns = [col, 'Count']
                 st.dataframe(vc, hide_index=True, use_container_width=True)
 
-# ------------------------------------------
+# ==========================================
 # TAB 2: Model Performance
-# ------------------------------------------
+# ==========================================
 with tab_perf:
     st.markdown("### 🚀 Model Performance Evaluation")
     st.info("Your performance metrics and confusion matrices go here based on your Jupyter Notebook logic.")
 
-# ------------------------------------------
+# ==========================================
 # TAB 3: Prediction Result
-# ------------------------------------------
+# ==========================================
 with tab_pred:
     st.markdown("### 🎯 Player Engagement Predictor")
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
