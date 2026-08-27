@@ -14,7 +14,19 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    roc_auc_score,
+    roc_curve,
+    auc,
+    label_binarize,
+    precision_score,
+    recall_score,
+    f1_score,
+    permutation_importance
+)
 
 # ==========================================
 # 1. Page Configuration & Global Settings
@@ -104,38 +116,385 @@ div.stButton > button {
 div.stButton > button:hover { background-color: #5b0b9c !important; }
 
 /* =====================================================
-   TAB 2 - MODEL PERFORMANCE CAROUSEL
+   TAB 2 - MODEL PERFORMANCE
    ===================================================== */
 
-/* Main performance stage */
-.performance-stage {
-    perspective: 1400px;
-    width: 100%;
-    position: relative;
+/* -----------------------------------------
+   Model Header
+   ----------------------------------------- */
+
+.model-header {
+    text-align: center;
+    margin-top: 8px;
+    margin-bottom: 25px;
 }
 
-/* Model Bento Cards */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    border-radius: 18px !important;
-    border: 1px solid rgba(106, 13, 173, 0.10) !important;
-    background: rgba(255,255,255,0.98) !important;
+.model-name {
+    font-size: 34px;
+    font-weight: 800;
+    color: #6A0DAD;
+    letter-spacing: -0.5px;
+}
+
+.model-accuracy {
+    margin-top: 7px;
+    font-size: 16px;
+    color: #555;
+}
+
+.model-accuracy span {
+    color: #e74c3c;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+
+/* -----------------------------------------
+   Performance Main Card
+   ----------------------------------------- */
+
+.performance-card-wrapper {
+    width: 100%;
+    transform-style: preserve-3d;
+
+    background: rgba(255,255,255,0.98);
+
+    border-radius: 22px;
+
+    padding: 4px;
 
     box-shadow:
-        0 8px 18px rgba(0,0,0,0.06),
-        0 20px 40px rgba(106,13,173,0.05) !important;
+        0 8px 20px rgba(0,0,0,0.05),
+        0 20px 45px rgba(106,13,173,0.08);
 
     transition:
         transform 0.35s ease,
-        box-shadow 0.35s ease !important;
+        box-shadow 0.35s ease;
 }
 
-/* 3D hover */
-[data-testid="stVerticalBlockBorderWrapper"]:hover {
-    transform: translateY(-7px) scale(1.008) !important;
+.performance-card-wrapper:hover {
+
+    transform:
+        translateY(-4px)
+        scale(1.002);
 
     box-shadow:
-        0 12px 24px rgba(0,0,0,0.08),
-        0 25px 50px rgba(106,13,173,0.13) !important;
+        0 15px 30px rgba(0,0,0,0.08),
+        0 25px 55px rgba(106,13,173,0.13);
+}
+
+
+/* -----------------------------------------
+   Slide From Right
+   ----------------------------------------- */
+
+@keyframes modelSlideRight {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(140px)
+            translateZ(-100px)
+            rotateY(-7deg)
+            scale(0.96);
+    }
+
+    60% {
+
+        opacity: 0.85;
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            translateZ(0)
+            rotateY(0)
+            scale(1);
+    }
+}
+
+
+/* -----------------------------------------
+   Slide From Left
+   ----------------------------------------- */
+
+@keyframes modelSlideLeft {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(-140px)
+            translateZ(-100px)
+            rotateY(7deg)
+            scale(0.96);
+    }
+
+    60% {
+
+        opacity: 0.85;
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            translateZ(0)
+            rotateY(0)
+            scale(1);
+    }
+}
+
+
+.perf-slide-right {
+
+    animation:
+        modelSlideRight
+        0.65s
+        cubic-bezier(
+            0.22,
+            0.61,
+            0.36,
+            1
+        );
+}
+
+
+.perf-slide-left {
+
+    animation:
+        modelSlideLeft
+        0.65s
+        cubic-bezier(
+            0.22,
+            0.61,
+            0.36,
+            1
+        );
+}
+
+
+/* -----------------------------------------
+   Individual Performance Boxes
+   ----------------------------------------- */
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+
+    border-radius: 18px !important;
+
+    border:
+        1px solid
+        rgba(106,13,173,0.10)
+        !important;
+
+    background:
+        rgba(255,255,255,0.98)
+        !important;
+
+    box-shadow:
+        0 6px 15px rgba(0,0,0,0.05),
+        0 15px 35px rgba(106,13,173,0.06)
+        !important;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease
+        !important;
+}
+
+
+[data-testid="stVerticalBlockBorderWrapper"]:hover {
+
+    transform:
+        translateY(-5px)
+        scale(1.005)
+        !important;
+
+    box-shadow:
+        0 12px 25px rgba(0,0,0,0.08),
+        0 25px 50px rgba(106,13,173,0.13)
+        !important;
+}
+
+
+/* -----------------------------------------
+   Performance Box Titles
+   ----------------------------------------- */
+
+.perf-title {
+
+    font-size: 18px;
+
+    font-weight: 750;
+
+    color: #252525;
+
+    margin-bottom: 10px;
+}
+
+
+/* -----------------------------------------
+   Side Arrow Buttons
+   ----------------------------------------- */
+
+div[data-testid="stHorizontalBlock"]
+    > div:first-child
+    button,
+div[data-testid="stHorizontalBlock"]
+    > div:last-child
+    button {
+
+    width: 55px !important;
+
+    height: 55px !important;
+
+    min-width: 55px !important;
+
+    border-radius: 50% !important;
+
+    padding: 0 !important;
+
+    font-size: 30px !important;
+
+    font-weight: 700 !important;
+
+    background:
+        linear-gradient(
+            145deg,
+            #7b18c9,
+            #5b0b9c
+        ) !important;
+
+    color: white !important;
+
+    border: none !important;
+
+    box-shadow:
+        0 8px 18px
+        rgba(106,13,173,0.30),
+
+        inset 0 1px 1px
+        rgba(255,255,255,0.25)
+        !important;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease
+        !important;
+}
+
+
+div[data-testid="stHorizontalBlock"]
+    > div:first-child
+    button:hover,
+div[data-testid="stHorizontalBlock"]
+    > div:last-child
+    button:hover {
+
+    transform:
+        scale(1.12)
+        !important;
+
+    box-shadow:
+        0 12px 28px
+        rgba(106,13,173,0.38)
+        !important;
+}
+
+
+/* -----------------------------------------
+   Arrow Vertical Position
+   ----------------------------------------- */
+
+.side-arrow-space {
+
+    height: 300px;
+}
+
+
+/* -----------------------------------------
+   Model Indicator
+   ----------------------------------------- */
+
+.model-indicators {
+
+    text-align: center;
+
+    margin-top: 18px;
+
+    margin-bottom: 8px;
+}
+
+
+.model-dot {
+
+    display: inline-block;
+
+    width: 7px;
+
+    height: 7px;
+
+    border-radius: 50%;
+
+    background:
+        #d7c5e5;
+
+    margin:
+        0 5px;
+
+    transition:
+        all 0.3s ease;
+}
+
+
+.model-dot.active {
+
+    width: 26px;
+
+    border-radius: 10px;
+
+    background:
+        #6A0DAD;
+}
+
+
+/* -----------------------------------------
+   Comparison Section
+   ----------------------------------------- */
+
+.comparison-header {
+
+    text-align: center;
+
+    margin-bottom: 15px;
+
+    font-size: 23px;
+
+    font-weight: 750;
+
+    color: #333;
+}
+
+
+.comparison-header span {
+
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 14px;
+
+    font-weight: 400;
+
+    color: #777;
 }
 
 /* Model page slide animation */
@@ -379,38 +738,223 @@ images_b64, graph_titles, graph_details = generate_gallery_assets(df)
 # ==========================================
 # 4. Models Setup
 # ==========================================
+
 @st.cache_resource
 def train_models(df):
+
     df_model = df.copy()
+
+    # -------------------------------
+    # Encode categorical variables
+    # -------------------------------
     le_dict = {}
-    cat_cols = df_model.select_dtypes(include=['object']).columns
+
+    cat_cols = df_model.select_dtypes(
+        include=['object']
+    ).columns
+
     for col in cat_cols:
         le = LabelEncoder()
-        df_model[col] = le.fit_transform(df_model[col])
+        df_model[col] = le.fit_transform(
+            df_model[col]
+        )
         le_dict[col] = le
-        
-    X = df_model.drop(['PlayerID', 'EngagementLevel'], axis=1)
-    y = df_model['EngagementLevel']
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
-    models = {
-        "Logistic Regression": LogisticRegression(max_iter=1000),
-        "Random Forest": RandomForestClassifier(n_estimators=50, random_state=42),
-        "KNN": KNeighborsClassifier(n_neighbors=5),
-        "XGBoost": xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss', random_state=42)
-    }
-    trained_models = {}
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-        trained_models[name] = model
-        
-    return trained_models, le_dict, scaler, X.columns
 
-models_dict, le_dict, scaler, feature_cols = train_models(df)
+    # -------------------------------
+    # Separate X and y
+    # -------------------------------
+    X = df_model.drop(
+        ['PlayerID', 'EngagementLevel'],
+        axis=1
+    )
+
+    y = df_model['EngagementLevel']
+
+    # -------------------------------
+    # Train / Test Split
+    # -------------------------------
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42
+    )
+
+    # -------------------------------
+    # Standardisation
+    # -------------------------------
+    scaler = StandardScaler()
+
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    # -------------------------------
+    # Models
+    # -------------------------------
+    models = {
+
+        "Logistic Regression":
+            LogisticRegression(
+                max_iter=1000
+            ),
+
+        "Random Forest":
+            RandomForestClassifier(
+                n_estimators=50,
+                random_state=42
+            ),
+
+        "KNN":
+            KNeighborsClassifier(
+                n_neighbors=5
+            ),
+
+        "XGBoost":
+            xgb.XGBClassifier(
+                use_label_encoder=False,
+                eval_metric='mlogloss',
+                random_state=42
+            )
+    }
+
+    # -------------------------------
+    # Train models
+    # -------------------------------
+    trained_models = {}
+
+    for name, model in models.items():
+
+        model.fit(
+            X_train_scaled,
+            y_train
+        )
+
+        trained_models[name] = model
+
+    # ==========================================
+    # PERFORMANCE RESULTS
+    # ==========================================
+
+    classification_reports = {}
+    confusion_matrices = {}
+    roc_auc_scores = {}
+    feature_importance_data = {}
+
+    for name, model in trained_models.items():
+
+        # -------------------------------
+        # Predictions
+        # -------------------------------
+        y_pred = model.predict(
+            X_test_scaled
+        )
+
+        y_prob = model.predict_proba(
+            X_test_scaled
+        )
+
+        # -------------------------------
+        # Classification Report
+        # -------------------------------
+        report = classification_report(
+            y_test,
+            y_pred,
+            output_dict=True
+        )
+
+        classification_reports[name] = report
+
+        # -------------------------------
+        # Confusion Matrix
+        # -------------------------------
+        confusion_matrices[name] = confusion_matrix(
+            y_test,
+            y_pred
+        )
+
+        # -------------------------------
+        # Multi-Class ROC AUC
+        # -------------------------------
+        auc_scores = {}
+
+        for class_index, class_name in enumerate(
+            le_dict['EngagementLevel'].classes_
+        ):
+
+            y_binary = (
+                y_test.values == class_index
+            ).astype(int)
+
+            auc_scores[class_name] = roc_auc_score(
+                y_binary,
+                y_prob[:, class_index]
+            )
+
+        roc_auc_scores[name] = auc_scores
+
+        # -------------------------------
+        # Feature Importance
+        # -------------------------------
+
+        if name == "Random Forest":
+
+            importance = model.feature_importances_
+
+        elif name == "XGBoost":
+
+            importance = model.feature_importances_
+
+        elif name == "Logistic Regression":
+
+            importance = np.mean(
+                np.abs(model.coef_),
+                axis=0
+            )
+
+        else:
+            # KNN does not have native feature importance
+            # Use permutation importance
+
+            perm = permutation_importance(
+                model,
+                X_test_scaled,
+                y_test,
+                n_repeats=5,
+                random_state=42,
+                scoring='accuracy'
+            )
+
+            importance = perm.importances_mean
+
+        feature_importance_data[name] = dict(
+            zip(
+                X.columns,
+                importance
+            )
+        )
+
+    return (
+        trained_models,
+        le_dict,
+        scaler,
+        X.columns,
+        classification_reports,
+        confusion_matrices,
+        roc_auc_scores,
+        feature_importance_data
+    )
+
+
+(
+    models_dict,
+    le_dict,
+    scaler,
+    feature_cols,
+    classification_reports,
+    confusion_matrices,
+    roc_auc_scores,
+    feature_importance_data
+) = train_models(df)
 
 # ==========================================
 # 5. Main Tabs Layout
@@ -507,21 +1051,24 @@ with tab_eda:
                 vc = df[col].value_counts().reset_index()
                 vc.columns = [col, 'Count']
                 st.dataframe(vc, hide_index=True, use_container_width=True)
-                
+
+
 
 # ==========================================
 # TAB 2: MODEL PERFORMANCE
 # ==========================================
+
 with tab_perf:
 
-    # --------------------------------------
-    # Model Navigation State
-    # --------------------------------------
+    # ======================================
+    # MODEL NAVIGATION
+    # ======================================
+
     if 'perf_model_idx' not in st.session_state:
         st.session_state.perf_model_idx = 3
 
-    if 'slide_dir' not in st.session_state:
-        st.session_state.slide_dir = 'right'
+    if 'perf_slide_direction' not in st.session_state:
+        st.session_state.perf_slide_direction = "right"
 
     perf_models_list = [
         "Logistic Regression",
@@ -531,51 +1078,38 @@ with tab_perf:
     ]
 
     current_idx = st.session_state.perf_model_idx
-    selected_perf_model = perf_models_list[current_idx]
 
-    # --------------------------------------
-    # Animation Direction
-    # --------------------------------------
-    if st.session_state.slide_dir == "right":
-        animation_class = "perf-slide-right"
-    else:
-        animation_class = "perf-slide-left"
+    selected_perf_model = perf_models_list[
+        current_idx
+    ]
 
-    # --------------------------------------
-    # Header
-    # --------------------------------------
-    model_accuracy = classification_reports[
+    # ======================================
+    # CURRENT MODEL RESULTS
+    # ======================================
+
+    selected_report = classification_reports[
         selected_perf_model
-    ]["accuracy"]
+    ]
+
+    model_accuracy = selected_report[
+        "accuracy"
+    ]
+
+    # ======================================
+    # MODEL HEADER
+    # ======================================
 
     st.markdown(
         f"""
-        <div style="
-            text-align:center;
-            margin-top:10px;
-            margin-bottom:25px;
-        ">
+        <div class="model-header">
 
-            <div style="
-                font-size:34px;
-                font-weight:800;
-                color:#6A0DAD;
-                letter-spacing:-0.5px;
-            ">
+            <div class="model-name">
                 🤖 {selected_perf_model}
             </div>
 
-            <div style="
-                margin-top:7px;
-                font-size:16px;
-                color:#555;
-            ">
+            <div class="model-accuracy">
                 Testing Set Accuracy:
-                <span style="
-                    color:#e74c3c;
-                    font-weight:800;
-                    font-size:18px;
-                ">
+                <span>
                     {model_accuracy:.2%}
                 </span>
             </div>
@@ -586,81 +1120,91 @@ with tab_perf:
     )
 
     # ======================================
-    # MAIN CAROUSEL
+    # CAROUSEL AREA
     # ======================================
 
-    col_left, col_content, col_right = st.columns(
-        [0.7, 10, 0.7],
-        gap="small"
+    arrow_left, model_area, arrow_right = st.columns(
+        [0.65, 11, 0.65],
+        gap="medium"
     )
 
-    # --------------------------------------
+    # ======================================
     # LEFT ARROW
-    # --------------------------------------
-    with col_left:
+    # ======================================
+
+    with arrow_left:
 
         st.markdown(
-            """
-            <div class="perf-arrow-wrapper">
-            """,
+            "<div class='side-arrow-space'></div>",
             unsafe_allow_html=True
         )
 
         if st.button(
             "‹",
-            key="prev_model_btn",
-            use_container_width=True
+            key="perf_previous"
         ):
+
             st.session_state.perf_model_idx = (
                 current_idx - 1
             ) % len(perf_models_list)
 
-            st.session_state.slide_dir = "left"
+            st.session_state.perf_slide_direction = "left"
 
             st.rerun()
 
-        st.markdown("</div>", unsafe_allow_html=True)
+    # ======================================
+    # MODEL CONTENT
+    # ======================================
 
-    # --------------------------------------
-    # CONTENT
-    # --------------------------------------
-    with col_content:
+    with model_area:
+
+        if (
+            st.session_state.perf_slide_direction
+            == "right"
+        ):
+
+            slide_class = "perf-slide-right"
+
+        else:
+
+            slide_class = "perf-slide-left"
 
         st.markdown(
-            '<div class="performance-stage">',
+            f"""
+            <div class="performance-card-wrapper {slide_class}">
+            """,
             unsafe_allow_html=True
         )
 
         # ==================================
         # ROW 1
         # ==================================
-        row1_col1, row1_col2 = st.columns(
+
+        box1, box2 = st.columns(
             2,
             gap="medium"
         )
 
-        # ----------------------------------
-        # BOX 1 - CLASSIFICATION REPORT
-        # ----------------------------------
-        with row1_col1:
+        # ==================================
+        # BOX 1
+        # CLASSIFICATION REPORT
+        # ==================================
+
+        with box1:
 
             with st.container(
                 border=True,
-                key="perf_card_classification"
+                key=f"classification_{current_idx}"
             ):
 
                 st.markdown(
                     """
-                    <div class="model-card-title">
+                    <div class="perf-title">
                         📄 Classification Report
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
-
-                selected_report = classification_reports[
-                    selected_perf_model
-                ]
 
                 report_rows = []
 
@@ -670,72 +1214,146 @@ with tab_perf:
                     "High"
                 ]:
 
-                    row = selected_report[class_name]
+                    row = selected_report[
+                        str(
+                            le_dict[
+                                "EngagementLevel"
+                            ].transform(
+                                [class_name]
+                            )[0]
+                        )
+                    ]
 
                     report_rows.append({
-                        "Class": class_name,
-                        "Precision": row["precision"],
-                        "Recall": row["recall"],
-                        "F1-Score": row["f1-score"],
-                        "Support": row["support"]
+
+                        "Class":
+                            class_name,
+
+                        "Precision":
+                            row["precision"],
+
+                        "Recall":
+                            row["recall"],
+
+                        "F1-Score":
+                            row["f1-score"],
+
+                        "Support":
+                            row["support"]
                     })
 
                 report_rows.append({
-                    "Class": "Accuracy",
-                    "Precision": np.nan,
-                    "Recall": np.nan,
-                    "F1-Score": selected_report["accuracy"],
-                    "Support": 8007
-                })
 
-                macro = selected_report["macro avg"]
+                    "Class":
+                        "Accuracy",
+
+                    "Precision":
+                        np.nan,
+
+                    "Recall":
+                        np.nan,
+
+                    "F1-Score":
+                        selected_report[
+                            "accuracy"
+                        ],
+
+                    "Support":
+                        selected_report[
+                            "macro avg"
+                        ]["support"]
+                })
 
                 report_rows.append({
-                    "Class": "Macro Avg",
-                    "Precision": macro["precision"],
-                    "Recall": macro["recall"],
-                    "F1-Score": macro["f1-score"],
-                    "Support": macro["support"]
-                })
 
-                weighted = selected_report["weighted avg"]
+                    "Class":
+                        "Macro Avg",
+
+                    "Precision":
+                        selected_report[
+                            "macro avg"
+                        ]["precision"],
+
+                    "Recall":
+                        selected_report[
+                            "macro avg"
+                        ]["recall"],
+
+                    "F1-Score":
+                        selected_report[
+                            "macro avg"
+                        ]["f1-score"],
+
+                    "Support":
+                        selected_report[
+                            "macro avg"
+                        ]["support"]
+                })
 
                 report_rows.append({
-                    "Class": "Weighted Avg",
-                    "Precision": weighted["precision"],
-                    "Recall": weighted["recall"],
-                    "F1-Score": weighted["f1-score"],
-                    "Support": weighted["support"]
+
+                    "Class":
+                        "Weighted Avg",
+
+                    "Precision":
+                        selected_report[
+                            "weighted avg"
+                        ]["precision"],
+
+                    "Recall":
+                        selected_report[
+                            "weighted avg"
+                        ]["recall"],
+
+                    "F1-Score":
+                        selected_report[
+                            "weighted avg"
+                        ]["f1-score"],
+
+                    "Support":
+                        selected_report[
+                            "weighted avg"
+                        ]["support"]
                 })
 
-                report_df_display = pd.DataFrame(
+                report_df = pd.DataFrame(
                     report_rows
                 )
 
                 st.dataframe(
-                    report_df_display.style.format({
-                        "Precision": "{:.2f}",
-                        "Recall": "{:.2f}",
-                        "F1-Score": "{:.2f}",
-                        "Support": "{:.0f}"
+                    report_df.style.format({
+
+                        "Precision":
+                            "{:.2f}",
+
+                        "Recall":
+                            "{:.2f}",
+
+                        "F1-Score":
+                            "{:.2f}",
+
+                        "Support":
+                            "{:.0f}"
                     }),
                     use_container_width=True,
                     hide_index=True
                 )
 
-        # ----------------------------------
-        # BOX 2 - CONFUSION MATRIX
-        # ----------------------------------
-        with row1_col2:
+        # ==================================
+        # BOX 2
+        # CONFUSION MATRIX
+        # ==================================
+
+        with box2:
 
             with st.container(
                 border=True,
-                key="perf_card_confusion"
+                key=f"confusion_{current_idx}"
             ):
 
                 st.markdown(
                     """
-                    <div class="model-card-title">
+                    <div class="perf-title">
                         🎯 Confusion Matrix
                     </div>
                     """,
@@ -754,9 +1372,7 @@ with tab_perf:
                     cm,
                     annot=True,
                     fmt="d",
-                    cmap=confusion_colors[
-                        selected_perf_model
-                    ],
+                    cmap="Purples",
                     xticklabels=[
                         "Low",
                         "Medium",
@@ -767,18 +1383,16 @@ with tab_perf:
                         "Medium",
                         "High"
                     ],
-                    ax=ax_cm,
-                    cbar=False
+                    cbar=False,
+                    ax=ax_cm
                 )
 
                 ax_cm.set_xlabel(
-                    "Predicted Engagement",
-                    fontsize=10
+                    "Predicted Engagement"
                 )
 
                 ax_cm.set_ylabel(
-                    "Actual Engagement",
-                    fontsize=10
+                    "Actual Engagement"
                 )
 
                 plt.tight_layout()
@@ -788,28 +1402,32 @@ with tab_perf:
                     use_container_width=True
                 )
 
+                plt.close(fig_cm)
+
         # ==================================
         # ROW 2
         # ==================================
 
-        row2_col1, row2_col2 = st.columns(
+        box3, box4 = st.columns(
             2,
             gap="medium"
         )
 
-        # ----------------------------------
-        # BOX 3 - ROC CURVE
-        # ----------------------------------
-        with row2_col1:
+        # ==================================
+        # BOX 3
+        # ROC CURVE
+        # ==================================
+
+        with box3:
 
             with st.container(
                 border=True,
-                key="perf_card_roc"
+                key=f"roc_{current_idx}"
             ):
 
                 st.markdown(
                     """
-                    <div class="model-card-title">
+                    <div class="perf-title">
                         📈 Multi-Class ROC Curve
                     </div>
                     """,
@@ -817,53 +1435,110 @@ with tab_perf:
                 )
 
                 fig_roc, ax_roc = plt.subplots(
-                    figsize=(6, 4.5)
+                    figsize=(6, 4.3)
                 )
 
-                roc_class_colors = {
-                    "Low": "red",
-                    "Medium": "orange",
-                    "High": "green"
-                }
+                y_test_encoded = (
+                    train_models.__wrapped__(df)[
+                        5
+                    ]
+                    if False
+                    else None
+                )
 
-                for class_name, color in roc_class_colors.items():
+                model = models_dict[
+                    selected_perf_model
+                ]
+
+                # Re-create test data
+                df_temp = df.copy()
+
+                for col in df_temp.select_dtypes(
+                    include=['object']
+                ).columns:
+
+                    df_temp[col] = le_dict[
+                        col
+                    ].transform(
+                        df_temp[col]
+                    )
+
+                X_temp = df_temp.drop(
+                    [
+                        "PlayerID",
+                        "EngagementLevel"
+                    ],
+                    axis=1
+                )
+
+                y_temp = df_temp[
+                    "EngagementLevel"
+                ]
+
+                _, X_test_temp, _, y_test_temp = train_test_split(
+                    X_temp,
+                    y_temp,
+                    test_size=0.2,
+                    random_state=42
+                )
+
+                X_test_temp = scaler.transform(
+                    X_test_temp
+                )
+
+                y_prob = model.predict_proba(
+                    X_test_temp
+                )
+
+                for class_index, class_name in enumerate(
+                    le_dict[
+                        "EngagementLevel"
+                    ].classes_
+                ):
+
+                    y_binary = (
+                        y_test_temp.values
+                        == class_index
+                    ).astype(int)
+
+                    fpr, tpr, _ = roc_curve(
+                        y_binary,
+                        y_prob[:, class_index]
+                    )
 
                     target_auc = roc_auc_scores[
                         selected_perf_model
                     ][class_name]
 
-                    fpr, tpr = generate_roc_curve(
-                        target_auc
-                    )
-
                     ax_roc.plot(
                         fpr,
                         tpr,
-                        color=color,
                         lw=2,
-                        label=f"{class_name} "
-                              f"(AUC = {target_auc:.2f})"
+                        label=(
+                            f"{class_name} "
+                            f"(AUC = "
+                            f"{target_auc:.2f})"
+                        )
                     )
 
                 ax_roc.plot(
                     [0, 1],
                     [0, 1],
                     "k--",
-                    lw=2
+                    lw=1.5
                 )
 
                 ax_roc.set_xlabel(
-                    "False Positive Rate",
-                    fontsize=10
+                    "False Positive Rate"
                 )
 
                 ax_roc.set_ylabel(
-                    "True Positive Rate",
-                    fontsize=10
+                    "True Positive Rate"
                 )
 
                 ax_roc.legend(
-                    loc="lower right"
+                    loc="lower right",
+                    fontsize=9
                 )
 
                 plt.tight_layout()
@@ -873,24 +1548,41 @@ with tab_perf:
                     use_container_width=True
                 )
 
-        # ----------------------------------
-        # BOX 4 - FEATURE IMPORTANCE
-        # ----------------------------------
-        with row2_col2:
+                plt.close(fig_roc)
+
+        # ==================================
+        # BOX 4
+        # FEATURE IMPORTANCE
+        # ==================================
+
+        with box4:
 
             with st.container(
                 border=True,
-                key="perf_card_feature"
+                key=f"feature_{current_idx}"
             ):
 
-                style = feature_importance_style[
-                    selected_perf_model
-                ]
+                feature_titles = {
+
+                    "Logistic Regression":
+                        "🌟 Feature Coefficients",
+
+                    "Random Forest":
+                        "🌲 Feature Importance",
+
+                    "KNN":
+                        "🔍 Feature Influence",
+
+                    "XGBoost":
+                        "⚡ Feature Importance"
+                }
 
                 st.markdown(
                     f"""
-                    <div class="model-card-title">
-                        🌟 {style["title"]}
+                    <div class="perf-title">
+                        {feature_titles[
+                            selected_perf_model
+                        ]}
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -905,18 +1597,16 @@ with tab_perf:
                 )
 
                 fig_feat, ax_feat = plt.subplots(
-                    figsize=(6, 4.5)
+                    figsize=(6, 4.3)
                 )
 
                 feat_imp.plot(
                     kind="barh",
-                    ax=ax_feat,
-                    color=style["color"]
+                    ax=ax_feat
                 )
 
                 ax_feat.set_xlabel(
-                    style["xlabel"],
-                    fontsize=10
+                    "Importance"
                 )
 
                 plt.tight_layout()
@@ -926,152 +1616,139 @@ with tab_perf:
                     use_container_width=True
                 )
 
+                plt.close(fig_feat)
+
         st.markdown(
             "</div>",
             unsafe_allow_html=True
         )
 
-    # --------------------------------------
+    # ======================================
     # RIGHT ARROW
-    # --------------------------------------
-    with col_right:
+    # ======================================
+
+    with arrow_right:
 
         st.markdown(
-            """
-            <div class="perf-arrow-wrapper">
-            """,
+            "<div class='side-arrow-space'></div>",
             unsafe_allow_html=True
         )
 
         if st.button(
             "›",
-            key="next_model_btn",
-            use_container_width=True
+            key="perf_next"
         ):
+
             st.session_state.perf_model_idx = (
                 current_idx + 1
             ) % len(perf_models_list)
 
-            st.session_state.slide_dir = "right"
+            st.session_state.perf_slide_direction = "right"
 
             st.rerun()
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
     # ======================================
-    # MODEL INDICATOR
+    # MODEL DOT INDICATOR
     # ======================================
-
-    st.markdown(
-        "<div style='text-align:center;margin-top:8px;'>",
-        unsafe_allow_html=True
-    )
 
     indicators = ""
 
-    for i, model_name in enumerate(perf_models_list):
+    for i in range(
+        len(perf_models_list)
+    ):
 
         if i == current_idx:
+
             indicators += """
-            <span style="
-                display:inline-block;
-                width:24px;
-                height:5px;
-                border-radius:10px;
-                background:#6A0DAD;
-                margin:0 4px;
-            "></span>
+            <span class="model-dot active"></span>
             """
+
         else:
+
             indicators += """
-            <span style="
-                display:inline-block;
-                width:7px;
-                height:7px;
-                border-radius:50%;
-                background:#d7c5e5;
-                margin:0 5px;
-            "></span>
+            <span class="model-dot"></span>
             """
 
     st.markdown(
-        indicators + "</div>",
+        f"""
+        <div class="model-indicators">
+            {indicators}
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
     # ======================================
-    # OVERALL MODEL COMPARISON
+    # MODEL COMPARISON
     # ======================================
 
     st.markdown("---")
 
     st.markdown(
         """
-        <div style="
-            text-align:center;
-            margin-bottom:15px;
-        ">
-            <h3 style="
-                color:#333;
-                margin-bottom:4px;
-            ">
-                🏆 Overall Model Comparison
-            </h3>
+        <div class="comparison-header">
 
-            <p style="
-                color:#777;
-                font-size:14px;
-            ">
+            <div>
+                🏆 Overall Model Comparison
+            </div>
+
+            <span>
                 Compare the performance of all four models
-            </p>
+            </span>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    comparison_df = pd.DataFrame({
-        "Model": [
-            "Logistic Regression",
-            "Random Forest",
-            "KNN",
-            "XGBoost"
-        ],
-        "Accuracy": [
-            0.9040,
-            0.9510,
-            0.8461,
-            0.9694
-        ],
-        "Precision": [
-            0.9051,
-            0.9516,
-            0.8641,
-            0.9696
-        ],
-        "Recall": [
-            0.9040,
-            0.9510,
-            0.8461,
-            0.9694
-        ],
-        "F1-Score": [
-            0.9041,
-            0.9510,
-            0.8444,
-            0.9694
-        ],
-        "AUC": [
-            0.9571,
-            0.9852,
-            0.9404,
-            0.9892
-        ]
-    })
+    comparison_rows = []
 
-    summary_display = comparison_df.copy()
+    for model_name in perf_models_list:
+
+        report = classification_reports[
+            model_name
+        ]
+
+        auc_average = np.mean(
+            list(
+                roc_auc_scores[
+                    model_name
+                ].values()
+            )
+        )
+
+        comparison_rows.append({
+
+            "Model":
+                model_name,
+
+            "Accuracy":
+                report["accuracy"],
+
+            "Precision":
+                report["weighted avg"][
+                    "precision"
+                ],
+
+            "Recall":
+                report["weighted avg"][
+                    "recall"
+                ],
+
+            "F1-Score":
+                report["weighted avg"][
+                    "f1-score"
+                ],
+
+            "AUC":
+                auc_average
+        })
+
+    comparison_df = pd.DataFrame(
+        comparison_rows
+    )
+
+    display_df = comparison_df.copy()
 
     for col in [
         "Accuracy",
@@ -1080,12 +1757,16 @@ with tab_perf:
         "F1-Score",
         "AUC"
     ]:
-        summary_display[col] = summary_display[col].map(
-            lambda x: f"{x:.2%}"
+
+        display_df[col] = display_df[
+            col
+        ].map(
+            lambda x:
+                f"{x:.2%}"
         )
 
     st.dataframe(
-        summary_display,
+        display_df,
         use_container_width=True,
         hide_index=True
     )
