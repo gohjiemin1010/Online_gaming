@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.subplots as plt_sub
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
@@ -15,6 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # ==========================================
 # 1. Page Configuration & Global Settings
@@ -27,7 +27,7 @@ plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
-# 2. Advanced CSS (Animations, 3D Shadows, Side Arrows)
+# 2. Advanced CSS 
 # ==========================================
 st.markdown("""
 <style>
@@ -57,8 +57,8 @@ st.markdown("""
     align-items: center;
     perspective: 1200px;
     overflow: hidden;
-    background: transparent !important;
-    box-shadow: none !important;
+    background: transparent !important; 
+    box-shadow: none !important; 
     border: none !important;
     margin-bottom: 20px;
 }
@@ -107,12 +107,12 @@ div.stButton > button:hover { background-color: #5b0b9c !important; }
 .perf-arrow-btn button {
     height: 60px !important;
     font-size: 24px !important;
-    margin-top: 350px !important; /* Vertically centers the arrows beside the 4 boxes */
+    margin-top: 350px !important; /* Vertically centers the arrows beside the box */
     border-radius: 30px !important;
     box-shadow: 0px 6px 15px rgba(106, 13, 173, 0.3) !important;
 }
 
-/* Hover lift effect for the 4 Bento Boxes */
+/* Hover lift effect for the Main Sliding Box */
 [data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 15px !important;
     box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.05) !important;
@@ -121,20 +121,8 @@ div.stButton > button:hover { background-color: #5b0b9c !important; }
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:hover {
-    transform: translateY(-4px) !important;
     box-shadow: 0px 12px 25px rgba(106, 13, 173, 0.15) !important;
 }
-
-/* Keyframes for the Sliding Box Animation */
-@keyframes slideInRight {
-    0% { opacity: 0; transform: translateX(100px); }
-    100% { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInLeft {
-    0% { opacity: 0; transform: translateX(-100px); }
-    100% { opacity: 1; transform: translateX(0); }
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -224,7 +212,7 @@ def generate_gallery_assets(df):
 images_b64, graph_titles, graph_details = generate_gallery_assets(df)
 
 # ==========================================
-# 4. Models Setup 
+# 4. Models Setup
 # ==========================================
 @st.cache_resource
 def train_models(df):
@@ -356,19 +344,21 @@ with tab_eda:
                 st.dataframe(vc, hide_index=True, use_container_width=True)
 
 # ------------------------------------------
-# TAB 2: MODEL PERFORMANCE (Animated Slider)
+# TAB 2: MODEL PERFORMANCE (PERFECT SLIDING BOX)
 # ------------------------------------------
 with tab_perf:
     
-    # 1. Initialize State & Load Dictionaries First! (This fixes the NameError)
+    # =========================================================
+    # 1. STATE INITIALIZATION & DICTIONARIES (MOVED TO TOP TO FIX ERROR!)
+    # =========================================================
     if 'perf_model_idx' not in st.session_state:
         st.session_state.perf_model_idx = 3 # Default to XGBoost
     if 'slide_dir' not in st.session_state:
         st.session_state.slide_dir = 'right' # Default slide direction
         
-    perf_models_list = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
+    performance_models = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
     current_idx = st.session_state.perf_model_idx
-    selected_perf_model = perf_models_list[current_idx]
+    selected_perf_model = performance_models[current_idx]
 
     classification_reports = {
         "Logistic Regression": {"Low": {"precision": 0.89, "recall": 0.90, "f1-score": 0.90, "support": 2065}, "Medium": {"precision": 0.89, "recall": 0.92, "f1-score": 0.90, "support": 3875}, "High": {"precision": 0.95, "recall": 0.88, "f1-score": 0.91, "support": 2067}, "macro avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "weighted avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "accuracy": 0.9040},
@@ -404,6 +394,13 @@ with tab_perf:
         "KNN": {"color": "rebeccapurple", "xlabel": "Mean Accuracy Drop Upon Permutation", "title": "Top 10 Permutation Feature Importance"},
         "XGBoost": {"color": "orangered", "xlabel": "Feature Importance Score", "title": "Top 10 Feature Importance"}
     }
+    
+    model_parameters = {
+        "Logistic Regression": {"Regularization (C)": "0.1", "Solver": "lbfgs"},
+        "Random Forest": {"Trees (n_estimators)": "100", "Max Depth": "20", "Min Samples Split": "5", "Min Samples Leaf": "2"},
+        "KNN": {"K (n_neighbors)": "43", "Weights": "uniform", "Metric": "manhattan"},
+        "XGBoost": {"Max Depth": "7", "Learning Rate": "0.1", "Trees (n_estimators)": "100"}
+    }
 
     def generate_roc_curve(target_auc, n_points=300):
         target_auc = min(max(target_auc, 0.5001), 0.9999)
@@ -415,48 +412,63 @@ with tab_perf:
         tpr = np.concatenate([[0.0], tpr, [1.0]])
         return fpr, tpr
 
-    # 2. FIXED HEADER (No Animation, Just Text)
-    model_accuracy = classification_reports[selected_perf_model]["accuracy"]
+    st.markdown("### Model Performance Evaluation")
+
+    # =========================================================
+    # 2. STATIC HEADER (Text updates, but NO animation here)
+    # =========================================================
+    selected_report = classification_reports[selected_perf_model]
+    model_accuracy = selected_report["accuracy"]
+    
     st.markdown(f"""
     <div style='text-align: center; margin-bottom: 20px;'>
-        <h2 style='color: #6A0DAD; font-weight: 800; margin: 0; font-size: 34px;'>🤖 {selected_perf_model}</h2>
-        <h5 style='color: #444; margin-top: 5px;'>Testing Set Accuracy: <span style='color: #e74c3c; font-weight: bold;'>{model_accuracy:.2%}</span></h5>
+        <h2 style='color: #e74c3c; font-weight: bold;'>🎯 {selected_perf_model}</h2>
+        <h4 style='color: #333;'>Testing Set Accuracy: <span style='color: #e74c3c;'>{model_accuracy:.2%}</span></h4>
     </div>
     """, unsafe_allow_html=True)
 
-    # 3. Dynamic Slide Animation Logic (Only applies to the 4 bento boxes)
+    # =========================================================
+    # 3. ANIMATION CSS ONLY FOR THE BOX 
+    # =========================================================
     anim_rule = "slideInRight 0.5s ease-out forwards" if st.session_state.slide_dir == 'right' else "slideInLeft 0.5s ease-out forwards"
-    
     st.markdown(f"""
     <style>
-    /* This specifically targets the 4 Grid Boxes to slide them */
+    @keyframes slideInRight {{
+        0% {{ opacity: 0; transform: translateX(50px); }}
+        100% {{ opacity: 1; transform: translateX(0); }}
+    }}
+    @keyframes slideInLeft {{
+        0% {{ opacity: 0; transform: translateX(-50px); }}
+        100% {{ opacity: 1; transform: translateX(0); }}
+    }}
+    /* Target the metrics container to slide */
     [data-testid="stVerticalBlockBorderWrapper"] {{
-        animation: {anim_rule} !important;
+        animation: {anim_rule};
     }}
     </style>
     """, unsafe_allow_html=True)
 
-    # 4. Layout: [ ◀ ] [ 2x2 Grid of Boxes ] [ ▶ ]
-    col_arrow_L, col_main_grid, col_arrow_R = st.columns([0.6, 10, 0.6], gap="small")
+    # =========================================================
+    # 4. SLIDER LAYOUT: [ ◀ ] [ YOUR EXACT CONTENT ] [ ▶ ]
+    # =========================================================
+    col_arrow_L, col_content, col_arrow_R = st.columns([1, 10, 1])
     
     with col_arrow_L:
         st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
         if st.button("◀", key="prev_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx - 1) % 4
-            st.session_state.slide_dir = 'left'  # Set direction to left!
+            st.session_state.slide_dir = 'left' 
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
             
-    with col_main_grid:
-        
-        # 2x2 Bento Box Grid Layout
-        row1_col1, row1_col2 = st.columns(2)
-        
-        # BOX 1: Classification Report
-        with row1_col1:
-            with st.container(border=True):
-                st.markdown("#### 📄 Classification Report")
-                selected_report = classification_reports[selected_perf_model]
+    with col_content:
+        with st.container(border=True):
+            
+            # --- YOUR EXACT ORIGINAL CONTENT & LAYOUT BELOW ---
+            report_col, cm_col = st.columns([1, 1])
+            
+            with report_col:
+                st.markdown("#### Classification Report")
                 report_rows = []
                 for class_name in ["Low", "Medium", "High"]:
                     row = selected_report[class_name]
@@ -472,61 +484,67 @@ with tab_perf:
                     report_df_display.style.format({"Precision": "{:.2f}", "Recall": "{:.2f}", "F1-Score": "{:.2f}", "Support": "{:.0f}"}),
                     use_container_width=True, hide_index=True
                 )
-
-        # BOX 2: Confusion Matrix
-        with row1_col2:
-            with st.container(border=True):
-                st.markdown("#### 🎯 Confusion Matrix")
+                
+            with cm_col:
+                st.markdown("#### Confusion Matrix")
                 cm = confusion_matrices[selected_perf_model]
-                fig_cm, ax_cm = plt.subplots(figsize=(6, 4))
-                sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[selected_perf_model], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=False)
-                ax_cm.set_xlabel("Predicted Engagement", fontsize=10)
-                ax_cm.set_ylabel("Actual Engagement", fontsize=10)
+                fig_cm, ax_cm = plt.subplots(figsize=(6, 5))
+                sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[selected_perf_model], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=True)
+                ax_cm.set_title(f"Confusion Matrix ({selected_perf_model} - Optimized)", fontsize=14, fontweight="bold", pad=15)
+                ax_cm.set_xlabel("Predicted Engagement", fontsize=11)
+                ax_cm.set_ylabel("Actual Engagement", fontsize=11)
                 plt.tight_layout()
                 st.pyplot(fig_cm, use_container_width=True)
-
-        row2_col1, row2_col2 = st.columns(2)
-        
-        # BOX 3: ROC Curve
-        with row2_col1:
-            with st.container(border=True):
-                st.markdown("#### 📈 Multi-Class ROC Curve")
-                fig_roc, ax_roc = plt.subplots(figsize=(6, 4.5))
+                
+            roc_col, feat_col = st.columns([1, 1])
+            
+            with roc_col:
+                st.markdown("#### Multi-Class ROC Curve")
+                fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
                 roc_class_colors = {"Low": "red", "Medium": "orange", "High": "green"}
                 for class_name, color in roc_class_colors.items():
                     target_auc = roc_auc_scores[selected_perf_model][class_name]
                     fpr, tpr = generate_roc_curve(target_auc)
                     ax_roc.plot(fpr, tpr, color=color, lw=2, label=f"{class_name} (AUC = {target_auc:.2f})")
                 ax_roc.plot([0, 1], [0, 1], "k--", lw=2)
-                ax_roc.set_xlabel("False Positive Rate", fontsize=10)
-                ax_roc.set_ylabel("True Positive Rate", fontsize=10)
+                ax_roc.set_title(f"Multi-Class ROC Curve ({selected_perf_model})", fontsize=14, fontweight="bold", pad=15)
+                ax_roc.set_xlabel("False Positive Rate", fontsize=11)
+                ax_roc.set_ylabel("True Positive Rate", fontsize=11)
                 ax_roc.legend(loc="lower right")
                 plt.tight_layout()
                 st.pyplot(fig_roc, use_container_width=True)
-
-        # BOX 4: Feature Importance
-        with row2_col2:
-            with st.container(border=True):
+                
+            with feat_col:
                 style = feature_importance_style[selected_perf_model]
-                st.markdown(f"#### 🌟 {style['title']}")
+                st.markdown(f"#### {style['title']}")
                 feat_imp = pd.Series(feature_importance_data[selected_perf_model]).sort_values(ascending=True)
-                fig_feat, ax_feat = plt.subplots(figsize=(6, 4.5))
+                fig_feat, ax_feat = plt.subplots(figsize=(6, 5))
                 feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
-                ax_feat.set_xlabel(style["xlabel"], fontsize=10)
+                ax_feat.set_title(f"{style['title']} ({selected_perf_model})", fontsize=14, fontweight="bold", pad=15)
+                ax_feat.set_xlabel(style["xlabel"], fontsize=11)
                 plt.tight_layout()
                 st.pyplot(fig_feat, use_container_width=True)
+                
+            with st.expander("⚙️ Optimized Hyperparameters", expanded=False):
+                params = model_parameters[selected_perf_model]
+                param_cols = st.columns(len(params))
+                for i, (param_name, param_value) in enumerate(params.items()):
+                    with param_cols[i]:
+                        st.metric(param_name, param_value)
 
     with col_arrow_R:
         st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
         if st.button("▶", key="next_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx + 1) % 4
-            st.session_state.slide_dir = 'right' # Set direction to right!
+            st.session_state.slide_dir = 'right' 
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # 4. Overall Model Comparison
+    # =========================================================
+    # 5. OVERALL MODEL COMPARISON (RESTORED YOUR ORIGINAL GRAPH)
+    # =========================================================
     st.markdown("---")
-    st.markdown("### 🏆 Overall Model Comparison")
+    st.markdown("##  Overall Model Comparison")
     
     comparison_df = pd.DataFrame({
         "Model": ["Logistic Regression", "Random Forest", "KNN", "XGBoost"],
@@ -537,10 +555,26 @@ with tab_perf:
         "AUC": [0.9571, 0.9852, 0.9404, 0.9892]
     })
     
+    st.markdown("#### Performance Summary Table")
     summary_display = comparison_df.copy()
     for col in ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]:
         summary_display[col] = summary_display[col].map(lambda x: f"{x:.2%}")
     st.dataframe(summary_display, use_container_width=True, hide_index=True)
+
+    st.markdown("#### Final Algorithm Comparison")
+    plot_df = comparison_df.melt(id_vars="Model", value_vars=["Accuracy", "F1-Score", "AUC"], var_name="Metric", value_name="Score")
+    fig_summary, ax_summary = plt.subplots(figsize=(12, 7))
+    sns.barplot(data=plot_df, x="Model", y="Score", hue="Metric", palette="viridis", ax=ax_summary)
+    ax_summary.set_title("Final Algorithm Comparison: Accuracy, F1-Score & AUC", fontsize=16, fontweight="bold", pad=15)
+    ax_summary.set_xlabel("Machine Learning Model", fontsize=12)
+    ax_summary.set_ylabel("Score (0.0 to 1.0)", fontsize=12)
+    ax_summary.set_ylim(0, 1.15)
+    ax_summary.legend(bbox_to_anchor=(1.01, 1), loc="upper left", title="Metrics")
+    for container in ax_summary.containers:
+        ax_summary.bar_label(container, fmt="%.3f", padding=3)
+    sns.despine()
+    plt.tight_layout()
+    st.pyplot(fig_summary, use_container_width=True)
 
 # ------------------------------------------
 # TAB 3: Prediction Result
@@ -568,7 +602,7 @@ with tab_pred:
                 in_purchases_label = st.selectbox("In-Game Purchases", ["No", "Yes"])
                 in_purchases = 1 if in_purchases_label == "Yes" else 0
                 sessions = st.slider("Sessions/Week", int(df['SessionsPerWeek'].min()), int(df['SessionsPerWeek'].max()), 5)
-                avg_duration = st.slider("Avg Session (Mins)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
+                avg_duration = slider_val = st.slider("Avg Session (Mins)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
                 player_level = st.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
                 
             achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
