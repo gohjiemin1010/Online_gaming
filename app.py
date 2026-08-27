@@ -1013,7 +1013,7 @@ with tab_perf:
     # ---------------------------------------------------------
     with roc_col:
  
-        st.markdown("##### Multi-Class ROC Curve")
+        st.markdown("#### Multi-Class ROC Curve")
  
         fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
  
@@ -1047,7 +1047,7 @@ with tab_perf:
  
         style = feature_importance_style[selected_perf_model]
  
-        st.markdown(f"##### {style['title']}")
+        st.markdown(f"#### {style['title']}")
  
         feat_imp = pd.Series(feature_importance_data[selected_perf_model])
         feat_imp = feat_imp.sort_values(ascending=True)
