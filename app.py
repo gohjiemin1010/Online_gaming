@@ -311,6 +311,9 @@ PLAYER BEHAVIOR • MACHINE LEARNING • ENGAGEMENT INTELLIGENCE
 <span class="status-dot"></span>
 AI SYSTEM ONLINE
 </div>
+<div class="dataset-badge">
+3 ENGAGEMENT CLASSES
+</div>
 </div>
 </div>
 </div>
