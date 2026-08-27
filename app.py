@@ -13,25 +13,40 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # ==========================================
 # 1. Page Configuration & Global Settings
 # ==========================================
 st.set_page_config(page_title="Online Gaming Analytics", page_icon="🎮", layout="wide")
 
-# Set Seaborn theme based on your ipynb
+# Set Seaborn theme
 sns.set_theme(style="white", context="notebook", font_scale=1.1)
 plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
-# 2. Advanced 3D Carousel CSS
+# 2. Advanced CSS (Fixed 3D Cards, Transparent Slider)
 # ==========================================
 st.markdown("""
 <style>
 .block-container { padding-top: 1.5rem !important; }
 
-/* 3D Coverflow Slider Styling */
+/* 3D Metric Cards styling with hover effect */
+[data-testid="stMetric"] {
+    background-color: #ffffff !important;
+    border-radius: 10px !important;
+    padding: 15px 20px !important;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1) !important; 
+    border-top: 4px solid #6A0DAD !important; 
+    transition: all 0.3s ease-in-out !important; 
+}
+[data-testid="stMetric"]:hover {
+    transform: translateY(-5px) !important; 
+    box-shadow: 0px 10px 20px rgba(106, 13, 173, 0.2) !important; 
+}
+
+/* 3D Coverflow Slider Styling (Transparent Background) */
 .slider-container {
     position: relative;
     width: 100%;
@@ -41,9 +56,7 @@ st.markdown("""
     align-items: center;
     perspective: 1200px;
     overflow: hidden;
-    background: linear-gradient(135deg, #f5f0fa 0%, #ffffff 100%);
-    border-radius: 15px;
-    box-shadow: inset 0px 0px 20px rgba(0,0,0,0.05);
+    background: transparent; /* Removed gray box */
     margin-bottom: 20px;
 }
 .slider-card {
@@ -52,7 +65,7 @@ st.markdown("""
     height: 380px;
     transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
     border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
     background-color: white;
     display: flex;
     justify-content: center;
@@ -98,6 +111,13 @@ st.markdown("""
 }
 
 /* Streamlit Native UI Overrides */
+button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
+    font-size: 20px !important;
+    font-weight: bold !important;
+}
+.stTabs [data-baseweb="tab-list"] button[aria-selected="true"] p { color: #6A0DAD !important; }
+.stTabs [data-baseweb="tab-list"] div[data-baseweb="tab-highlight"] { background-color: #6A0DAD !important; }
+
 div.stButton > button {
     background-color: #6A0DAD !important;
     color: white !important;
@@ -211,18 +231,47 @@ def generate_gallery_assets(df):
 images_b64, graph_titles, graph_details = generate_gallery_assets(df)
 
 # ==========================================
-# 4. Main Tabs Layout
+# 4. Models Setup
 # ==========================================
-tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Gallery", "📊 Model Performance", "🎯 Prediction Result"])
+@st.cache_resource
+def train_models(df):
+    df_model = df.copy()
+    le_dict = {}
+    cat_cols = df_model.select_dtypes(include=['object']).columns
+    for col in cat_cols:
+        le = LabelEncoder()
+        df_model[col] = le.fit_transform(df_model[col])
+        le_dict[col] = le
+        
+    X = df_model.drop(['PlayerID', 'EngagementLevel'], axis=1)
+    y = df_model['EngagementLevel']
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    models = {"XGBoost": xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss', random_state=42)}
+    trained_models = {}
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        trained_models[name] = model
+        
+    return trained_models, le_dict, scaler, X.columns
+
+models_dict, le_dict, scaler, feature_cols = train_models(df)
+
+# ==========================================
+# 5. Main Tabs Layout
+# ==========================================
+tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Analysis", "📊 Model Performance", "🎯 Prediction Result"])
 
 # ------------------------------------------
-# TAB 1: 3D DATA GALLERY
+# TAB 1: DATA ANALYSIS
 # ------------------------------------------
 with tab_eda:
-
-    st.markdown("### Exploratory Data Analysis")
     
-    # Beautiful 3D Animated Metric Cards
+    # Dataset Overview Cards
     st.markdown("##### Dataset Overview")
     m1, m2, m3, m4, m5 = st.columns(5)
     with m1: st.metric("Total Players", f"{df.shape[0]:,}")
@@ -264,21 +313,22 @@ with tab_eda:
     """
     st.markdown(html_carousel, unsafe_allow_html=True)
 
-    # Navigation & Details Logic
-    col_prev, col_details, col_next = st.columns([1, 2, 1])
+    # Navigation & Details Logic (Buttons moved closer to the center)
+    col_space_left, col_prev, col_details, col_next, col_space_right = st.columns([1.5, 1, 4, 1, 1.5])
     
     with col_prev:
-        if st.button("◀ PREV"):
+        st.write("") # Tiny spacer to push button down aligning with expander
+        if st.button("◀ PREV", use_container_width=True):
             st.session_state.gallery_idx = (st.session_state.gallery_idx - 1) % total_cards
             st.rerun()
             
     with col_details:
-        # User "presses" the graph by clicking to view details
         with st.expander(f"🔍 VIEW GRAPH DETAILS: {graph_titles[idx].split('. ')[1]}", expanded=False):
             st.markdown(f"**Description:**<br>{graph_details[idx]}", unsafe_allow_html=True)
             
     with col_next:
-        if st.button("NEXT ▶"):
+        st.write("") # Tiny spacer
+        if st.button("NEXT ▶", use_container_width=True):
             st.session_state.gallery_idx = (st.session_state.gallery_idx + 1) % total_cards
             st.rerun()
 
@@ -294,50 +344,45 @@ with tab_eda:
     summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
         
     if summary_choice == "Numerical Summary":
-            st.markdown("**Full Dataset Statistical Profile (Numerical)**")
-            num_desc = df.describe().T
-            num_desc['range'] = num_desc['max'] - num_desc['min']
-            num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
-            display_cols = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'range', 'cv']
-            st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
+        st.markdown("**Full Dataset Statistical Profile (Numerical)**")
+        num_desc = df.describe().T
+        num_desc['range'] = num_desc['max'] - num_desc['min']
+        num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
+        display_cols = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'range', 'cv']
+        st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
             
     elif summary_choice == "Categorical Summary":
-            st.markdown("**Categorical Features Value Counts**")
-            cat_cols = df.select_dtypes(include=['object']).columns
-            table_cols = st.columns(len(cat_cols))
-            for i, col in enumerate(cat_cols):
-                with table_cols[i]:
-                    st.markdown(f"**{col}**")
-                    vc = df[col].value_counts().reset_index()
-                    vc.columns = [col, 'Count']
-                    st.dataframe(vc, hide_index=True, use_container_width=True)
-
-
+        st.markdown("**Categorical Features Value Counts**")
+        cat_cols = df.select_dtypes(include=['object']).columns
+        table_cols = st.columns(len(cat_cols))
+        for i, col in enumerate(cat_cols):
+            with table_cols[i]:
+                st.markdown(f"**{col}**")
+                vc = df[col].value_counts().reset_index()
+                vc.columns = [col, 'Count']
+                st.dataframe(vc, hide_index=True, use_container_width=True)
 
 # ------------------------------------------
-# TAB 2: Model Performance (Minimal modifications, keeps your logic)
+# TAB 2: Model Performance
 # ------------------------------------------
 with tab_perf:
     st.markdown("### 🚀 Model Performance Evaluation")
     st.info("Your performance metrics and confusion matrices go here based on your Jupyter Notebook logic.")
-    # You can safely paste your Tab 2 logic here exactly as you had it previously!
-    # For brevity in this response, I've left the placeholder, but your previous Tab 2 code works perfectly here.
-
 
 # ------------------------------------------
-# TAB 3: Prediction Result (Moved from Sidebar)
+# TAB 3: Prediction Result
 # ------------------------------------------
 with tab_pred:
     st.markdown("### 🎯 Player Engagement Predictor")
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
     
-    # 2-Column layout for UI: Left for inputs, Right for results
     input_col, result_col = st.columns([1, 1.2])
     
     with input_col:
         st.markdown("#### 1. Input Player Features")
         with st.container(border=True):
-            selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=3)
+            # FIXED ERROR HERE: Changed index=3 to index=0
+            selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=0)
             
             c_in1, c_in2 = st.columns(2)
             with c_in1:
@@ -362,9 +407,8 @@ with tab_pred:
         st.markdown("#### 2. Prediction Insights")
         if predict_btn:
             with st.spinner("Analyzing player profile..."):
-                time.sleep(0.8) # Visual loading effect
+                time.sleep(0.8) 
                 
-            # Prepare Input Data
             input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
                                         difficulty, sessions, avg_duration, player_level, achievements]], 
                                       columns=feature_cols)
@@ -380,10 +424,8 @@ with tab_pred:
             classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
             prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
             
-            # Show Result Card
             st.metric(label=f"Predicted Engagement Level", value=prediction, delta=selected_model_name, delta_color="off")
             
-            # Probabilities Chart
             fig_prob = px.bar(
                 prob_df, x="Probability", y="Engagement Level", 
                 orientation='h', text_auto='.1%', 
@@ -393,7 +435,6 @@ with tab_pred:
             fig_prob.update_layout(xaxis=dict(range=[0, 1], tickformat=".0%"), showlegend=False, height=200, margin=dict(l=0, r=0, t=30, b=0))
             st.plotly_chart(fig_prob, use_container_width=True)
 
-            # Actionable Insight
             st.markdown("##### 💡 Actionable Strategy")
             if prediction == "Low":
                 st.warning("**Retention Risk!** Consider sending re-engagement emails, offering free starter packs, or suggesting easier game modes.")
