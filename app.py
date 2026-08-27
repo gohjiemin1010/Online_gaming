@@ -78,27 +78,22 @@ st.markdown("""
 /* ---------- MAIN HEADER ---------- */
 
 .gaming-header {
-    position: relative;
+    position: sticky;      /* 开启吸顶功能 */
+    top: 2.8rem;           /* 避开 Streamlit 默认右上角的菜单栏 */
+    z-index: 9999;         /* 确保层级最高，不被下方图表遮挡 */
+    
     width: 100%;
-    padding: 28px 35px 25px 35px;
+    /* 修改前: padding: 28px 35px 25px 35px; */
+    padding: 45px 35px 40px 35px;  /* 上下数值调大，把框框稍微拉长 */
     margin-bottom: 25px;
     border-radius: 22px;
     overflow: hidden;
 
-    background:
-        radial-gradient(circle at 90% 20%,
-            rgba(155, 89, 182, 0.25),
-            transparent 35%),
-        radial-gradient(circle at 10% 80%,
-            rgba(106, 13, 173, 0.18),
-            transparent 35%),
-        linear-gradient(135deg,
-            #16002b 0%,
-            #26004a 45%,
-            #12001f 100%);
-
-    box-shadow:
-        0 15px 45px rgba(72, 0, 120, 0.25);
+    /* 下方的 background, box-shadow 保持你原本的代码不变 */
+    background: radial-gradient(circle at 90% 20%, rgba(155, 89, 182, 0.25), transparent 35%),
+                radial-gradient(circle at 10% 80%, rgba(106, 13, 173, 0.18), transparent 35%),
+                linear-gradient(135deg, #16002b 0%, #26004a 45%, #12001f 100%);
+    box-shadow: 0 15px 45px rgba(72, 0, 120, 0.25);
 }
 
 /* Decorative glow */
@@ -599,6 +594,7 @@ def generate_eda_slider_html(images_b64, titles, details):
       .nav-btn:hover {{ background: #6A0DAD; color: white; transform: translateY(-50%) scale(1.15); }}
       .prev-btn {{ left: 2%; }}
       .next-btn {{ right: 2%; }}
+      
     </style>
     </head>
     <body>
