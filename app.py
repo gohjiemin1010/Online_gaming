@@ -297,43 +297,30 @@ st.markdown("""
 
 st.markdown("""
 <div class="gaming-header">
-
-    <div class="header-content">
-
-        <div class="logo-area">
-
-            <div class="logo-icon">
-                🎮
-            </div>
-
-            <div>
-                <div class="header-title">
-                    Online Gaming Analytics
-                </div>
-
-                <div class="header-subtitle">
-                    PLAYER BEHAVIOR • MACHINE LEARNING • ENGAGEMENT INTELLIGENCE
-                </div>
-            </div>
-
-        </div>
-
-
-        <div class="header-status">
-
-            <div class="status-badge">
-                <span class="status-dot"></span>
-                AI SYSTEM ONLINE
-            </div>
-
-            <div class="dataset-badge">
-                3 ENGAGEMENT CLASSES
-            </div>
-
-        </div>
-
-    </div>
-
+<div class="header-content">
+<div class="logo-area">
+<div class="logo-icon">
+🎮
+</div>
+<div>
+<div class="header-title">
+Online Gaming Analytics
+</div>
+<div class="header-subtitle">
+PLAYER BEHAVIOR • MACHINE LEARNING • ENGAGEMENT INTELLIGENCE
+</div>
+</div>
+</div>
+<div class="header-status">
+<div class="status-badge">
+<span class="status-dot"></span>
+AI SYSTEM ONLINE
+</div>
+<div class="dataset-badge">
+3 ENGAGEMENT CLASSES
+</div>
+</div>
+</div>
 </div>
 """, unsafe_allow_html=True)
 
