@@ -1022,44 +1022,6 @@ tab_eda, tab_perf, tab_pred = st.tabs([
 # ------------------------------------------
 with tab_eda:
 
-    st.markdown("""
-    <div style="
-        display:flex;
-        align-items:center;
-        gap:12px;
-        margin-bottom:20px;
-    ">
-
-        <span style="
-            background:#6A0DAD;
-            color:white;
-            padding:6px 12px;
-            border-radius:8px;
-            font-size:12px;
-            font-weight:700;
-        ">
-            MODULE 01
-        </span>
-
-        <span style="
-            font-size:24px;
-            font-weight:800;
-            color:#222;
-        ">
-            Explore Player Behavior
-        </span>
-
-    </div>
-
-    <p style="
-        color:#777;
-        margin-top:-10px;
-        margin-bottom:25px;
-    ">
-        Explore player demographics, gaming behavior and engagement patterns.
-    </p>
-    """, unsafe_allow_html=True)
-
     st.markdown("##### Dataset Overview")
     m1, m2, m3, m4, m5 = st.columns(5)
     with m1: st.metric("Total Players", f"{df.shape[0]:,}")
@@ -1113,44 +1075,8 @@ with tab_eda:
 # TAB 2: Model Performance
 # ------------------------------------------
 with tab_perf:
-
-    st.markdown("""
-    <div style="
-        display:flex;
-        align-items:center;
-        gap:12px;
-        margin-bottom:20px;
-    ">
-
-        <span style="
-            background:#6A0DAD;
-            color:white;
-            padding:6px 12px;
-            border-radius:8px;
-            font-size:12px;
-            font-weight:700;
-        ">
-            MODULE 02
-        </span>
-
-        <span style="
-            font-size:24px;
-            font-weight:800;
-            color:#222;
-        ">
-            Machine Learning Model Lab
-        </span>
-
-    </div>
-
-    <p style="
-        color:#777;
-        margin-top:-10px;
-        margin-bottom:25px;
-    ">
-        Compare four classification algorithms and evaluate their predictive performance.
-    </p>
-    """, unsafe_allow_html=True)
+ 
+    st.markdown("### Model Performance Evaluation")
  
     # =========================================================
     # 1. HORIZONTAL MODEL BUTTON BAR
@@ -1850,45 +1776,7 @@ with tab_perf:
 # TAB 3: Prediction Result
 # ------------------------------------------
 with tab_pred:
-
-    st.markdown("""
-    <div style="
-        display:flex;
-        align-items:center;
-        gap:12px;
-        margin-bottom:20px;
-    ">
-
-        <span style="
-            background:#6A0DAD;
-            color:white;
-            padding:6px 12px;
-            border-radius:8px;
-            font-size:12px;
-            font-weight:700;
-        ">
-            MODULE 03
-        </span>
-
-        <span style="
-            font-size:24px;
-            font-weight:800;
-            color:#222;
-        ">
-            AI Engagement Predictor
-        </span>
-
-    </div>
-
-    <p style="
-        color:#777;
-        margin-top:-10px;
-        margin-bottom:25px;
-    ">
-        Simulate a player profile and let the selected machine learning model predict engagement.
-    </p>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("### 🎯 Player Engagement Predictor")
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
 
     input_col, result_col = st.columns([1, 1.2])
