@@ -103,15 +103,6 @@ div.stButton > button {
 }
 div.stButton > button:hover { background-color: #5b0b9c !important; }
 
-/* TAB 2 SIDE ARROWS */
-.perf-arrow-btn button {
-    height: 60px !important;
-    font-size: 24px !important;
-    margin-top: 350px !important; /* Vertically centers the arrows beside the 4 boxes */
-    border-radius: 30px !important;
-    box-shadow: 0px 6px 15px rgba(106, 13, 173, 0.3) !important;
-}
-
 /* Hover lift effect for the 4 Bento Boxes */
 [data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 15px !important;
@@ -121,7 +112,7 @@ div.stButton > button:hover { background-color: #5b0b9c !important; }
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:hover {
-    transform: translateY(-4px) !important;
+    transform: translateY(-5px) !important;
     box-shadow: 0px 12px 25px rgba(106, 13, 173, 0.15) !important;
 }
 </style>
@@ -344,8 +335,9 @@ with tab_eda:
                 vc.columns = [col, 'Count']
                 st.dataframe(vc, hide_index=True, use_container_width=True)
 
+
 # ------------------------------------------
-# TAB 2: MODEL PERFORMANCE (PERFECT SLIDER)
+# TAB 2: MODEL PERFORMANCE (3D CAROUSEL)
 # ------------------------------------------
 with tab_perf:
     
@@ -405,49 +397,69 @@ with tab_perf:
         tpr = np.concatenate([[0.0], tpr, [1.0]])
         return fpr, tpr
 
-    # 2. FIXED HEADER (No Animation, Just Text)
-    model_accuracy = classification_reports[selected_perf_model]["accuracy"]
-    st.markdown(f"""
-    <div style='text-align: center; margin-bottom: 20px;'>
-        <h2 style='color: #6A0DAD; font-weight: 800; margin: 0; font-size: 34px;'>🤖 {selected_perf_model}</h2>
-        <h5 style='color: #444; margin-top: 5px;'>Testing Set Accuracy: <span style='color: #e74c3c; font-weight: bold;'>{model_accuracy:.2%}</span></h5>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 3. Dynamic Slide Animation Logic (Only applies to the boxes)
-    anim_rule = "slideInRight 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)" if st.session_state.slide_dir == 'right' else "slideInLeft 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)"
+    # 2. Dynamic 3D Slide Animation Logic
+    # Apply animation ONLY to the center column that wraps the Title and 4 boxes
+    anim_rule = "slideInRight 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards" if st.session_state.slide_dir == 'right' else "slideInLeft 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards"
     
     st.markdown(f"""
     <style>
     @keyframes slideInRight {{
-        0% {{ opacity: 0; transform: translateX(120px); }}
-        100% {{ opacity: 1; transform: translateX(0); }}
+        0% {{ opacity: 0; transform: translateX(80px) rotateY(-8deg) scale(0.97); }}
+        100% {{ opacity: 1; transform: translateX(0) rotateY(0deg) scale(1); }}
     }}
     @keyframes slideInLeft {{
-        0% {{ opacity: 0; transform: translateX(-120px); }}
-        100% {{ opacity: 1; transform: translateX(0); }}
+        0% {{ opacity: 0; transform: translateX(-80px) rotateY(8deg) scale(0.97); }}
+        100% {{ opacity: 1; transform: translateX(0) rotateY(0deg) scale(1); }}
     }}
-    /* This specifically targets the 4 Grid Boxes to slide them */
-    [data-testid="stVerticalBlockBorderWrapper"] {{
+    
+    /* Using CSS :has() selector to target the exact center column that holds the models */
+    [data-testid="column"]:has(#slider-anim-target) {{
         animation: {anim_rule} !important;
+        transform-style: preserve-3d;
+        perspective: 1200px;
+    }}
+
+    /* Position the Left and Right arrows */
+    .perf-arrow-btn button {{
+        height: 60px !important;
+        font-size: 24px !important;
+        margin-top: 350px !important; /* Centers arrows alongside the 2x2 grid */
+        border-radius: 30px !important;
+        box-shadow: 0px 6px 15px rgba(106, 13, 173, 0.3) !important;
+        transition: all 0.3s ease !important;
+    }}
+    .perf-arrow-btn button:hover {{
+        transform: scale(1.1);
+        box-shadow: 0px 8px 20px rgba(106, 13, 173, 0.5) !important;
     }}
     </style>
     """, unsafe_allow_html=True)
 
-    # 4. Layout: [ ◀ ] [ 2x2 Grid of Boxes ] [ ▶ ]
-    col_arrow_L, col_main_grid, col_arrow_R = st.columns([0.6, 10, 0.6], gap="small")
+    # 3. Layout: [ ◀ ] [ Center: Title + 2x2 Grid ] [ ▶ ]
+    col_arrow_L, col_center, col_arrow_R = st.columns([0.6, 10, 0.6], gap="small")
     
     with col_arrow_L:
         st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
         if st.button("◀", key="prev_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx - 1) % 4
-            st.session_state.slide_dir = 'left'  # Set direction to left!
+            st.session_state.slide_dir = 'left' 
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
             
-    with col_main_grid:
+    with col_center:
+        # Invisible marker to uniquely identify this column in CSS
+        st.markdown("<div id='slider-anim-target'></div>", unsafe_allow_html=True)
         
-        # 2x2 Bento Box Grid Layout
+        # 3.1 Animated Header (Title & Accuracy slide together with the grid)
+        model_accuracy = classification_reports[selected_perf_model]["accuracy"]
+        st.markdown(f"""
+        <div style='text-align: center; margin-bottom: 20px;'>
+            <h2 style='color: #6A0DAD; font-weight: 800; margin: 0; font-size: 34px;'>🤖 {selected_perf_model}</h2>
+            <h5 style='color: #444; margin-top: 5px;'>Testing Set Accuracy: <span style='color: #e74c3c; font-weight: bold;'>{model_accuracy:.2%}</span></h5>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # 3.2 The 2x2 Bento Box Grid Layout
         row1_col1, row1_col2 = st.columns(2)
         
         # BOX 1: Classification Report
@@ -518,7 +530,7 @@ with tab_perf:
         st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
         if st.button("▶", key="next_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx + 1) % 4
-            st.session_state.slide_dir = 'right' # Set direction to right!
+            st.session_state.slide_dir = 'right' 
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
