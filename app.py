@@ -189,7 +189,6 @@ def train_models(df):
 
 models_dict, le_dict, scaler, feature_cols = train_models(df)
 
-# Notebook Data Dictionaries (Performance Metrics)
 perf_models_list = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
 
 classification_reports = {
@@ -239,12 +238,11 @@ def generate_roc_curve(target_auc, n_points=300):
 
 
 # ----------------------------------------------------
-# 4.1 HTML/CSS Widget Generator for the EDA 3D Slider (With Flip effect)
+# 4.1 HTML/CSS Widget Generator for the EDA 3D Slider
 # ----------------------------------------------------
 @st.cache_data
 def generate_eda_slider_html(images_b64, titles, details):
     slides_html = ""
-    
     for i in range(len(images_b64)):
         slides_html += f"""
         <div class="slide" onclick="flipCard({i})">
@@ -262,7 +260,7 @@ def generate_eda_slider_html(images_b64, titles, details):
         </div>
         """
 
-    widget_html = f"""
+    widget_template = """
     <!DOCTYPE html>
     <html>
     <head>
@@ -282,14 +280,11 @@ def generate_eda_slider_html(images_b64, titles, details):
           border-radius: 15px; background: transparent;
       }}
       
-      /* Active state */
       .slide.active {{ transform: translateX(0) scale(1) translateZ(0); opacity: 1; z-index: 10; cursor: pointer; }}
-      /* Adjacent models peek out with 3D rotation */
       .slide.left-1 {{ transform: translateX(-65%) scale(0.8) translateZ(-150px) rotateY(15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
       .slide.right-1 {{ transform: translateX(65%) scale(0.8) translateZ(-150px) rotateY(-15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
       .slide.hidden {{ transform: translateX(0) scale(0.5) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
       
-      /* Flip Card Mechanics */
       .card-inner {{
           position: relative; width: 100%; height: 100%;
           text-align: center; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -297,9 +292,7 @@ def generate_eda_slider_html(images_b64, titles, details):
           box-shadow: 0 15px 35px rgba(0,0,0,0.15);
       }}
       
-      .slide.active.flipped .card-inner {{
-          transform: rotateY(180deg);
-      }}
+      .slide.active.flipped .card-inner {{ transform: rotateY(180deg); }}
       
       .card-front, .card-back {{
           position: absolute; width: 100%; height: 100%;
@@ -317,4 +310,425 @@ def generate_eda_slider_html(images_b64, titles, details):
           border: 4px solid #6A0DAD;
           padding: 40px; text-align: left;
       }}
-      .card-back h3 {{ color: #6A0DAD; margin-top: 0
+      .card-back h3 {{ color: #6A0DAD; margin-top: 0; font-size: 26px; font-weight: 800; margin-bottom: 20px; }}
+      .card-back p {{ font-size: 19px; color: #444; line-height: 1.6; margin: 0; }}
+      
+      .hint-text {{ 
+          position: absolute; bottom: 10px; font-size: 13px; font-weight: bold;
+          color: #aaa; width: 100%; text-align: center; left: 0; 
+      }}
+      
+      .nav-btn {{
+          position: absolute; top: 50%; transform: translateY(-50%);
+          width: 50px; height: 50px; border-radius: 25px;
+          background: white; border: 2px solid #6A0DAD; color: #6A0DAD;
+          font-size: 22px; cursor: pointer; z-index: 100;
+          box-shadow: 0 5px 15px rgba(106,13,173,0.2);
+          display: flex; justify-content: center; align-items: center;
+          transition: all 0.2s; outline: none;
+      }}
+      .nav-btn:hover {{ background: #6A0DAD; color: white; transform: translateY(-50%) scale(1.15); }}
+      .prev-btn {{ left: 3%; }}
+      .next-btn {{ right: 3%; }}
+    </style>
+    </head>
+    <body>
+      <div class="slider-container" id="slider">
+        <button class="nav-btn prev-btn" onclick="move(-1, event)">&#9664;</button>
+        <button class="nav-btn next-btn" onclick="move(1, event)">&#9654;</button>
+        {slides_html}
+      </div>
+      <script>
+        const slides = document.querySelectorAll('.slide');
+        let currentIndex = 0;
+        
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                const isFlipped = slide.classList.contains('flipped');
+                slide.className = 'slide'; 
+                if (isFlipped && index === currentIndex) slide.classList.add('flipped');
+                
+                if (index === currentIndex) {
+                    slide.classList.add('active');
+                } else if (index === (currentIndex - 1 + slides.length) % slides.length) {
+                    slide.classList.add('left-1');
+                    slide.classList.remove('flipped');
+                } else if (index === (currentIndex + 1) % slides.length) {
+                    slide.classList.add('right-1');
+                    slide.classList.remove('flipped');
+                } else {
+                    slide.classList.add('hidden');
+                    slide.classList.remove('flipped');
+                }
+            });
+        }
+        
+        function move(dir, e) {
+            if(e) e.stopPropagation();
+            slides[currentIndex].classList.remove('flipped');
+            currentIndex = (currentIndex + dir + slides.length) % slides.length;
+            updateSlides();
+        }
+        
+        function flipCard(index) {
+            if (index === currentIndex) {
+                slides[currentIndex].classList.toggle('flipped');
+            } else {
+                slides[currentIndex].classList.remove('flipped');
+                currentIndex = index;
+                updateSlides();
+            }
+        }
+        
+        updateSlides();
+      </script>
+    </body>
+    </html>
+    """
+    return widget_template
+
+
+# ----------------------------------------------------
+# 4.2 HTML/CSS Widget Generator for the Perf 3D Slider
+# ----------------------------------------------------
+@st.cache_data
+def generate_3d_slider_html():
+    slides_html = ""
+    for model_name in perf_models_list:
+        report_data = classification_reports[model_name]
+        
+        report_rows = ""
+        for cls in ["Low", "Medium", "High"]:
+            row = report_data[cls]
+            report_rows += f"<tr><td>{cls}</td><td>{row['precision']:.2f}</td><td>{row['recall']:.2f}</td><td>{row['f1-score']:.2f}</td><td>{row['support']:.0f}</td></tr>"
+        report_rows += f"<tr class='highlight'><td>Accuracy</td><td>-</td><td>-</td><td>{report_data['accuracy']:.2f}</td><td>8007</td></tr>"
+        
+        table_html = f"""
+        <table>
+            <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr></thead>
+            <tbody>{report_rows}</tbody>
+        </table>
+        """
+        
+        cm = confusion_matrices[model_name]
+        fig_cm, ax_cm = plt.subplots(figsize=(5, 3.2))
+        sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[model_name], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=False)
+        ax_cm.set_xlabel("Predicted Engagement", fontsize=8)
+        ax_cm.set_ylabel("Actual Engagement", fontsize=8)
+        plt.tight_layout()
+        cm_b64 = fig_to_base64(fig_cm)
+        
+        fig_roc, ax_roc = plt.subplots(figsize=(5, 3.2))
+        roc_colors = {"Low": "red", "Medium": "orange", "High": "green"}
+        for cls, color in roc_colors.items():
+            auc_score = roc_auc_scores[model_name][cls]
+            fpr, tpr = generate_roc_curve(auc_score)
+            ax_roc.plot(fpr, tpr, color=color, lw=2, label=f"{cls} (AUC = {auc_score:.2f})")
+        ax_roc.plot([0, 1], [0, 1], "k--", lw=1.5)
+        ax_roc.set_xlabel("False Positive Rate", fontsize=8)
+        ax_roc.set_ylabel("True Positive Rate", fontsize=8)
+        ax_roc.legend(loc="lower right", fontsize=7)
+        plt.tight_layout()
+        roc_b64 = fig_to_base64(fig_roc)
+        
+        style = feature_importance_style[model_name]
+        feat_imp = pd.Series(feature_importance_data[model_name]).sort_values(ascending=True)
+        fig_feat, ax_feat = plt.subplots(figsize=(5, 3.2))
+        feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
+        ax_feat.set_xlabel(style["xlabel"], fontsize=8)
+        ax_feat.tick_params(axis='y', labelsize=8)
+        plt.tight_layout()
+        feat_b64 = fig_to_base64(fig_feat)
+        
+        accuracy_percent = report_data["accuracy"]
+        slides_html += f"""
+        <div class="slide">
+            <div class="title-container">
+                <h2>🤖 {model_name}</h2>
+                <h5>Testing Set Accuracy: <span>{accuracy_percent:.2%}</span></h5>
+            </div>
+            <div class="bento-grid">
+                <div class="bento-box">
+                    <h4>📄 Classification Report</h4>
+                    <div class="table-container">{table_html}</div>
+                </div>
+                <div class="bento-box">
+                    <h4>🎯 Confusion Matrix</h4>
+                    <img src="data:image/png;base64,{cm_b64}">
+                </div>
+                <div class="bento-box">
+                    <h4>📈 {style['title']}</h4>
+                    <img src="data:image/png;base64,{feat_b64}">
+                </div>
+                <div class="bento-box">
+                    <h4>📉 Multi-Class ROC Curve</h4>
+                    <img src="data:image/png;base64,{roc_b64}">
+                </div>
+            </div>
+        </div>
+        """
+
+    widget_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;800&display=swap');
+      body {{ margin: 0; padding: 0; font-family: 'Source Sans Pro', sans-serif; overflow: hidden; }}
+      
+      .slider-container {{ 
+          position: relative; width: 100%; height: 750px; 
+          display: flex; justify-content: center; align-items: center; 
+          perspective: 1200px; overflow: hidden;
+      }}
+      
+      .slide {{
+          position: absolute; width: 85%; max-width: 900px; height: 680px;
+          transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease;
+          border-radius: 20px; background: #ffffff;
+          padding: 20px 30px; box-sizing: border-box;
+      }}
+      
+      .slide.active {{ 
+          transform: translateX(0) scale(1) translateZ(0); 
+          opacity: 1; z-index: 10; 
+          box-shadow: 0 15px 40px rgba(106, 13, 173, 0.15); 
+          border-top: 6px solid #6A0DAD; 
+      }}
+      
+      .slide.left-1 {{ transform: translateX(-105%) scale(0.85) translateZ(-150px) rotateY(15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
+      .slide.right-1 {{ transform: translateX(105%) scale(0.85) translateZ(-150px) rotateY(-15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
+      .slide.hidden {{ transform: translateX(0) scale(0.6) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
+      
+      .title-container {{ text-align: center; margin-bottom: 25px; }}
+      .title-container h2 {{ color: #6A0DAD; margin: 0; font-size: 34px; font-weight: 800; }}
+      .title-container h5 {{ color: #444; margin: 5px 0 0 0; font-size: 18px; }}
+      .title-container span {{ color: #e74c3c; font-weight: bold; }}
+      
+      .bento-grid {{ 
+          display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; 
+          gap: 20px; height: calc(100% - 90px);
+      }}
+      .bento-box {{ 
+          background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; 
+          padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+          transition: transform 0.3s; 
+          display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      }}
+      .bento-box:hover {{ transform: translateY(-5px); box-shadow: 0 10px 20px rgba(106, 13, 173, 0.1); }}
+      .bento-box h4 {{ margin: 0 0 15px 0; font-size: 16px; color: #333; width: 100%; text-align: left; }}
+      .bento-box img {{ width: 95%; max-height: 220px; object-fit: contain; }}
+      
+      .table-container {{ width: 100%; display: flex; justify-content: center; }}
+      table {{ width: 95%; border-collapse: collapse; font-size: 14px; text-align: center; }}
+      th, td {{ padding: 10px 5px; border-bottom: 1px solid #eee; }}
+      th {{ font-weight: 600; color: #555; background: #fafafa; }}
+      .highlight td {{ font-weight: bold; background: #fdfdfd; border-top: 2px solid #ddd; }}
+      
+      .nav-btn {{
+          position: absolute; top: 50%; transform: translateY(-50%);
+          width: 50px; height: 50px; border-radius: 25px;
+          background: white; border: 2px solid #6A0DAD; color: #6A0DAD;
+          font-size: 22px; cursor: pointer; z-index: 100;
+          box-shadow: 0 5px 15px rgba(106,13,173,0.2);
+          display: flex; justify-content: center; align-items: center;
+          transition: all 0.2s; outline: none;
+      }}
+      .nav-btn:hover {{ background: #6A0DAD; color: white; transform: translateY(-50%) scale(1.15); }}
+      .prev-btn {{ left: 2%; }}
+      .next-btn {{ right: 2%; }}
+    </style>
+    </head>
+    <body>
+      <div class="slider-container" id="slider">
+        <button class="nav-btn prev-btn" onclick="move(-1)">&#9664;</button>
+        <button class="nav-btn next-btn" onclick="move(1)">&#9654;</button>
+        {slides_html}
+      </div>
+      <script>
+        const slides = document.querySelectorAll('.slide');
+        let currentIndex = 3; 
+        
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                slide.className = 'slide'; 
+                if (index === currentIndex) {
+                    slide.classList.add('active');
+                } else if (index === (currentIndex - 1 + slides.length) % slides.length) {
+                    slide.classList.add('left-1');
+                } else if (index === (currentIndex + 1) % slides.length) {
+                    slide.classList.add('right-1');
+                } else {
+                    slide.classList.add('hidden');
+                }
+            });
+        }
+        
+        function move(dir) {
+            currentIndex = (currentIndex + dir + slides.length) % slides.length;
+            updateSlides();
+        }
+        
+        updateSlides();
+      </script>
+    </body>
+    </html>
+    """
+    return widget_template
+
+
+# ==========================================
+# 5. Main Tabs Layout
+# ==========================================
+tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Analysis", "📊 Model Performance", "🎯 Prediction Result"])
+
+# ------------------------------------------
+# TAB 1: DATA ANALYSIS
+# ------------------------------------------
+with tab_eda:
+    st.markdown("##### Dataset Overview")
+    m1, m2, m3, m4, m5 = st.columns(5)
+    with m1: st.metric("Total Players", f"{df.shape[0]:,}")
+    with m2: st.metric("Total Features", df.shape[1])
+    with m3: st.metric("Avg Play Time", f"{df['PlayTimeHours'].mean():.1f} hrs")
+    with m4: st.metric("Avg Player Level", f"{df['PlayerLevel'].mean():.0f}")
+    with m5:
+        freq_eng = df['EngagementLevel'].mode()[0]
+        st.metric("Most Frequent Engagement", freq_eng)
+    
+    st.markdown("---")
+    
+    eda_slider_html = generate_eda_slider_html(images_b64, graph_titles, graph_details)
+    components.html(eda_slider_html, height=540, scrolling=False)
+
+    st.markdown("---")
+    st.markdown("### 📋 Dataset Preview")
+    row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
+    st.dataframe(df.head(row_count), use_container_width=True)
+        
+    st.markdown("---")
+    st.markdown("####  Statistical Summaries")
+    summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
+        
+    if summary_choice == "Numerical Summary":
+        st.markdown("**Full Dataset Statistical Profile (Numerical)**")
+        num_desc = df.describe().T
+        num_desc['range'] = num_desc['max'] - num_desc['min']
+        num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
+        display_cols = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'range', 'cv']
+        st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
+            
+    elif summary_choice == "Categorical Summary":
+        st.markdown("**Categorical Features Value Counts**")
+        cat_cols = df.select_dtypes(include=['object']).columns
+        table_cols = st.columns(len(cat_cols))
+        for i, col in enumerate(cat_cols):
+            with table_cols[i]:
+                st.markdown(f"**{col}**")
+                vc = df[col].value_counts().reset_index()
+                vc.columns = [col, 'Count']
+                st.dataframe(vc, hide_index=True, use_container_width=True)
+
+
+# ------------------------------------------
+# TAB 2: MODEL PERFORMANCE (3D HTML SLIDER)
+# ------------------------------------------
+with tab_perf:
+    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to view performance metrics for different models.</p>", unsafe_allow_html=True)
+    
+    perf_slider_html = generate_3d_slider_html()
+    components.html(perf_slider_html, height=780, scrolling=False)
+
+    st.markdown("---")
+    st.markdown("### 🏆 Overall Model Comparison")
+    
+    comparison_df = pd.DataFrame({
+        "Model": ["Logistic Regression", "Random Forest", "KNN", "XGBoost"],
+        "Accuracy": [0.9040, 0.9510, 0.8461, 0.9694],
+        "Precision": [0.9051, 0.9516, 0.8641, 0.9696],
+        "Recall": [0.9040, 0.9510, 0.8461, 0.9694],
+        "F1-Score": [0.9041, 0.9510, 0.8444, 0.9694],
+        "AUC": [0.9571, 0.9852, 0.9404, 0.9892]
+    })
+    
+    summary_display = comparison_df.copy()
+    for col in ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]:
+        summary_display[col] = summary_display[col].map(lambda x: f"{x:.2%}")
+    st.dataframe(summary_display, use_container_width=True, hide_index=True)
+
+
+# ------------------------------------------
+# TAB 3: Prediction Result
+# ------------------------------------------
+with tab_pred:
+    st.markdown("### 🎯 Player Engagement Predictor")
+    st.markdown("Adjust the player features below to simulate and predict their engagement level.")
+    
+    input_col, result_col = st.columns([1, 1.2])
+    
+    with input_col:
+        st.markdown("#### 1. Input Player Features")
+        with st.container(border=True):
+            selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=0)
+            
+            c_in1, c_in2 = st.columns(2)
+            with c_in1:
+                age = st.slider("Age", int(df['Age'].min()), int(df['Age'].max()), 25)
+                gender = st.selectbox("Gender", df['Gender'].unique())
+                location = st.selectbox("Location", df['Location'].unique())
+                genre = st.selectbox("Game Genre", df['GameGenre'].unique())
+                difficulty = st.selectbox("Game Difficulty", df['GameDifficulty'].unique())
+            with c_in2:
+                play_time = st.number_input("Play Time (Hrs)", 0.0, 24.0, 10.0)
+                in_purchases_label = st.selectbox("In-Game Purchases", ["No", "Yes"])
+                in_purchases = 1 if in_purchases_label == "Yes" else 0
+                sessions = st.slider("Sessions/Week", int(df['SessionsPerWeek'].min()), int(df['SessionsPerWeek'].max()), 5)
+                avg_duration = st.slider("Avg Session (Mins)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
+                player_level = st.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
+                
+            achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
+            
+            predict_btn = st.button("🔮 Predict Engagement", use_container_width=True)
+
+    with result_col:
+        st.markdown("#### 2. Prediction Insights")
+        if predict_btn:
+            with st.spinner("Analyzing player profile..."):
+                time.sleep(0.8) 
+                
+            input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
+                                        difficulty, sessions, avg_duration, player_level, achievements]], 
+                                      columns=feature_cols)
+            for col in ['Gender', 'Location', 'GameGenre', 'GameDifficulty']:
+                input_data[col] = le_dict[col].transform(input_data[col])
+                
+            input_scaled = scaler.transform(input_data)
+            model = models_dict[selected_model_name]
+            
+            pred_encoded = model.predict(input_scaled)[0]
+            prediction = le_dict['EngagementLevel'].inverse_transform([pred_encoded])[0]
+            probabilities = model.predict_proba(input_scaled)[0]
+            classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
+            prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
+            
+            st.metric(label=f"Predicted Engagement Level", value=prediction, delta=selected_model_name, delta_color="off")
+            
+            fig_prob = px.bar(
+                prob_df, x="Probability", y="Engagement Level", 
+                orientation='h', text_auto='.1%', 
+                color="Engagement Level",
+                color_discrete_map={'Low': '#ff9999', 'Medium': '#66b3ff', 'High': '#99ff99'}
+            )
+            fig_prob.update_layout(xaxis=dict(range=[0, 1], tickformat=".0%"), showlegend=False, height=200, margin=dict(l=0, r=0, t=30, b=0))
+            st.plotly_chart(fig_prob, use_container_width=True)
+
+            st.markdown("##### 💡 Actionable Strategy")
+            if prediction == "Low":
+                st.warning("**Retention Risk!** Consider sending re-engagement emails, offering free starter packs, or suggesting easier game modes.")
+            elif prediction == "Medium":
+                st.info("**Steady Player.** Good potential for growth. Try offering limited-time quests or unlocking mid-tier achievements.")
+            else:
+                st.success("**Highly Engaged!** Ideal target for premium in-game purchases, exclusive VIP events, or beta testing new features.")
+                
+        else:
+            st.info("👈 Please enter player details on the left and click 'Predict Engagement' to see the model's analysis.")
