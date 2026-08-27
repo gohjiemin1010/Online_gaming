@@ -27,7 +27,7 @@ plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
-# 2. Advanced CSS (Animations, 3D Shadows, Side Arrows)
+# 2. Advanced CSS 
 # ==========================================
 st.markdown("""
 <style>
@@ -57,8 +57,8 @@ st.markdown("""
     align-items: center;
     perspective: 1200px;
     overflow: hidden;
-    background: transparent !important;
-    box-shadow: none !important;
+    background: transparent !important; 
+    box-shadow: none !important; 
     border: none !important;
     margin-bottom: 20px;
 }
@@ -103,52 +103,26 @@ div.stButton > button {
 }
 div.stButton > button:hover { background-color: #5b0b9c !important; }
 
-/* ==========================================
-   TAB 2 SPECIFIC CSS (3D Cards & Animations)
-   ========================================== */
-   
-/* Pop-in Animation for Model Switch */
-@keyframes popIn {
-    0% { opacity: 0; transform: scale(0.95) translateY(15px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
+/* TAB 2 SIDE ARROWS */
+.perf-arrow-btn button {
+    height: 60px !important;
+    font-size: 24px !important;
+    margin-top: 350px !important; /* Vertically centers the arrows beside the 4 boxes */
+    border-radius: 30px !important;
+    box-shadow: 0px 6px 15px rgba(106, 13, 173, 0.3) !important;
 }
 
-/* Apply animation and 3D shadows to the 4 Bento Boxes */
+/* Hover lift effect for the 4 Bento Boxes */
 [data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 15px !important;
-    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.05) !important;
     border: 1px solid #f0f0f0 !important;
     background-color: #ffffff !important;
-    animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:hover {
     transform: translateY(-4px) !important;
     box-shadow: 0px 12px 25px rgba(106, 13, 173, 0.15) !important;
-}
-
-/* 3D Header Card for Model Title */
-.model-header-3d {
-    background: linear-gradient(135deg, #ffffff 0%, #f5f0fa 100%);
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0px 8px 20px rgba(106, 13, 173, 0.15);
-    border-top: 5px solid #6A0DAD;
-    margin-bottom: 25px;
-    animation: popIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.model-header-3d h2 { color: #6A0DAD; margin: 0; font-size: 32px; font-weight: 800; }
-.model-header-3d p { font-size: 18px; margin-top: 10px; color: #333; font-weight: 600; margin-bottom: 0; }
-.model-header-3d span { color: #e74c3c; font-size: 24px; font-weight: 800; }
-
-/* Side Navigation Arrows Formatting */
-.perf-arrow-btn button {
-    height: 80px !important;
-    font-size: 24px !important;
-    margin-top: 380px !important; /* Pushes the button to center of the screen */
-    border-radius: 12px !important;
-    box-shadow: 0px 6px 15px rgba(106, 13, 173, 0.3) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -322,7 +296,7 @@ with tab_eda:
     """
     st.markdown(html_carousel, unsafe_allow_html=True)
 
-    col_space_left, col_prev, col_details, col_next, col_space_right = st.columns([1.5, 1, 4, 1, 1.5])
+    col_space_left, col_prev, col_details, col_next, col_space_right = st.columns([1.5, 0.8, 4, 0.8, 1.5])
     
     with col_prev:
         st.write("") 
@@ -371,13 +345,15 @@ with tab_eda:
                 st.dataframe(vc, hide_index=True, use_container_width=True)
 
 # ------------------------------------------
-# TAB 2: MODEL PERFORMANCE (Animated Slider)
+# TAB 2: MODEL PERFORMANCE (PERFECT SLIDER)
 # ------------------------------------------
 with tab_perf:
     
-    # 1. Initialize State for Model Slider
+    # 1. State Tracking for Animation Direction
     if 'perf_model_idx' not in st.session_state:
         st.session_state.perf_model_idx = 3 # Default to XGBoost
+    if 'slide_dir' not in st.session_state:
+        st.session_state.slide_dir = 'right' # Default slide direction
         
     perf_models_list = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
     current_idx = st.session_state.perf_model_idx
@@ -429,26 +405,47 @@ with tab_perf:
         tpr = np.concatenate([[0.0], tpr, [1.0]])
         return fpr, tpr
 
-    # 2. Side Arrow Layout for Model Selection
-    col_arrow_L, col_main_bento, col_arrow_R = st.columns([1, 10, 1])
+    # 2. FIXED HEADER (No Animation, Just Text)
+    model_accuracy = classification_reports[selected_perf_model]["accuracy"]
+    st.markdown(f"""
+    <div style='text-align: center; margin-bottom: 20px;'>
+        <h2 style='color: #6A0DAD; font-weight: 800; margin: 0; font-size: 34px;'>🤖 {selected_perf_model}</h2>
+        <h5 style='color: #444; margin-top: 5px;'>Testing Set Accuracy: <span style='color: #e74c3c; font-weight: bold;'>{model_accuracy:.2%}</span></h5>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 3. Dynamic Slide Animation Logic (Only applies to the boxes)
+    anim_rule = "slideInRight 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)" if st.session_state.slide_dir == 'right' else "slideInLeft 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)"
+    
+    st.markdown(f"""
+    <style>
+    @keyframes slideInRight {{
+        0% {{ opacity: 0; transform: translateX(120px); }}
+        100% {{ opacity: 1; transform: translateX(0); }}
+    }}
+    @keyframes slideInLeft {{
+        0% {{ opacity: 0; transform: translateX(-120px); }}
+        100% {{ opacity: 1; transform: translateX(0); }}
+    }}
+    /* This specifically targets the 4 Grid Boxes to slide them */
+    [data-testid="stVerticalBlockBorderWrapper"] {{
+        animation: {anim_rule} !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+    # 4. Layout: [ ◀ ] [ 2x2 Grid of Boxes ] [ ▶ ]
+    col_arrow_L, col_main_grid, col_arrow_R = st.columns([0.6, 10, 0.6], gap="small")
     
     with col_arrow_L:
         st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
         if st.button("◀", key="prev_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx - 1) % 4
+            st.session_state.slide_dir = 'left'  # Set direction to left!
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
             
-    with col_main_bento:
-        
-        # 3D Animated Model Header
-        model_accuracy = classification_reports[selected_perf_model]["accuracy"]
-        st.markdown(f"""
-        <div class='model-header-3d'>
-            <h2>🤖 {selected_perf_model}</h2>
-            <p>Testing Set Accuracy: <span>{model_accuracy:.2%}</span></p>
-        </div>
-        """, unsafe_allow_html=True)
+    with col_main_grid:
         
         # 2x2 Bento Box Grid Layout
         row1_col1, row1_col2 = st.columns(2)
@@ -521,6 +518,7 @@ with tab_perf:
         st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
         if st.button("▶", key="next_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx + 1) % 4
+            st.session_state.slide_dir = 'right' # Set direction to right!
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
