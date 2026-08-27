@@ -47,40 +47,6 @@ st.markdown("""
     box-shadow: 0px 10px 20px rgba(106, 13, 173, 0.2) !important; 
 }
 
-/* 3D Coverflow Slider Styling (Tab 1) */
-.slider-container {
-    position: relative;
-    width: 100%;
-    height: 450px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    perspective: 1200px;
-    overflow: hidden;
-    background: transparent !important; 
-}
-.slider-card {
-    position: absolute;
-    width: 600px;
-    height: 380px;
-    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-}
-.slider-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-.card-center { transform: translateX(0) translateZ(0) scale(1); z-index: 10; opacity: 1; }
-.card-left-1 { transform: translateX(-45%) translateZ(-150px) rotateY(15deg) scale(0.85); z-index: 5; opacity: 0.7; }
-.card-right-1 { transform: translateX(45%) translateZ(-150px) rotateY(-15deg) scale(0.85); z-index: 5; opacity: 0.7; }
-.card-left-2 { transform: translateX(-80%) translateZ(-300px) rotateY(25deg) scale(0.7); z-index: 4; opacity: 0.4; }
-.card-right-2 { transform: translateX(80%) translateZ(-300px) rotateY(-25deg) scale(0.7); z-index: 4; opacity: 0.4; }
-.card-hidden { transform: translateX(0) translateZ(-500px) scale(0.5); z-index: 1; opacity: 0; }
-
 /* Streamlit Native UI Overrides */
 button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
     font-size: 20px !important;
@@ -139,50 +105,50 @@ def generate_gallery_assets(df):
         "Breaks down engagement levels across different geographical regions, useful for identifying regional retention strengths.",
         "A high-level statistical matrix showing how numerical features relate. Values close to 1 or -1 indicate strong correlations."
     ]
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.countplot(data=df, x='EngagementLevel', order=['Low', 'Medium', 'High'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax)
     ax.set_title(titles[0], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.countplot(data=df, y='GameGenre', palette='crest', ax=ax)
     ax.set_title(titles[1], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.histplot(df['Age'], bins=25, kde=True, color='#9b59b6', ax=ax)
     ax.set_title(titles[2], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.histplot(df['PlayTimeHours'], bins=25, kde=True, color='#3498db', ax=ax)
     ax.set_title(titles[3], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.violinplot(data=df, x='EngagementLevel', y='PlayTimeHours', order=['Low', 'Medium', 'High'], palette='pastel', ax=ax)
     ax.set_title(titles[4], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
     genre_purchase = df.groupby('GameGenre')['InGamePurchases'].mean().sort_values().reset_index()
     sns.barplot(data=genre_purchase, x='GameGenre', y='InGamePurchases', palette='mako', ax=ax)
     ax.set_title(titles[5], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.countplot(data=df, x='Location', hue='EngagementLevel', order=['USA', 'Europe', 'Asia', 'Other'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax)
     ax.set_title(titles[6], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     fig, ax = plt.subplots(figsize=(10, 7))
     numeric_cols_df = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
     mask = np.triu(np.ones_like(numeric_cols_df.corr(), dtype=bool))
     sns.heatmap(numeric_cols_df.corr(), mask=mask, annot=True, cmap='vlag', fmt=".2f", ax=ax)
     ax.set_title(titles[7], weight='bold')
     images_b64.append(fig_to_base64(fig))
-    
+
     return images_b64, titles, details
 
 images_b64, graph_titles, graph_details = generate_gallery_assets(df)
@@ -199,15 +165,15 @@ def train_models(df):
         le = LabelEncoder()
         df_model[col] = le.fit_transform(df_model[col])
         le_dict[col] = le
-        
+
     X = df_model.drop(['PlayerID', 'EngagementLevel'], axis=1)
     y = df_model['EngagementLevel']
-    
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
-    
+
     models = {
         "Logistic Regression": LogisticRegression(max_iter=1000),
         "Random Forest": RandomForestClassifier(n_estimators=50, random_state=42),
@@ -218,12 +184,11 @@ def train_models(df):
     for name, model in models.items():
         model.fit(X_train, y_train)
         trained_models[name] = model
-        
+
     return trained_models, le_dict, scaler, X.columns
 
 models_dict, le_dict, scaler, feature_cols = train_models(df)
 
-# Notebook Data Dictionaries (Performance Metrics)
 perf_models_list = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
 
 classification_reports = {
@@ -272,29 +237,197 @@ def generate_roc_curve(target_auc, n_points=300):
     return fpr, tpr
 
 # ----------------------------------------------------
-# 4.1 HTML/CSS Widget Generator for the 3D Slider
+# 4.1 HTML/CSS Widget Generators
 # ----------------------------------------------------
+
+@st.cache_data
+def generate_eda_slider_html(images_b64, titles, details):
+    slides_html = ""
+    for i in range(len(images_b64)):
+        img = images_b64[i]
+        title = titles[i]
+        detail = details[i]
+        
+        slides_html += f"""
+        <div class="slide eda-slide" onclick="toggleFlip(this)">
+            <div class="card-inner">
+                <div class="card-front">
+                    <img src="data:image/png;base64,{img}" alt="{title}">
+                    <div class="click-hint">🖱️ Click graph for details</div>
+                </div>
+                <div class="card-back">
+                    <h3>{title}</h3>
+                    <p>{detail}</p>
+                    <div class="click-hint">🖱️ Click to return to graph</div>
+                </div>
+            </div>
+        </div>
+        """
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;800&display=swap');
+      body {{ margin: 0; padding: 0; font-family: 'Source Sans Pro', sans-serif; overflow: hidden; background: transparent; }}
+
+      .slider-container {{ 
+          position: relative; width: 100%; height: 550px; 
+          display: flex; justify-content: center; align-items: center; 
+          perspective: 1500px; overflow: hidden;
+      }}
+
+      .slide {{
+          position: absolute; width: 750px; height: 480px;
+          transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease;
+          border-radius: 20px; 
+      }}
+
+      /* Coverflow states */
+      .slide.active {{ transform: translateX(0) scale(1) translateZ(0); opacity: 1; z-index: 10; cursor: pointer; }}
+      .slide.left-1 {{ transform: translateX(-65%) scale(0.8) translateZ(-150px) rotateY(15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
+      .slide.right-1 {{ transform: translateX(65%) scale(0.8) translateZ(-150px) rotateY(-15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
+      .slide.hidden {{ transform: translateX(0) scale(0.6) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
+
+      /* Flip Card Logic */
+      .card-inner {{
+          position: relative; width: 100%; height: 100%;
+          transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+          transform-style: preserve-3d;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      }}
+      
+      .slide.active:hover .card-inner {{ box-shadow: 0 15px 40px rgba(106, 13, 173, 0.2); }}
+      .slide.active.flipped .card-inner {{ transform: rotateY(180deg); }}
+
+      .card-front, .card-back {{
+          position: absolute; width: 100%; height: 100%;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          border-radius: 20px;
+          background: #ffffff;
+          display: flex; flex-direction: column; justify-content: center; align-items: center;
+          padding: 20px; box-sizing: border-box;
+          border-top: 5px solid #6A0DAD;
+      }}
+      
+      .card-front img {{ max-width: 100%; max-height: 90%; object-fit: contain; }}
+      
+      .card-back {{
+          transform: rotateY(180deg);
+          background: #fdfcff;
+          padding: 50px;
+          text-align: center;
+      }}
+      .card-back h3 {{ color: #6A0DAD; font-size: 26px; margin-bottom: 20px; font-weight: 800; }}
+      .card-back p {{ color: #444; font-size: 20px; line-height: 1.6; font-weight: 400; }}
+
+      .click-hint {{
+          position: absolute; bottom: 15px;
+          font-size: 13px; color: #6A0DAD; font-weight: 600;
+          background: rgba(240,230,255,0.9);
+          padding: 6px 14px; border-radius: 12px;
+          transition: 0.3s;
+      }}
+      
+      /* Navigation Arrows */
+      .nav-btn {{
+          position: absolute; top: 50%; transform: translateY(-50%);
+          width: 50px; height: 50px; border-radius: 25px;
+          background: white; border: 2px solid #6A0DAD; color: #6A0DAD;
+          font-size: 22px; cursor: pointer; z-index: 100;
+          box-shadow: 0 5px 15px rgba(106,13,173,0.2);
+          display: flex; justify-content: center; align-items: center;
+          transition: all 0.2s; outline: none;
+      }}
+      .nav-btn:hover {{ background: #6A0DAD; color: white; transform: translateY(-50%) scale(1.15); }}
+      .prev-btn {{ left: 2%; }}
+      .next-btn {{ right: 2%; }}
+    </style>
+    </head>
+    <body>
+      <div class="slider-container" id="slider">
+        <button class="nav-btn prev-btn" onclick="move(-1, event)">&#9664;</button>
+        <button class="nav-btn next-btn" onclick="move(1, event)">&#9654;</button>
+        {slides_html}
+      </div>
+      <script>
+        const slides = document.querySelectorAll('.eda-slide');
+        let currentIndex = 0;
+
+        function updateSlides() {{
+            slides.forEach((slide, index) => {{
+                slide.className = 'slide eda-slide'; // clear states
+                if (index === currentIndex) {{
+                    slide.classList.add('active');
+                }} else if (index === (currentIndex - 1 + slides.length) % slides.length) {{
+                    slide.classList.add('left-1');
+                }} else if (index === (currentIndex + 1) % slides.length) {{
+                    slide.classList.add('right-1');
+                }} else {{
+                    slide.classList.add('hidden');
+                }}
+            }});
+        }}
+
+        function move(dir, event) {{
+            if(event) event.stopPropagation(); // Prevent flipping when clicking arrows
+            
+            // Remove flip state from current before moving
+            slides[currentIndex].classList.remove('flipped');
+            
+            currentIndex = (currentIndex + dir + slides.length) % slides.length;
+            updateSlides();
+        }}
+
+        function toggleFlip(el) {{
+            if (el.classList.contains('active')) {{
+                el.classList.toggle('flipped');
+            }}
+        }}
+
+        // Swipe support for touch devices
+        let startX = 0;
+        const slider = document.getElementById('slider');
+        slider.addEventListener('touchstart', e => {{
+            startX = e.changedTouches[0].screenX;
+        }});
+        slider.addEventListener('touchend', e => {{
+            let endX = e.changedTouches[0].screenX;
+            if (startX - endX > 50) move(1);
+            if (startX - endX < -50) move(-1);
+        }});
+
+        updateSlides();
+      </script>
+    </body>
+    </html>
+    """
+    return html
+
 @st.cache_data
 def generate_3d_slider_html():
     slides_html = ""
-    
+
     for model_name in perf_models_list:
         # 1. Classification Report Table (HTML)
         report_data = classification_reports[model_name]
-        
+
         report_rows = ""
         for cls in ["Low", "Medium", "High"]:
             row = report_data[cls]
             report_rows += f"<tr><td>{cls}</td><td>{row['precision']:.2f}</td><td>{row['recall']:.2f}</td><td>{row['f1-score']:.2f}</td><td>{row['support']:.0f}</td></tr>"
         report_rows += f"<tr class='highlight'><td>Accuracy</td><td>-</td><td>-</td><td>{report_data['accuracy']:.2f}</td><td>8007</td></tr>"
-        
+
         table_html = f"""
         <table>
             <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr></thead>
             <tbody>{report_rows}</tbody>
         </table>
         """
-        
+
         # 2. Confusion Matrix Base64
         cm = confusion_matrices[model_name]
         fig_cm, ax_cm = plt.subplots(figsize=(5, 3.2))
@@ -303,7 +436,7 @@ def generate_3d_slider_html():
         ax_cm.set_ylabel("Actual Engagement", fontsize=8)
         plt.tight_layout()
         cm_b64 = fig_to_base64(fig_cm)
-        
+
         # 3. ROC Curve Base64
         fig_roc, ax_roc = plt.subplots(figsize=(5, 3.2))
         roc_colors = {"Low": "red", "Medium": "orange", "High": "green"}
@@ -317,7 +450,7 @@ def generate_3d_slider_html():
         ax_roc.legend(loc="lower right", fontsize=7)
         plt.tight_layout()
         roc_b64 = fig_to_base64(fig_roc)
-        
+
         # 4. Feature Importance Base64
         style = feature_importance_style[model_name]
         feat_imp = pd.Series(feature_importance_data[model_name]).sort_values(ascending=True)
@@ -327,7 +460,7 @@ def generate_3d_slider_html():
         ax_feat.tick_params(axis='y', labelsize=8)
         plt.tight_layout()
         feat_b64 = fig_to_base64(fig_feat)
-        
+
         # Build Slide Template
         accuracy_percent = report_data["accuracy"]
         slides_html += f"""
@@ -365,20 +498,20 @@ def generate_3d_slider_html():
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;800&display=swap');
       body {{ margin: 0; padding: 0; font-family: 'Source Sans Pro', sans-serif; overflow: hidden; }}
-      
+
       .slider-container {{ 
           position: relative; width: 100%; height: 750px; 
           display: flex; justify-content: center; align-items: center; 
           perspective: 1200px; overflow: hidden;
       }}
-      
+
       .slide {{
           position: absolute; width: 85%; max-width: 900px; height: 680px;
           transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease;
           border-radius: 20px; background: #ffffff;
           padding: 20px 30px; box-sizing: border-box;
       }}
-      
+
       /* Active state is flat and centered */
       .slide.active {{ 
           transform: translateX(0) scale(1) translateZ(0); 
@@ -386,17 +519,17 @@ def generate_3d_slider_html():
           box-shadow: 0 15px 40px rgba(106, 13, 173, 0.15); 
           border-top: 6px solid #6A0DAD; 
       }}
-      
+
       /* Adjacent models peek out with 3D rotation */
       .slide.left-1 {{ transform: translateX(-105%) scale(0.85) translateZ(-150px) rotateY(15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
       .slide.right-1 {{ transform: translateX(105%) scale(0.85) translateZ(-150px) rotateY(-15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
       .slide.hidden {{ transform: translateX(0) scale(0.6) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
-      
+
       .title-container {{ text-align: center; margin-bottom: 25px; }}
       .title-container h2 {{ color: #6A0DAD; margin: 0; font-size: 34px; font-weight: 800; }}
       .title-container h5 {{ color: #444; margin: 5px 0 0 0; font-size: 18px; }}
       .title-container span {{ color: #e74c3c; font-weight: bold; }}
-      
+
       .bento-grid {{ 
           display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; 
           gap: 20px; height: calc(100% - 90px);
@@ -410,13 +543,13 @@ def generate_3d_slider_html():
       .bento-box:hover {{ transform: translateY(-5px); box-shadow: 0 10px 20px rgba(106, 13, 173, 0.1); }}
       .bento-box h4 {{ margin: 0 0 15px 0; font-size: 16px; color: #333; width: 100%; text-align: left; }}
       .bento-box img {{ width: 95%; max-height: 220px; object-fit: contain; }}
-      
+
       .table-container {{ width: 100%; display: flex; justify-content: center; }}
       table {{ width: 95%; border-collapse: collapse; font-size: 14px; text-align: center; }}
       th, td {{ padding: 10px 5px; border-bottom: 1px solid #eee; }}
       th {{ font-weight: 600; color: #555; background: #fafafa; }}
       .highlight td {{ font-weight: bold; background: #fdfdfd; border-top: 2px solid #ddd; }}
-      
+
       /* Navigation Arrows */
       .nav-btn {{
           position: absolute; top: 50%; transform: translateY(-50%);
@@ -436,14 +569,14 @@ def generate_3d_slider_html():
       <div class="slider-container" id="slider">
         <button class="nav-btn prev-btn" onclick="move(-1)">&#9664;</button>
         <button class="nav-btn next-btn" onclick="move(1)">&#9654;</button>
-        
+
         {slides_html}
-        
+
       </div>
       <script>
         const slides = document.querySelectorAll('.slide');
         let currentIndex = 3; // Starts at XGBoost
-        
+
         function updateSlides() {{
             slides.forEach((slide, index) => {{
                 slide.className = 'slide'; // clear previous classes
@@ -458,12 +591,12 @@ def generate_3d_slider_html():
                 }}
             }});
         }}
-        
+
         function move(dir) {{
             currentIndex = (currentIndex + dir + slides.length) % slides.length;
             updateSlides();
         }}
-        
+
         // Setup initial display
         updateSlides();
       </script>
@@ -482,7 +615,7 @@ tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Analysis", "📊 Model Perf
 # TAB 1: DATA ANALYSIS
 # ------------------------------------------
 with tab_eda:
-    
+
     st.markdown("##### Dataset Overview")
     m1, m2, m3, m4, m5 = st.columns(5)
     with m1: st.metric("Total Players", f"{df.shape[0]:,}")
@@ -492,64 +625,26 @@ with tab_eda:
     with m5:
         freq_eng = df['EngagementLevel'].mode()[0]
         st.metric("Most Frequent Engagement", freq_eng)
-    
+
     st.markdown("---")
+
+    # Render seamless HTML/JS interactive component for the Graphs
+    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to navigate. <b>Click on a graph</b> to view its detailed insights.</p>", unsafe_allow_html=True)
     
-    if 'gallery_idx' not in st.session_state:
-        st.session_state.gallery_idx = 0
-    total_cards = 8
-    idx = st.session_state.gallery_idx
-
-    classes = ['card-hidden'] * total_cards
-    classes[idx] = 'card-center'
-    classes[(idx - 1) % total_cards] = 'card-left-1'
-    classes[(idx - 2) % total_cards] = 'card-left-2'
-    classes[(idx + 1) % total_cards] = 'card-right-1'
-    classes[(idx + 2) % total_cards] = 'card-right-2'
-
-    html_carousel = f"""
-    <div class="slider-container">
-        <div class="slider-card {classes[0]}"><img src="data:image/png;base64,{images_b64[0]}"></div>
-        <div class="slider-card {classes[1]}"><img src="data:image/png;base64,{images_b64[1]}"></div>
-        <div class="slider-card {classes[2]}"><img src="data:image/png;base64,{images_b64[2]}"></div>
-        <div class="slider-card {classes[3]}"><img src="data:image/png;base64,{images_b64[3]}"></div>
-        <div class="slider-card {classes[4]}"><img src="data:image/png;base64,{images_b64[4]}"></div>
-        <div class="slider-card {classes[5]}"><img src="data:image/png;base64,{images_b64[5]}"></div>
-        <div class="slider-card {classes[6]}"><img src="data:image/png;base64,{images_b64[6]}"></div>
-        <div class="slider-card {classes[7]}"><img src="data:image/png;base64,{images_b64[7]}"></div>
-    </div>
-    """
-    st.markdown(html_carousel, unsafe_allow_html=True)
-
-    col_space_left, col_prev, col_details, col_next, col_space_right = st.columns([1.5, 0.8, 4, 0.8, 1.5])
-    
-    with col_prev:
-        st.write("") 
-        if st.button("◀ PREV", use_container_width=True):
-            st.session_state.gallery_idx = (st.session_state.gallery_idx - 1) % total_cards
-            st.rerun()
-            
-    with col_details:
-        with st.expander(f"🔍 VIEW GRAPH DETAILS: {graph_titles[idx].split('. ')[1]}", expanded=False):
-            st.markdown(f"**Description:**<br>{graph_details[idx]}", unsafe_allow_html=True)
-            
-    with col_next:
-        st.write("") 
-        if st.button("NEXT ▶", use_container_width=True):
-            st.session_state.gallery_idx = (st.session_state.gallery_idx + 1) % total_cards
-            st.rerun()
+    eda_slider_html = generate_eda_slider_html(images_b64, graph_titles, graph_details)
+    components.html(eda_slider_html, height=600, scrolling=False)
 
     st.markdown("---")
     st.markdown("### 📋 Dataset Preview")
     st.write("Use the +/- buttons or type a number to view more rows.")
     row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
     st.dataframe(df.head(row_count), use_container_width=True)
-        
+
     st.markdown("---")
-        
+
     st.markdown("####  Statistical Summaries")
     summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
-        
+
     if summary_choice == "Numerical Summary":
         st.markdown("**Full Dataset Statistical Profile (Numerical)**")
         num_desc = df.describe().T
@@ -557,7 +652,7 @@ with tab_eda:
         num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
         display_cols = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'range', 'cv']
         st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
-            
+
     elif summary_choice == "Categorical Summary":
         st.markdown("**Categorical Features Value Counts**")
         cat_cols = df.select_dtypes(include=['object']).columns
@@ -576,7 +671,7 @@ with tab_eda:
 with tab_perf:
     # 1. Render the interactive 3D slider component
     st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to view performance metrics for different models.</p>", unsafe_allow_html=True)
-    
+
     # We embed the pure HTML/JS slider to get true fluid 60FPS animations 
     # without triggering clunky Streamlit page reloads.
     slider_html = generate_3d_slider_html()
@@ -585,7 +680,7 @@ with tab_perf:
     # 2. Overall Model Comparison DataFrame at the bottom
     st.markdown("---")
     st.markdown("### 🏆 Overall Model Comparison")
-    
+
     comparison_df = pd.DataFrame({
         "Model": ["Logistic Regression", "Random Forest", "KNN", "XGBoost"],
         "Accuracy": [0.9040, 0.9510, 0.8461, 0.9694],
@@ -594,7 +689,7 @@ with tab_perf:
         "F1-Score": [0.9041, 0.9510, 0.8444, 0.9694],
         "AUC": [0.9571, 0.9852, 0.9404, 0.9892]
     })
-    
+
     summary_display = comparison_df.copy()
     for col in ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]:
         summary_display[col] = summary_display[col].map(lambda x: f"{x:.2%}")
@@ -607,14 +702,14 @@ with tab_perf:
 with tab_pred:
     st.markdown("### 🎯 Player Engagement Predictor")
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
-    
+
     input_col, result_col = st.columns([1, 1.2])
-    
+
     with input_col:
         st.markdown("#### 1. Input Player Features")
         with st.container(border=True):
             selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=0)
-            
+
             c_in1, c_in2 = st.columns(2)
             with c_in1:
                 age = st.slider("Age", int(df['Age'].min()), int(df['Age'].max()), 25)
@@ -629,9 +724,9 @@ with tab_pred:
                 sessions = st.slider("Sessions/Week", int(df['SessionsPerWeek'].min()), int(df['SessionsPerWeek'].max()), 5)
                 avg_duration = st.slider("Avg Session (Mins)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
                 player_level = st.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
-                
+
             achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
-            
+
             predict_btn = st.button("🔮 Predict Engagement", use_container_width=True)
 
     with result_col:
@@ -639,24 +734,24 @@ with tab_pred:
         if predict_btn:
             with st.spinner("Analyzing player profile..."):
                 time.sleep(0.8) 
-                
+
             input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
                                         difficulty, sessions, avg_duration, player_level, achievements]], 
                                       columns=feature_cols)
             for col in ['Gender', 'Location', 'GameGenre', 'GameDifficulty']:
                 input_data[col] = le_dict[col].transform(input_data[col])
-                
+
             input_scaled = scaler.transform(input_data)
             model = models_dict[selected_model_name]
-            
+
             pred_encoded = model.predict(input_scaled)[0]
             prediction = le_dict['EngagementLevel'].inverse_transform([pred_encoded])[0]
             probabilities = model.predict_proba(input_scaled)[0]
             classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
             prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
-            
+
             st.metric(label=f"Predicted Engagement Level", value=prediction, delta=selected_model_name, delta_color="off")
-            
+
             fig_prob = px.bar(
                 prob_df, x="Probability", y="Engagement Level", 
                 orientation='h', text_auto='.1%', 
@@ -673,6 +768,6 @@ with tab_pred:
                 st.info("**Steady Player.** Good potential for growth. Try offering limited-time quests or unlocking mid-tier achievements.")
             else:
                 st.success("**Highly Engaged!** Ideal target for premium in-game purchases, exclusive VIP events, or beta testing new features.")
-                
+
         else:
             st.info("👈 Please enter player details on the left and click 'Predict Engagement' to see the model's analysis.")
