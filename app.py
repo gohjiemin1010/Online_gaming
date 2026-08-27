@@ -298,11 +298,6 @@ st.markdown("""
 st.markdown("""
 <div class="gaming-header">
 <div class="header-content">
-<div class="logo-area">
-<div class="logo-icon">
-🎮
-</div>
-<div>
 <div class="header-title">
 Online Gaming Analytics
 </div>
@@ -315,9 +310,6 @@ PLAYER BEHAVIOR • MACHINE LEARNING • ENGAGEMENT INTELLIGENCE
 <div class="status-badge">
 <span class="status-dot"></span>
 AI SYSTEM ONLINE
-</div>
-<div class="dataset-badge">
-3 ENGAGEMENT CLASSES
 </div>
 </div>
 </div>
