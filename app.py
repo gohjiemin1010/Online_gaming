@@ -6,214 +6,269 @@ import seaborn as sns
 import plotly.express as px
 import xgboost as xgb
 import time
-from scipy.stats import norm
+import io
+import base64
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
 
 # ==========================================
-# 1. Page Configuration & Custom CSS 
+# 1. Page Configuration & Global Settings
 # ==========================================
 st.set_page_config(page_title="Online Gaming Analytics", page_icon="🎮", layout="wide")
 
-st.markdown("""
-<style>
-.block-container { padding-top: 1.5rem !important; }
-[data-testid="stMetric"] {
-    background-color: #ffffff;
-    border-radius: 10px;
-    padding: 15px 20px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); 
-    border-top: 4px solid #6A0DAD; 
-}
-button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
-    font-size: 20px !important;
-    font-weight: bold !important;
-}
-.stTabs [data-baseweb="tab-list"] button[aria-selected="true"] p { color: #6A0DAD !important; }
-.stTabs [data-baseweb="tab-list"] div[data-baseweb="tab-highlight"] { background-color: #6A0DAD !important; }
-div.stButton > button:first-child {
-    background-color: #6A0DAD !important;
-    color: white !important;
-    border: none !important;
-    font-weight: bold !important;
-    border-radius: 8px !important;
-}
-div.stButton > button:first-child:hover { background-color: #5b0b9c !important; }
-
-/* Custom CSS for Carousel Arrows */
-.arrow-btn button {
-    height: 100px;
-    font-size: 24px;
-    margin-top: 150px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("## 🎮 Online Gaming Behavior Analysis & Prediction")
-
-# Set Seaborn theme
+# Set Seaborn theme based on your ipynb
 sns.set_theme(style="white", context="notebook", font_scale=1.1)
 plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
-# 2. Data Loading & Caching
+# 2. Advanced 3D Carousel CSS
+# ==========================================
+st.markdown("""
+<style>
+.block-container { padding-top: 1.5rem !important; }
+
+/* 3D Coverflow Slider Styling */
+.slider-container {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1200px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5f0fa 0%, #ffffff 100%);
+    border-radius: 15px;
+    box-shadow: inset 0px 0px 20px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+.slider-card {
+    position: absolute;
+    width: 600px;
+    height: 380px;
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+.slider-card img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* 3D Position Classes */
+.card-center {
+    transform: translateX(0) translateZ(0) scale(1);
+    z-index: 10;
+    opacity: 1;
+}
+.card-left-1 {
+    transform: translateX(-45%) translateZ(-150px) rotateY(15deg) scale(0.85);
+    z-index: 5;
+    opacity: 0.7;
+}
+.card-right-1 {
+    transform: translateX(45%) translateZ(-150px) rotateY(-15deg) scale(0.85);
+    z-index: 5;
+    opacity: 0.7;
+}
+.card-left-2 {
+    transform: translateX(-80%) translateZ(-300px) rotateY(25deg) scale(0.7);
+    z-index: 4;
+    opacity: 0.4;
+}
+.card-right-2 {
+    transform: translateX(80%) translateZ(-300px) rotateY(-25deg) scale(0.7);
+    z-index: 4;
+    opacity: 0.4;
+}
+.card-hidden {
+    transform: translateX(0) translateZ(-500px) scale(0.5);
+    z-index: 1;
+    opacity: 0;
+}
+
+/* Streamlit Native UI Overrides */
+div.stButton > button {
+    background-color: #6A0DAD !important;
+    color: white !important;
+    border: none !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    width: 100%;
+}
+div.stButton > button:hover { background-color: #5b0b9c !important; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("##  Online Gaming Behavior Analytics")
+
+# ==========================================
+# 3. Data Loading & Graph Generation (Cached)
 # ==========================================
 @st.cache_data
 def load_data():
-    df = pd.read_csv('online_gaming_behavior_dataset.csv')
-    return df
+    return pd.read_csv('online_gaming_behavior_dataset.csv')
 
 df = load_data()
 
-# ==========================================
-# 3. Model Training (Cached)
-# ==========================================
-@st.cache_resource
-def train_models(df):
-    df_model = df.copy()
-    le_dict = {}
-    cat_cols = df_model.select_dtypes(include=['object']).columns
-    for col in cat_cols:
-        le = LabelEncoder()
-        df_model[col] = le.fit_transform(df_model[col])
-        le_dict[col] = le
-        
-    X = df_model.drop(['PlayerID', 'EngagementLevel'], axis=1)
-    y = df_model['EngagementLevel']
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
-    models = {"XGBoost": xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss', random_state=42)}
-    trained_models = {}
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-        trained_models[name] = model
-        
-    return trained_models, le_dict, scaler, X.columns
+# Helper function to convert matplotlib figures to Base64 HTML strings
+def fig_to_base64(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches='tight', dpi=120, transparent=True)
+    buf.seek(0)
+    img_str = base64.b64encode(buf.read()).decode("utf-8")
+    plt.close(fig)
+    return img_str
 
-models_dict, le_dict, scaler, feature_cols = train_models(df)
+@st.cache_data
+def generate_gallery_assets(df):
+    images_b64 = []
+    titles = [
+        "1. Distribution of Engagement Level",
+        "2. Popularity of Game Genre",
+        "3. Player Age Distribution",
+        "4. Play Time Hours Distribution",
+        "5. Play Time Hours by Engagement Level",
+        "6. In-Game Purchase Rate by Game Genre",
+        "7. Player Engagement Level by Geographic Location",
+        "8. Correlation Heatmap"
+    ]
+    details = [
+        "Shows the target variable distribution. The dataset is balanced across Low, Medium, and High engagement players, providing a solid baseline for our ML predictions.",
+        "Displays the volume of players across different genres (Sports, Action, Strategy, etc.), revealing which game types drive the most traffic.",
+        "A density histogram representing the demographic spread. This highlights the core age groups making up our player base.",
+        "Illustrates the spread of play hours. The distribution helps identify the threshold between casual gamers and hardcore gamers.",
+        "A violin plot confirming that higher engagement levels naturally correlate with a denser distribution of higher play time hours.",
+        "Highlights commercial value by genre. It displays the average conversion rate (percentage) for in-game purchases.",
+        "Breaks down engagement levels across different geographical regions, useful for identifying regional retention strengths.",
+        "A high-level statistical matrix showing how numerical features relate. Values close to 1 or -1 indicate strong correlations."
+    ]
+    
+    # 1. Engagement Level
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.countplot(data=df, x='EngagementLevel', order=['Low', 'Medium', 'High'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax)
+    ax.set_title(titles[0], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    # 2. Game Genre
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.countplot(data=df, y='GameGenre', palette='crest', ax=ax)
+    ax.set_title(titles[1], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    # 3. Age Distribution
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.histplot(df['Age'], bins=25, kde=True, color='#9b59b6', ax=ax)
+    ax.set_title(titles[2], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    # 4. Play Time
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.histplot(df['PlayTimeHours'], bins=25, kde=True, color='#3498db', ax=ax)
+    ax.set_title(titles[3], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    # 5. Play Time by Engagement
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.violinplot(data=df, x='EngagementLevel', y='PlayTimeHours', order=['Low', 'Medium', 'High'], palette='pastel', ax=ax)
+    ax.set_title(titles[4], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    # 6. Purchase Rate by Genre
+    fig, ax = plt.subplots(figsize=(8, 5))
+    genre_purchase = df.groupby('GameGenre')['InGamePurchases'].mean().sort_values().reset_index()
+    sns.barplot(data=genre_purchase, x='GameGenre', y='InGamePurchases', palette='mako', ax=ax)
+    ax.set_title(titles[5], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    # 7. Engagement by Location
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.countplot(data=df, x='Location', hue='EngagementLevel', order=['USA', 'Europe', 'Asia', 'Other'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax)
+    ax.set_title(titles[6], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    # 8. Correlation Heatmap
+    fig, ax = plt.subplots(figsize=(10, 7))
+    numeric_cols_df = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
+    mask = np.triu(np.ones_like(numeric_cols_df.corr(), dtype=bool))
+    sns.heatmap(numeric_cols_df.corr(), mask=mask, annot=True, cmap='vlag', fmt=".2f", ax=ax)
+    ax.set_title(titles[7], weight='bold')
+    images_b64.append(fig_to_base64(fig))
+    
+    return images_b64, titles, details
+
+images_b64, graph_titles, graph_details = generate_gallery_assets(df)
 
 # ==========================================
-# 4. Main Content Layout
+# 4. Main Tabs Layout
 # ==========================================
-tab_eda, tab_perf, tab_pred = st.tabs(["Data Exploration", "Model Performance", "Prediction Result"])
+tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Gallery", "📊 Model Performance", "🎯 Prediction Result"])
 
 # ------------------------------------------
-# TAB 1: DATA EXPLORATION (Interactive Carousel)
+# TAB 1: 3D DATA GALLERY
 # ------------------------------------------
 with tab_eda:
-    st.markdown("### 🖼️ Interactive Data Gallery")
-    st.markdown("<p style='color:gray;'>Use the left and right arrows to navigate through the key visual insights. Click the details panel below each graph to learn more.</p>", unsafe_allow_html=True)
-    
-    # Initialize Carousel State
+    # Initialize State
     if 'gallery_idx' not in st.session_state:
         st.session_state.gallery_idx = 0
+    total_cards = 8
+    idx = st.session_state.gallery_idx
 
-    # Function to generate the selected graph and its description
-    def get_gallery_item(idx, df):
-        fig, ax = plt.subplots(figsize=(10, 5))
-        title = ""
-        desc = ""
-        
-        if idx == 0:
-            sns.countplot(data=df, x='EngagementLevel', order=['Low', 'Medium', 'High'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax)
-            title = "1. Distribution of Engagement Level"
-            desc = "Shows the overall target variable distribution. The dataset contains Low, Medium, and High engagement players, helping us understand the baseline behavior ratio."
-            for container in ax.containers: ax.bar_label(container, padding=3)
-            
-        elif idx == 1:
-            sns.countplot(data=df, y='GameGenre', palette='crest', ax=ax)
-            title = "2. Popularity of Game Genre"
-            desc = "Displays the number of players across different genres (Sports, Action, Strategy, etc.), revealing which game types attract the most traffic."
-            for container in ax.containers: ax.bar_label(container, padding=3)
-            
-        elif idx == 2:
-            sns.histplot(df['Age'], bins=25, kde=True, color='#9b59b6', ax=ax)
-            title = "3. Player Age Distribution"
-            desc = "A histogram with a density curve showing the demographic spread of our players. Notice the core age group where the peak forms."
-            
-        elif idx == 3:
-            sns.histplot(df['PlayTimeHours'], bins=25, kde=True, color='#3498db', ax=ax)
-            title = "4. Play Time Hours Distribution"
-            desc = "Illustrates the spread of hours spent playing. This right-skewed or normal distribution helps identify hardcore vs. casual gamers."
-            
-        elif idx == 4:
-            sns.violinplot(data=df, x='EngagementLevel', y='PlayTimeHours', order=['Low', 'Medium', 'High'], palette='pastel', ax=ax)
-            title = "5. Play Time Hours by Engagement Level"
-            desc = "A violin plot showing that higher engagement naturally correlates with a denser distribution of higher play time hours."
-            
-        elif idx == 5:
-            genre_purchase = df.groupby('GameGenre')['InGamePurchases'].mean().sort_values().reset_index()
-            sns.barplot(data=genre_purchase, x='GameGenre', y='InGamePurchases', palette='mako', ax=ax)
-            title = "6. In-Game Purchase Rate by Game Genre"
-            desc = "Highlights the commercial value of different genres by displaying the average conversion rate for in-game purchases."
-            for container in ax.containers: ax.bar_label(container, fmt='%.3f', padding=3)
-            
-        elif idx == 6:
-            sns.countplot(data=df, x='Location', hue='EngagementLevel', order=['USA', 'Europe', 'Asia', 'Other'], hue_order=['Low', 'Medium', 'High'], palette=['#ff9999','#66b3ff','#99ff99'], ax=ax)
-            title = "7. Player Engagement Level by Geographic Location"
-            desc = "Breaks down engagement levels across different regions, helping to identify geographic trends in player retention."
-            
-        elif idx == 7:
-            numeric_cols_df = df.select_dtypes(include=['int64', 'float64']).drop(columns=['PlayerID'], errors='ignore')
-            mask = np.triu(np.ones_like(numeric_cols_df.corr(), dtype=bool))
-            sns.heatmap(numeric_cols_df.corr(), mask=mask, annot=True, cmap='vlag', fmt=".2f", ax=ax)
-            title = "8. Correlation Heatmap"
-            desc = "A high-level statistical view showing how numerical features relate to each other. Values close to 1 or -1 indicate strong positive or negative correlations."
-            
-        sns.despine()
-        return fig, title, desc
+    # Calculate CSS classes for 3D positioning
+    classes = ['card-hidden'] * total_cards
+    classes[idx] = 'card-center'
+    classes[(idx - 1) % total_cards] = 'card-left-1'
+    classes[(idx - 2) % total_cards] = 'card-left-2'
+    classes[(idx + 1) % total_cards] = 'card-right-1'
+    classes[(idx + 2) % total_cards] = 'card-right-2'
 
-    # Carousel Layout (Left Arrow | Center Graph | Right Arrow)
-    col_prev, col_main, col_next = st.columns([1, 8, 1])
+    # Inject HTML for 3D Carousel
+    html_carousel = f"""
+    <div class="slider-container">
+        <div class="slider-card {classes[0]}"><img src="data:image/png;base64,{images_b64[0]}"></div>
+        <div class="slider-card {classes[1]}"><img src="data:image/png;base64,{images_b64[1]}"></div>
+        <div class="slider-card {classes[2]}"><img src="data:image/png;base64,{images_b64[2]}"></div>
+        <div class="slider-card {classes[3]}"><img src="data:image/png;base64,{images_b64[3]}"></div>
+        <div class="slider-card {classes[4]}"><img src="data:image/png;base64,{images_b64[4]}"></div>
+        <div class="slider-card {classes[5]}"><img src="data:image/png;base64,{images_b64[5]}"></div>
+        <div class="slider-card {classes[6]}"><img src="data:image/png;base64,{images_b64[6]}"></div>
+        <div class="slider-card {classes[7]}"><img src="data:image/png;base64,{images_b64[7]}"></div>
+    </div>
+    """
+    st.markdown(html_carousel, unsafe_allow_html=True)
+
+    # Navigation & Details Logic
+    col_prev, col_details, col_next = st.columns([1, 2, 1])
     
     with col_prev:
-        st.markdown("<div class='arrow-btn'>", unsafe_allow_html=True)
-        if st.button("◀️\nPrev", use_container_width=True, key="prev"):
-            st.session_state.gallery_idx = (st.session_state.gallery_idx - 1) % 8
+        if st.button("◀ PREV"):
+            st.session_state.gallery_idx = (st.session_state.gallery_idx - 1) % total_cards
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
             
-    with col_main:
-        # Generate the current graph based on state
-        fig, title, desc = get_gallery_item(st.session_state.gallery_idx, df)
-        
-        # Display the Title and Graph
-        st.markdown(f"<h3 style='text-align: center; color: #333;'>{title}</h3>", unsafe_allow_html=True)
-        st.pyplot(fig, use_container_width=True)
-        
-        # The Clickable Details Panel (The "按进去" effect)
-        with st.expander(f"🔍 Click to view details about {title.split('. ')[1]}"):
-            st.write(desc)
+    with col_details:
+        # User "presses" the graph by clicking to view details
+        with st.expander(f"🔍 VIEW GRAPH DETAILS: {graph_titles[idx].split('. ')[1]}", expanded=False):
+            st.markdown(f"**Description:**<br>{graph_details[idx]}", unsafe_allow_html=True)
             
     with col_next:
-        st.markdown("<div class='arrow-btn'>", unsafe_allow_html=True)
-        if st.button("▶️\nNext", use_container_width=True, key="next"):
-            st.session_state.gallery_idx = (st.session_state.gallery_idx + 1) % 8
+        if st.button("NEXT ▶"):
+            st.session_state.gallery_idx = (st.session_state.gallery_idx + 1) % total_cards
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    # --- DOT INDICATORS ---
-    st.markdown(f"<p style='text-align: center; color: #6A0DAD; font-weight: bold;'>Graph {st.session_state.gallery_idx + 1} of 8</p>", unsafe_allow_html=True)
-    
+
     st.markdown("---")
-    
-    # --- BASIC DATA UNDERSTANDING & ABOUT US ---
-    st.markdown("### 📋 Basic Data Understanding")
-    row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=10, step=5)
-    st.dataframe(df.head(row_count), use_container_width=True)
-    
-    st.markdown("### ℹ️ About Us")
-    st.info("A machine-learning dashboard that turns raw gaming activity into a clear read on how engaged a player really is. Navigate through the Data Gallery above to explore, or proceed to the Prediction Result tab to test the model live.")
+    st.markdown("### 📋 Dataset Preview")
+    st.dataframe(df.head(10), use_container_width=True)
 
 # ------------------------------------------
 # TAB 2: Model Performance (Minimal modifications, keeps your logic)
