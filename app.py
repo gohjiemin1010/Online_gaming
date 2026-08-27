@@ -1005,10 +1005,7 @@ with tab_perf:
             "title": "Top 10 Feature Importance",
         },
     }
- 
-    st.markdown("---")
-    st.markdown("#### ROC Curve & Feature Importance")
- 
+  
     roc_col, feat_col = st.columns([1, 1])
  
     # ---------------------------------------------------------
@@ -1361,7 +1358,7 @@ with tab_about:
     about_cards = [
         ("Data Exploration",
          "Interactive distributions, a feature-vs-feature explorer, and a correlation heatmap "
-         "covering all 11 relationship charts from the notebook's EDA."),
+         "covering relationship charts from the notebook's EDA."),
         ("Model Comparison",
          "Classification reports, confusion matrices, ROC curves, and feature importance "
          "side-by-side for 4 optimized ML models."),
