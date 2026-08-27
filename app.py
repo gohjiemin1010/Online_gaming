@@ -1335,16 +1335,19 @@ with tab_pred:
 # ------------------------------------------
 with tab_about:
  
-    # ---- Hero banner ----
-    st.markdown("""
-    <div class="about-hero">
-        <h2>🎮 About This Project</h2>
-        <p>A machine-learning dashboard that turns raw gaming activity into a clear read on how engaged a player really is — built end-to-end from EDA to a live predictor.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # ---- Hero banner (single-line HTML avoids Streamlit's markdown
+    # treating indented multi-line HTML as a code block) ----
+    hero_html = (
+        '<div class="about-hero">'
+        '<h2>About This Project</h2>'
+        '<p>A machine-learning dashboard that turns raw gaming activity into a clear read on how '
+        'engaged a player really is — built end-to-end from EDA to a live predictor.</p>'
+        '</div>'
+    )
+    st.markdown(hero_html, unsafe_allow_html=True)
  
     # ---- What the app does ----
-    st.markdown("#### 🚀 What This App Does")
+    st.markdown("#### What This App Does")
     st.write(
         "This dashboard analyses the **Online Gaming Behavior Dataset** and predicts a player's "
         "**Engagement Level** — Low, Medium, or High — based on how they play. It walks through the "
@@ -1355,84 +1358,65 @@ with tab_about:
     st.markdown("<br>", unsafe_allow_html=True)
  
     # ---- Feature highlight cards ----
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown("""
-        <div class="about-card">
-            <h4>📊 Data Exploration</h4>
-            <p>Interactive distributions, a feature-vs-feature explorer, and a correlation heatmap covering
-            all 11 relationship charts from the notebook's EDA.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with c2:
-        st.markdown("""
-        <div class="about-card">
-            <h4>🤖 Model Comparison</h4>
-            <p>Classification reports, confusion matrices, ROC curves, and feature importance side-by-side
-            for 4 optimized ML models.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with c3:
-        st.markdown("""
-        <div class="about-card">
-            <h4>🔮 Live Prediction</h4>
-            <p>Enter a player's profile in the sidebar and instantly get a predicted engagement level with
-            confidence scores and actionable retention tips.</p>
-        </div>
-        """, unsafe_allow_html=True)
+    about_cards = [
+        ("Data Exploration",
+         "Interactive distributions, a feature-vs-feature explorer, and a correlation heatmap "
+         "covering all 11 relationship charts from the notebook's EDA."),
+        ("Model Comparison",
+         "Classification reports, confusion matrices, ROC curves, and feature importance "
+         "side-by-side for 4 optimized ML models."),
+        ("Live Prediction",
+         "Enter a player's profile in the sidebar and instantly get a predicted engagement "
+         "level with confidence scores and actionable retention tips."),
+    ]
+    cols = st.columns(3)
+    for (title, desc), col in zip(about_cards, cols):
+        with col:
+            card_html = f'<div class="about-card"><h4>{title}</h4><p>{desc}</p></div>'
+            st.markdown(card_html, unsafe_allow_html=True)
  
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("---")
  
-    # ---- The dataset ----
-    st.markdown("#### 📦 The Dataset")
-    d1, d2, d3, d4 = st.columns(4)
-    with d1: st.metric("Players", f"{df.shape[0]:,}")
-    with d2: st.metric("Raw Features", 13)
-    with d3: st.metric("Engineered Features", "3")
-    with d4: st.metric("Target Classes", "Low / Medium / High")
-    st.caption(
-        "Engineered features added on top of the raw data: **TotalWeeklyMinutes** "
-        "(Sessions × Avg Duration), **AchievementRate** (Achievements ÷ Level), and "
-        "**AgeGroup** (Teen / Young Adult / Adult)."
-    )
- 
-    st.markdown("---")
- 
-    # ---- The models ----
-    st.markdown("#### 🧠 The Models We Compared")
-    model_accuracies = {
-        "Logistic Regression": 0.9040,
-        "Random Forest": 0.9510,
-        "KNN": 0.8461,
-        "XGBoost": 0.9694,
-    }
-    best_model = max(model_accuracies, key=model_accuracies.get)
- 
-    mcols = st.columns(4)
-    for (name, acc), col in zip(model_accuracies.items(), mcols):
+    # ---- How it works (replaces the old duplicated dataset/model stat
+    # cards, since those numbers already live in the Data Exploration
+    # and Model Performance tabs) ----
+    st.markdown("#### How It Works")
+    steps = [
+        ("1", "Explore the Data", "Understand player behaviour through distributions and correlations."),
+        ("2", "Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
+        ("3", "Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
+        ("4", "Predict Live", "Enter a player profile and get an instant engagement prediction."),
+    ]
+    step_cols = st.columns(4)
+    for (num, title, desc), col in zip(steps, step_cols):
         with col:
-            is_best = name == best_model
-            card_class = "model-card best" if is_best else "model-card"
-            badge_html = '<div class="badge">🏆 BEST</div>' if is_best else ""
-            st.markdown(f"""
-            <div class="{card_class}">
-                {badge_html}
-                <h5>{name}</h5>
-                <div class="acc">{acc:.1%}</div>
-                <div style="color:#888; font-size:12px;">test accuracy</div>
-            </div>
-            """, unsafe_allow_html=True)
+            step_html = (
+                f'<div class="step-card"><div class="step-num">{num}</div>'
+                f'<h5>{title}</h5><p>{desc}</p></div>'
+            )
+            st.markdown(step_html, unsafe_allow_html=True)
  
-    st.caption(
-        "Every model was hyperparameter-tuned with Grid Search / cross-validation before comparison. "
-        f"**{best_model}** came out on top on accuracy, precision, recall, F1-score, and AUC."
+    st.markdown("<br>", unsafe_allow_html=True)
+ 
+    # ---- One-line key result (full comparison table lives in Model Performance) ----
+    result_html = (
+        '<div class="result-banner">'
+        '<div><div class="label">Best Performing Model</div>'
+        '<div class="value">XGBoost</div></div>'
+        '<div><div class="label">Test Accuracy</div>'
+        '<div class="value">96.9%</div></div>'
+        '<div><div class="label">Models Compared</div>'
+        '<div class="value">4</div></div>'
+        '</div>'
     )
+    st.markdown(result_html, unsafe_allow_html=True)
+    st.caption("See the Model Performance tab for full classification reports, confusion matrices, and ROC curves.")
  
     st.markdown("---")
  
     # ---- Tech stack ----
-    st.markdown("#### 🛠️ Built With")
+    st.markdown("#### Built With")
     tech_stack = [
         "Python", "Streamlit", "Pandas", "NumPy", "Scikit-learn",
         "XGBoost", "Seaborn", "Matplotlib", "Plotly"
@@ -1442,4 +1426,4 @@ with tab_about:
  
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("---")
-    st.caption("🎮 Online Gaming Behavior Analysis & Prediction — a data science course project. Made with 💜")
+    st.caption("Online Gaming Behavior Analysis & Prediction — a data science course project.")
