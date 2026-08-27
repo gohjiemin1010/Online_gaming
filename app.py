@@ -219,6 +219,22 @@ tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Gallery", "📊 Model Perfo
 # TAB 1: 3D DATA GALLERY
 # ------------------------------------------
 with tab_eda:
+
+    st.markdown("### Exploratory Data Analysis")
+    
+    # Beautiful 3D Animated Metric Cards
+    st.markdown("##### Dataset Overview")
+    m1, m2, m3, m4, m5 = st.columns(5)
+    with m1: st.metric("Total Players", f"{df.shape[0]:,}")
+    with m2: st.metric("Total Features", df.shape[1])
+    with m3: st.metric("Avg Play Time", f"{df['PlayTimeHours'].mean():.1f} hrs")
+    with m4: st.metric("Avg Player Level", f"{df['PlayerLevel'].mean():.0f}")
+    with m5:
+        freq_eng = df['EngagementLevel'].mode()[0]
+        st.metric("Most Frequent Engagement", freq_eng)
+    
+    st.markdown("---")
+    
     # Initialize State
     if 'gallery_idx' not in st.session_state:
         st.session_state.gallery_idx = 0
@@ -268,7 +284,35 @@ with tab_eda:
 
     st.markdown("---")
     st.markdown("### 📋 Dataset Preview")
-    st.dataframe(df.head(10), use_container_width=True)
+    st.write("Use the +/- buttons or type a number to view more rows.")
+    row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
+    st.dataframe(df.head(row_count), use_container_width=True)
+        
+    st.markdown("---")
+        
+    st.markdown("####  Statistical Summaries")
+    summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
+        
+    if summary_choice == "Numerical Summary":
+            st.markdown("**Full Dataset Statistical Profile (Numerical)**")
+            num_desc = df.describe().T
+            num_desc['range'] = num_desc['max'] - num_desc['min']
+            num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
+            display_cols = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'range', 'cv']
+            st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
+            
+    elif summary_choice == "Categorical Summary":
+            st.markdown("**Categorical Features Value Counts**")
+            cat_cols = df.select_dtypes(include=['object']).columns
+            table_cols = st.columns(len(cat_cols))
+            for i, col in enumerate(cat_cols):
+                with table_cols[i]:
+                    st.markdown(f"**{col}**")
+                    vc = df[col].value_counts().reset_index()
+                    vc.columns = [col, 'Count']
+                    st.dataframe(vc, hide_index=True, use_container_width=True)
+
+
 
 # ------------------------------------------
 # TAB 2: Model Performance (Minimal modifications, keeps your logic)
