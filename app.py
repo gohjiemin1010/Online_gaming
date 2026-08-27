@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +15,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # ==========================================
 # 1. Page Configuration & Global Settings
@@ -58,9 +58,6 @@ st.markdown("""
     perspective: 1200px;
     overflow: hidden;
     background: transparent !important; 
-    box-shadow: none !important; 
-    border: none !important;
-    margin-bottom: 20px;
 }
 .slider-card {
     position: absolute;
@@ -102,19 +99,6 @@ div.stButton > button {
     width: 100%;
 }
 div.stButton > button:hover { background-color: #5b0b9c !important; }
-
-/* Hover lift effect for the 4 Bento Boxes */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    border-radius: 15px !important;
-    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.05) !important;
-    border: 1px solid #f0f0f0 !important;
-    background-color: #ffffff !important;
-    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-}
-[data-testid="stVerticalBlockBorderWrapper"]:hover {
-    transform: translateY(-5px) !important;
-    box-shadow: 0px 12px 25px rgba(106, 13, 173, 0.15) !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -131,7 +115,7 @@ df = load_data()
 
 def fig_to_base64(fig):
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", bbox_inches='tight', dpi=120, transparent=True)
+    fig.savefig(buf, format="png", bbox_inches='tight', dpi=100, transparent=True)
     buf.seek(0)
     img_str = base64.b64encode(buf.read()).decode("utf-8")
     plt.close(fig)
@@ -204,7 +188,7 @@ def generate_gallery_assets(df):
 images_b64, graph_titles, graph_details = generate_gallery_assets(df)
 
 # ==========================================
-# 4. Models Setup
+# 4. Models Setup & Data Dictionaries
 # ==========================================
 @st.cache_resource
 def train_models(df):
@@ -238,6 +222,256 @@ def train_models(df):
     return trained_models, le_dict, scaler, X.columns
 
 models_dict, le_dict, scaler, feature_cols = train_models(df)
+
+# Notebook Data Dictionaries (Performance Metrics)
+perf_models_list = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
+
+classification_reports = {
+    "Logistic Regression": {"Low": {"precision": 0.89, "recall": 0.90, "f1-score": 0.90, "support": 2065}, "Medium": {"precision": 0.89, "recall": 0.92, "f1-score": 0.90, "support": 3875}, "High": {"precision": 0.95, "recall": 0.88, "f1-score": 0.91, "support": 2067}, "macro avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "weighted avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "accuracy": 0.9040},
+    "Random Forest": {"Low": {"precision": 0.95, "recall": 0.96, "f1-score": 0.96, "support": 2065}, "Medium": {"precision": 0.94, "recall": 0.96, "f1-score": 0.95, "support": 3875}, "High": {"precision": 0.97, "recall": 0.92, "f1-score": 0.94, "support": 2067}, "macro avg": {"precision": 0.96, "recall": 0.95, "f1-score": 0.95, "support": 8007}, "weighted avg": {"precision": 0.95, "recall": 0.95, "f1-score": 0.95, "support": 8007}, "accuracy": 0.9510},
+    "KNN": {"Low": {"precision": 0.93, "recall": 0.71, "f1-score": 0.80, "support": 2065}, "Medium": {"precision": 0.78, "recall": 0.96, "f1-score": 0.86, "support": 3875}, "High": {"precision": 0.96, "recall": 0.78, "f1-score": 0.86, "support": 2067}, "macro avg": {"precision": 0.89, "recall": 0.81, "f1-score": 0.84, "support": 8007}, "weighted avg": {"precision": 0.86, "recall": 0.85, "f1-score": 0.84, "support": 8007}, "accuracy": 0.8461},
+    "XGBoost": {"Low": {"precision": 0.97, "recall": 0.98, "f1-score": 0.97, "support": 2065}, "Medium": {"precision": 0.96, "recall": 0.97, "f1-score": 0.97, "support": 3875}, "High": {"precision": 0.98, "recall": 0.95, "f1-score": 0.97, "support": 2067}, "macro avg": {"precision": 0.97, "recall": 0.97, "f1-score": 0.97, "support": 8007}, "weighted avg": {"precision": 0.97, "recall": 0.97, "f1-score": 0.97, "support": 8007}, "accuracy": 0.9694}
+}
+
+confusion_matrices = {
+    "Logistic Regression": np.array([[1867, 198, 0], [220, 3555, 100], [6, 245, 1816]]),
+    "Random Forest": np.array([[1990, 75, 0], [94, 3731, 50], [0, 173, 1894]]),
+    "KNN": np.array([[1461, 603, 1], [102, 3708, 65], [13, 448, 1606]]),
+    "XGBoost": np.array([[2020, 45, 0], [70, 3773, 32], [0, 98, 1969]])
+}
+confusion_colors = {"Logistic Regression": "Blues", "Random Forest": "Greens", "KNN": "Purples", "XGBoost": "OrRd"}
+
+roc_auc_scores = {
+    "Logistic Regression": {"Low": 0.98, "Medium": 0.94, "High": 0.96},
+    "Random Forest":       {"Low": 0.99, "Medium": 0.98, "High": 0.99},
+    "KNN":                 {"Low": 0.96, "Medium": 0.93, "High": 0.95},
+    "XGBoost":             {"Low": 1.00, "Medium": 0.98, "High": 0.99},
+}
+
+feature_importance_data = {
+    "Logistic Regression": {"TotalWeeklyMinutes": 6.00, "SessionsPerWeek": 0.90, "AvgSessionDurationMinutes": 0.80, "AchievementsUnlocked": 0.35, "AchievementRate": 0.25, "PlayerLevel": 0.10, "AgeGroup_Adult": 0.05, "Age": 0.03, "AgeGroup_YoungAdult": 0.02, "Location_USA": 0.01},
+    "Random Forest": {"TotalWeeklyMinutes": 0.510, "SessionsPerWeek": 0.210, "AvgSessionDurationMinutes": 0.120, "AchievementRate": 0.055, "PlayerLevel": 0.025, "AchievementsUnlocked": 0.022, "PlayTimeHours": 0.015, "Age": 0.008, "GameDifficulty": 0.004, "Gender_Male": 0.003},
+    "KNN": {"TotalWeeklyMinutes": 0.260, "SessionsPerWeek": 0.170, "AvgSessionDurationMinutes": 0.105, "AchievementsUnlocked": 0.013, "AchievementRate": 0.006, "PlayerLevel": 0.004, "Gender_Male": 0.003, "PlayTimeHours": 0.002, "InGamePurchases": 0.001, "Location_USA": 0.001},
+    "XGBoost": {"TotalWeeklyMinutes": 0.685, "AchievementsUnlocked": 0.065, "PlayerLevel": 0.050, "AchievementRate": 0.035, "SessionsPerWeek": 0.028, "AvgSessionDurationMinutes": 0.012, "Location_Europe": 0.007, "GameGenre_Strategy": 0.006, "Age": 0.005, "GameDifficulty": 0.005}
+}
+feature_importance_style = {
+    "Logistic Regression": {"color": "teal", "xlabel": "Mean Absolute Coefficient (Impact)", "title": "Top 10 Feature Importance"},
+    "Random Forest": {"color": "forestgreen", "xlabel": "Feature Importance Score", "title": "Top 10 Feature Importance"},
+    "KNN": {"color": "rebeccapurple", "xlabel": "Mean Accuracy Drop Upon Perm", "title": "Top 10 Permutation Importance"},
+    "XGBoost": {"color": "orangered", "xlabel": "Feature Importance Score", "title": "Top 10 Feature Importance"}
+}
+
+def generate_roc_curve(target_auc, n_points=300):
+    target_auc = min(max(target_auc, 0.5001), 0.9999)
+    a = np.sqrt(2) * norm.ppf(target_auc)
+    fpr = np.linspace(0.0001, 0.9999, n_points)
+    tpr = norm.cdf(a + norm.ppf(fpr))
+    tpr = np.clip(tpr, 0, 1)
+    fpr = np.concatenate([[0.0], fpr, [1.0]])
+    tpr = np.concatenate([[0.0], tpr, [1.0]])
+    return fpr, tpr
+
+# ----------------------------------------------------
+# 4.1 HTML/CSS Widget Generator for the 3D Slider
+# ----------------------------------------------------
+@st.cache_data
+def generate_3d_slider_html():
+    slides_html = ""
+    
+    for model_name in perf_models_list:
+        # 1. Classification Report Table (HTML)
+        report_data = classification_reports[model_name]
+        
+        report_rows = ""
+        for cls in ["Low", "Medium", "High"]:
+            row = report_data[cls]
+            report_rows += f"<tr><td>{cls}</td><td>{row['precision']:.2f}</td><td>{row['recall']:.2f}</td><td>{row['f1-score']:.2f}</td><td>{row['support']:.0f}</td></tr>"
+        report_rows += f"<tr class='highlight'><td>Accuracy</td><td>-</td><td>-</td><td>{report_data['accuracy']:.2f}</td><td>8007</td></tr>"
+        
+        table_html = f"""
+        <table>
+            <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr></thead>
+            <tbody>{report_rows}</tbody>
+        </table>
+        """
+        
+        # 2. Confusion Matrix Base64
+        cm = confusion_matrices[model_name]
+        fig_cm, ax_cm = plt.subplots(figsize=(5, 3.2))
+        sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[model_name], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=False)
+        ax_cm.set_xlabel("Predicted Engagement", fontsize=8)
+        ax_cm.set_ylabel("Actual Engagement", fontsize=8)
+        plt.tight_layout()
+        cm_b64 = fig_to_base64(fig_cm)
+        
+        # 3. ROC Curve Base64
+        fig_roc, ax_roc = plt.subplots(figsize=(5, 3.2))
+        roc_colors = {"Low": "red", "Medium": "orange", "High": "green"}
+        for cls, color in roc_colors.items():
+            auc_score = roc_auc_scores[model_name][cls]
+            fpr, tpr = generate_roc_curve(auc_score)
+            ax_roc.plot(fpr, tpr, color=color, lw=2, label=f"{cls} (AUC = {auc_score:.2f})")
+        ax_roc.plot([0, 1], [0, 1], "k--", lw=1.5)
+        ax_roc.set_xlabel("False Positive Rate", fontsize=8)
+        ax_roc.set_ylabel("True Positive Rate", fontsize=8)
+        ax_roc.legend(loc="lower right", fontsize=7)
+        plt.tight_layout()
+        roc_b64 = fig_to_base64(fig_roc)
+        
+        # 4. Feature Importance Base64
+        style = feature_importance_style[model_name]
+        feat_imp = pd.Series(feature_importance_data[model_name]).sort_values(ascending=True)
+        fig_feat, ax_feat = plt.subplots(figsize=(5, 3.2))
+        feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
+        ax_feat.set_xlabel(style["xlabel"], fontsize=8)
+        ax_feat.tick_params(axis='y', labelsize=8)
+        plt.tight_layout()
+        feat_b64 = fig_to_base64(fig_feat)
+        
+        # Build Slide Template
+        accuracy_percent = report_data["accuracy"]
+        slides_html += f"""
+        <div class="slide">
+            <div class="title-container">
+                <h2>🤖 {model_name}</h2>
+                <h5>Testing Set Accuracy: <span>{accuracy_percent:.2%}</span></h5>
+            </div>
+            <div class="bento-grid">
+                <div class="bento-box">
+                    <h4>📄 Classification Report</h4>
+                    <div class="table-container">{table_html}</div>
+                </div>
+                <div class="bento-box">
+                    <h4>🎯 Confusion Matrix</h4>
+                    <img src="data:image/png;base64,{cm_b64}">
+                </div>
+                <div class="bento-box">
+                    <h4>📈 {style['title']}</h4>
+                    <img src="data:image/png;base64,{feat_b64}">
+                </div>
+                <div class="bento-box">
+                    <h4>📉 Multi-Class ROC Curve</h4>
+                    <img src="data:image/png;base64,{roc_b64}">
+                </div>
+            </div>
+        </div>
+        """
+
+    # Assemble Full Widget HTML
+    widget_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;800&display=swap');
+      body {{ margin: 0; padding: 0; font-family: 'Source Sans Pro', sans-serif; overflow: hidden; }}
+      
+      .slider-container {{ 
+          position: relative; width: 100%; height: 750px; 
+          display: flex; justify-content: center; align-items: center; 
+          perspective: 1200px; overflow: hidden;
+      }}
+      
+      .slide {{
+          position: absolute; width: 85%; max-width: 900px; height: 680px;
+          transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease;
+          border-radius: 20px; background: #ffffff;
+          padding: 20px 30px; box-sizing: border-box;
+      }}
+      
+      /* Active state is flat and centered */
+      .slide.active {{ 
+          transform: translateX(0) scale(1) translateZ(0); 
+          opacity: 1; z-index: 10; 
+          box-shadow: 0 15px 40px rgba(106, 13, 173, 0.15); 
+          border-top: 6px solid #6A0DAD; 
+      }}
+      
+      /* Adjacent models peek out with 3D rotation */
+      .slide.left-1 {{ transform: translateX(-105%) scale(0.85) translateZ(-150px) rotateY(15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
+      .slide.right-1 {{ transform: translateX(105%) scale(0.85) translateZ(-150px) rotateY(-15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
+      .slide.hidden {{ transform: translateX(0) scale(0.6) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
+      
+      .title-container {{ text-align: center; margin-bottom: 25px; }}
+      .title-container h2 {{ color: #6A0DAD; margin: 0; font-size: 34px; font-weight: 800; }}
+      .title-container h5 {{ color: #444; margin: 5px 0 0 0; font-size: 18px; }}
+      .title-container span {{ color: #e74c3c; font-weight: bold; }}
+      
+      .bento-grid {{ 
+          display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; 
+          gap: 20px; height: calc(100% - 90px);
+      }}
+      .bento-box {{ 
+          background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; 
+          padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+          transition: transform 0.3s; 
+          display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      }}
+      .bento-box:hover {{ transform: translateY(-5px); box-shadow: 0 10px 20px rgba(106, 13, 173, 0.1); }}
+      .bento-box h4 {{ margin: 0 0 15px 0; font-size: 16px; color: #333; width: 100%; text-align: left; }}
+      .bento-box img {{ width: 95%; max-height: 220px; object-fit: contain; }}
+      
+      .table-container {{ width: 100%; display: flex; justify-content: center; }}
+      table {{ width: 95%; border-collapse: collapse; font-size: 14px; text-align: center; }}
+      th, td {{ padding: 10px 5px; border-bottom: 1px solid #eee; }}
+      th {{ font-weight: 600; color: #555; background: #fafafa; }}
+      .highlight td {{ font-weight: bold; background: #fdfdfd; border-top: 2px solid #ddd; }}
+      
+      /* Navigation Arrows */
+      .nav-btn {{
+          position: absolute; top: 50%; transform: translateY(-50%);
+          width: 50px; height: 50px; border-radius: 25px;
+          background: white; border: 2px solid #6A0DAD; color: #6A0DAD;
+          font-size: 22px; cursor: pointer; z-index: 100;
+          box-shadow: 0 5px 15px rgba(106,13,173,0.2);
+          display: flex; justify-content: center; align-items: center;
+          transition: all 0.2s; outline: none;
+      }}
+      .nav-btn:hover {{ background: #6A0DAD; color: white; transform: translateY(-50%) scale(1.15); }}
+      .prev-btn {{ left: 2%; }}
+      .next-btn {{ right: 2%; }}
+    </style>
+    </head>
+    <body>
+      <div class="slider-container" id="slider">
+        <button class="nav-btn prev-btn" onclick="move(-1)">&#9664;</button>
+        <button class="nav-btn next-btn" onclick="move(1)">&#9654;</button>
+        
+        {slides_html}
+        
+      </div>
+      <script>
+        const slides = document.querySelectorAll('.slide');
+        let currentIndex = 3; // Starts at XGBoost
+        
+        function updateSlides() {{
+            slides.forEach((slide, index) => {{
+                slide.className = 'slide'; // clear previous classes
+                if (index === currentIndex) {{
+                    slide.classList.add('active');
+                }} else if (index === (currentIndex - 1 + slides.length) % slides.length) {{
+                    slide.classList.add('left-1');
+                }} else if (index === (currentIndex + 1) % slides.length) {{
+                    slide.classList.add('right-1');
+                }} else {{
+                    slide.classList.add('hidden');
+                }}
+            }});
+        }}
+        
+        function move(dir) {{
+            currentIndex = (currentIndex + dir + slides.length) % slides.length;
+            updateSlides();
+        }}
+        
+        // Setup initial display
+        updateSlides();
+      </script>
+    </body>
+    </html>
+    """
+    return widget_html
+
 
 # ==========================================
 # 5. Main Tabs Layout
@@ -337,204 +571,18 @@ with tab_eda:
 
 
 # ------------------------------------------
-# TAB 2: MODEL PERFORMANCE (3D CAROUSEL)
+# TAB 2: MODEL PERFORMANCE (3D HTML SLIDER)
 # ------------------------------------------
 with tab_perf:
+    # 1. Render the interactive 3D slider component
+    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to view performance metrics for different models.</p>", unsafe_allow_html=True)
     
-    # 1. State Tracking for Animation Direction
-    if 'perf_model_idx' not in st.session_state:
-        st.session_state.perf_model_idx = 3 # Default to XGBoost
-    if 'slide_dir' not in st.session_state:
-        st.session_state.slide_dir = 'right' # Default slide direction
-        
-    perf_models_list = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
-    current_idx = st.session_state.perf_model_idx
-    selected_perf_model = perf_models_list[current_idx]
+    # We embed the pure HTML/JS slider to get true fluid 60FPS animations 
+    # without triggering clunky Streamlit page reloads.
+    slider_html = generate_3d_slider_html()
+    components.html(slider_html, height=780, scrolling=False)
 
-    # Notebook Data Dictionaries
-    classification_reports = {
-        "Logistic Regression": {"Low": {"precision": 0.89, "recall": 0.90, "f1-score": 0.90, "support": 2065}, "Medium": {"precision": 0.89, "recall": 0.92, "f1-score": 0.90, "support": 3875}, "High": {"precision": 0.95, "recall": 0.88, "f1-score": 0.91, "support": 2067}, "macro avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "weighted avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "accuracy": 0.9040},
-        "Random Forest": {"Low": {"precision": 0.95, "recall": 0.96, "f1-score": 0.96, "support": 2065}, "Medium": {"precision": 0.94, "recall": 0.96, "f1-score": 0.95, "support": 3875}, "High": {"precision": 0.97, "recall": 0.92, "f1-score": 0.94, "support": 2067}, "macro avg": {"precision": 0.96, "recall": 0.95, "f1-score": 0.95, "support": 8007}, "weighted avg": {"precision": 0.95, "recall": 0.95, "f1-score": 0.95, "support": 8007}, "accuracy": 0.9510},
-        "KNN": {"Low": {"precision": 0.93, "recall": 0.71, "f1-score": 0.80, "support": 2065}, "Medium": {"precision": 0.78, "recall": 0.96, "f1-score": 0.86, "support": 3875}, "High": {"precision": 0.96, "recall": 0.78, "f1-score": 0.86, "support": 2067}, "macro avg": {"precision": 0.89, "recall": 0.81, "f1-score": 0.84, "support": 8007}, "weighted avg": {"precision": 0.86, "recall": 0.85, "f1-score": 0.84, "support": 8007}, "accuracy": 0.8461},
-        "XGBoost": {"Low": {"precision": 0.97, "recall": 0.98, "f1-score": 0.97, "support": 2065}, "Medium": {"precision": 0.96, "recall": 0.97, "f1-score": 0.97, "support": 3875}, "High": {"precision": 0.98, "recall": 0.95, "f1-score": 0.97, "support": 2067}, "macro avg": {"precision": 0.97, "recall": 0.97, "f1-score": 0.97, "support": 8007}, "weighted avg": {"precision": 0.97, "recall": 0.97, "f1-score": 0.97, "support": 8007}, "accuracy": 0.9694}
-    }
-    
-    confusion_matrices = {
-        "Logistic Regression": np.array([[1867, 198, 0], [220, 3555, 100], [6, 245, 1816]]),
-        "Random Forest": np.array([[1990, 75, 0], [94, 3731, 50], [0, 173, 1894]]),
-        "KNN": np.array([[1461, 603, 1], [102, 3708, 65], [13, 448, 1606]]),
-        "XGBoost": np.array([[2020, 45, 0], [70, 3773, 32], [0, 98, 1969]])
-    }
-    confusion_colors = {"Logistic Regression": "Blues", "Random Forest": "Greens", "KNN": "Purples", "XGBoost": "OrRd"}
-    
-    roc_auc_scores = {
-        "Logistic Regression": {"Low": 0.98, "Medium": 0.94, "High": 0.96},
-        "Random Forest":       {"Low": 0.99, "Medium": 0.98, "High": 0.99},
-        "KNN":                 {"Low": 0.96, "Medium": 0.93, "High": 0.95},
-        "XGBoost":             {"Low": 1.00, "Medium": 0.98, "High": 0.99},
-    }
-    
-    feature_importance_data = {
-        "Logistic Regression": {"TotalWeeklyMinutes": 6.00, "SessionsPerWeek": 0.90, "AvgSessionDurationMinutes": 0.80, "AchievementsUnlocked": 0.35, "AchievementRate": 0.25, "PlayerLevel": 0.10, "AgeGroup_Adult": 0.05, "Age": 0.03, "AgeGroup_YoungAdult": 0.02, "Location_USA": 0.01},
-        "Random Forest": {"TotalWeeklyMinutes": 0.510, "SessionsPerWeek": 0.210, "AvgSessionDurationMinutes": 0.120, "AchievementRate": 0.055, "PlayerLevel": 0.025, "AchievementsUnlocked": 0.022, "PlayTimeHours": 0.015, "Age": 0.008, "GameDifficulty": 0.004, "Gender_Male": 0.003},
-        "KNN": {"TotalWeeklyMinutes": 0.260, "SessionsPerWeek": 0.170, "AvgSessionDurationMinutes": 0.105, "AchievementsUnlocked": 0.013, "AchievementRate": 0.006, "PlayerLevel": 0.004, "Gender_Male": 0.003, "PlayTimeHours": 0.002, "InGamePurchases": 0.001, "Location_USA": 0.001},
-        "XGBoost": {"TotalWeeklyMinutes": 0.685, "AchievementsUnlocked": 0.065, "PlayerLevel": 0.050, "AchievementRate": 0.035, "SessionsPerWeek": 0.028, "AvgSessionDurationMinutes": 0.012, "Location_Europe": 0.007, "GameGenre_Strategy": 0.006, "Age": 0.005, "GameDifficulty": 0.005}
-    }
-    feature_importance_style = {
-        "Logistic Regression": {"color": "teal", "xlabel": "Mean Absolute Coefficient (Impact)", "title": "Top 10 Feature Importance"},
-        "Random Forest": {"color": "forestgreen", "xlabel": "Feature Importance Score", "title": "Top 10 Feature Importance"},
-        "KNN": {"color": "rebeccapurple", "xlabel": "Mean Accuracy Drop Upon Permutation", "title": "Top 10 Permutation Feature Importance"},
-        "XGBoost": {"color": "orangered", "xlabel": "Feature Importance Score", "title": "Top 10 Feature Importance"}
-    }
-
-    def generate_roc_curve(target_auc, n_points=300):
-        target_auc = min(max(target_auc, 0.5001), 0.9999)
-        a = np.sqrt(2) * norm.ppf(target_auc)
-        fpr = np.linspace(0.0001, 0.9999, n_points)
-        tpr = norm.cdf(a + norm.ppf(fpr))
-        tpr = np.clip(tpr, 0, 1)
-        fpr = np.concatenate([[0.0], fpr, [1.0]])
-        tpr = np.concatenate([[0.0], tpr, [1.0]])
-        return fpr, tpr
-
-    # 2. Dynamic 3D Slide Animation Logic
-    # Apply animation ONLY to the center column that wraps the Title and 4 boxes
-    anim_rule = "slideInRight 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards" if st.session_state.slide_dir == 'right' else "slideInLeft 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards"
-    
-    st.markdown(f"""
-    <style>
-    @keyframes slideInRight {{
-        0% {{ opacity: 0; transform: translateX(80px) rotateY(-8deg) scale(0.97); }}
-        100% {{ opacity: 1; transform: translateX(0) rotateY(0deg) scale(1); }}
-    }}
-    @keyframes slideInLeft {{
-        0% {{ opacity: 0; transform: translateX(-80px) rotateY(8deg) scale(0.97); }}
-        100% {{ opacity: 1; transform: translateX(0) rotateY(0deg) scale(1); }}
-    }}
-    
-    /* Using CSS :has() selector to target the exact center column that holds the models */
-    [data-testid="column"]:has(#slider-anim-target) {{
-        animation: {anim_rule} !important;
-        transform-style: preserve-3d;
-        perspective: 1200px;
-    }}
-
-    /* Position the Left and Right arrows */
-    .perf-arrow-btn button {{
-        height: 60px !important;
-        font-size: 24px !important;
-        margin-top: 350px !important; /* Centers arrows alongside the 2x2 grid */
-        border-radius: 30px !important;
-        box-shadow: 0px 6px 15px rgba(106, 13, 173, 0.3) !important;
-        transition: all 0.3s ease !important;
-    }}
-    .perf-arrow-btn button:hover {{
-        transform: scale(1.1);
-        box-shadow: 0px 8px 20px rgba(106, 13, 173, 0.5) !important;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
-    # 3. Layout: [ ◀ ] [ Center: Title + 2x2 Grid ] [ ▶ ]
-    col_arrow_L, col_center, col_arrow_R = st.columns([0.6, 10, 0.6], gap="small")
-    
-    with col_arrow_L:
-        st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
-        if st.button("◀", key="prev_model_btn", use_container_width=True):
-            st.session_state.perf_model_idx = (current_idx - 1) % 4
-            st.session_state.slide_dir = 'left' 
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-            
-    with col_center:
-        # Invisible marker to uniquely identify this column in CSS
-        st.markdown("<div id='slider-anim-target'></div>", unsafe_allow_html=True)
-        
-        # 3.1 Animated Header (Title & Accuracy slide together with the grid)
-        model_accuracy = classification_reports[selected_perf_model]["accuracy"]
-        st.markdown(f"""
-        <div style='text-align: center; margin-bottom: 20px;'>
-            <h2 style='color: #6A0DAD; font-weight: 800; margin: 0; font-size: 34px;'>🤖 {selected_perf_model}</h2>
-            <h5 style='color: #444; margin-top: 5px;'>Testing Set Accuracy: <span style='color: #e74c3c; font-weight: bold;'>{model_accuracy:.2%}</span></h5>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 3.2 The 2x2 Bento Box Grid Layout
-        row1_col1, row1_col2 = st.columns(2)
-        
-        # BOX 1: Classification Report
-        with row1_col1:
-            with st.container(border=True):
-                st.markdown("#### 📄 Classification Report")
-                selected_report = classification_reports[selected_perf_model]
-                report_rows = []
-                for class_name in ["Low", "Medium", "High"]:
-                    row = selected_report[class_name]
-                    report_rows.append({"Class": class_name, "Precision": row["precision"], "Recall": row["recall"], "F1-Score": row["f1-score"], "Support": row["support"]})
-                report_rows.append({"Class": "Accuracy", "Precision": np.nan, "Recall": np.nan, "F1-Score": selected_report["accuracy"], "Support": 8007})
-                macro = selected_report["macro avg"]
-                report_rows.append({"Class": "Macro Avg", "Precision": macro["precision"], "Recall": macro["recall"], "F1-Score": macro["f1-score"], "Support": macro["support"]})
-                weighted = selected_report["weighted avg"]
-                report_rows.append({"Class": "Weighted Avg", "Precision": weighted["precision"], "Recall": weighted["recall"], "F1-Score": weighted["f1-score"], "Support": weighted["support"]})
-                
-                report_df_display = pd.DataFrame(report_rows)
-                st.dataframe(
-                    report_df_display.style.format({"Precision": "{:.2f}", "Recall": "{:.2f}", "F1-Score": "{:.2f}", "Support": "{:.0f}"}),
-                    use_container_width=True, hide_index=True
-                )
-
-        # BOX 2: Confusion Matrix
-        with row1_col2:
-            with st.container(border=True):
-                st.markdown("#### 🎯 Confusion Matrix")
-                cm = confusion_matrices[selected_perf_model]
-                fig_cm, ax_cm = plt.subplots(figsize=(6, 4))
-                sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[selected_perf_model], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=False)
-                ax_cm.set_xlabel("Predicted Engagement", fontsize=10)
-                ax_cm.set_ylabel("Actual Engagement", fontsize=10)
-                plt.tight_layout()
-                st.pyplot(fig_cm, use_container_width=True)
-
-        row2_col1, row2_col2 = st.columns(2)
-        
-        # BOX 3: ROC Curve
-        with row2_col1:
-            with st.container(border=True):
-                st.markdown("#### 📈 Multi-Class ROC Curve")
-                fig_roc, ax_roc = plt.subplots(figsize=(6, 4.5))
-                roc_class_colors = {"Low": "red", "Medium": "orange", "High": "green"}
-                for class_name, color in roc_class_colors.items():
-                    target_auc = roc_auc_scores[selected_perf_model][class_name]
-                    fpr, tpr = generate_roc_curve(target_auc)
-                    ax_roc.plot(fpr, tpr, color=color, lw=2, label=f"{class_name} (AUC = {target_auc:.2f})")
-                ax_roc.plot([0, 1], [0, 1], "k--", lw=2)
-                ax_roc.set_xlabel("False Positive Rate", fontsize=10)
-                ax_roc.set_ylabel("True Positive Rate", fontsize=10)
-                ax_roc.legend(loc="lower right")
-                plt.tight_layout()
-                st.pyplot(fig_roc, use_container_width=True)
-
-        # BOX 4: Feature Importance
-        with row2_col2:
-            with st.container(border=True):
-                style = feature_importance_style[selected_perf_model]
-                st.markdown(f"#### 🌟 {style['title']}")
-                feat_imp = pd.Series(feature_importance_data[selected_perf_model]).sort_values(ascending=True)
-                fig_feat, ax_feat = plt.subplots(figsize=(6, 4.5))
-                feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
-                ax_feat.set_xlabel(style["xlabel"], fontsize=10)
-                plt.tight_layout()
-                st.pyplot(fig_feat, use_container_width=True)
-
-    with col_arrow_R:
-        st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
-        if st.button("▶", key="next_model_btn", use_container_width=True):
-            st.session_state.perf_model_idx = (current_idx + 1) % 4
-            st.session_state.slide_dir = 'right' 
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # 4. Overall Model Comparison
+    # 2. Overall Model Comparison DataFrame at the bottom
     st.markdown("---")
     st.markdown("### 🏆 Overall Model Comparison")
     
@@ -551,6 +599,7 @@ with tab_perf:
     for col in ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]:
         summary_display[col] = summary_display[col].map(lambda x: f"{x:.2%}")
     st.dataframe(summary_display, use_container_width=True, hide_index=True)
+
 
 # ------------------------------------------
 # TAB 3: Prediction Result
