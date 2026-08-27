@@ -298,6 +298,11 @@ st.markdown("""
 st.markdown("""
 <div class="gaming-header">
 <div class="header-content">
+<div class="logo-area">
+<div class="logo-icon">
+🎮
+</div>
+<div>
 <div class="header-title">
 Online Gaming Analytics
 </div>
