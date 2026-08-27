@@ -27,13 +27,13 @@ plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
-# 2. Advanced CSS 
+# 2. Advanced CSS (Animations, 3D Shadows, Side Arrows)
 # ==========================================
 st.markdown("""
 <style>
 .block-container { padding-top: 1.5rem !important; }
 
-/* 3D Metric Cards styling with hover effect - RESTORED */
+/* 3D Metric Cards styling with hover effect */
 [data-testid="stMetric"] {
     background-color: #ffffff !important;
     border-radius: 12px !important;
@@ -47,7 +47,7 @@ st.markdown("""
     box-shadow: 0px 10px 20px rgba(106, 13, 173, 0.2) !important; 
 }
 
-/* 3D Coverflow Slider Styling - TRANSPARENT BACKGROUND */
+/* 3D Coverflow Slider Styling (Tab 1) */
 .slider-container {
     position: relative;
     width: 100%;
@@ -57,8 +57,8 @@ st.markdown("""
     align-items: center;
     perspective: 1200px;
     overflow: hidden;
-    background: transparent !important; /* Removed gray box */
-    box-shadow: none !important; /* Removed shadow */
+    background: transparent !important;
+    box-shadow: none !important;
     border: none !important;
     margin-bottom: 20px;
 }
@@ -75,13 +75,8 @@ st.markdown("""
     align-items: center;
     padding: 10px;
 }
-.slider-card img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
+.slider-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-/* 3D Position Classes */
 .card-center { transform: translateX(0) translateZ(0) scale(1); z-index: 10; opacity: 1; }
 .card-left-1 { transform: translateX(-45%) translateZ(-150px) rotateY(15deg) scale(0.85); z-index: 5; opacity: 0.7; }
 .card-right-1 { transform: translateX(45%) translateZ(-150px) rotateY(-15deg) scale(0.85); z-index: 5; opacity: 0.7; }
@@ -107,6 +102,54 @@ div.stButton > button {
     width: 100%;
 }
 div.stButton > button:hover { background-color: #5b0b9c !important; }
+
+/* ==========================================
+   TAB 2 SPECIFIC CSS (3D Cards & Animations)
+   ========================================== */
+   
+/* Pop-in Animation for Model Switch */
+@keyframes popIn {
+    0% { opacity: 0; transform: scale(0.95) translateY(15px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Apply animation and 3D shadows to the 4 Bento Boxes */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    border-radius: 15px !important;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid #f0f0f0 !important;
+    background-color: #ffffff !important;
+    animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0px 12px 25px rgba(106, 13, 173, 0.15) !important;
+}
+
+/* 3D Header Card for Model Title */
+.model-header-3d {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f0fa 100%);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0px 8px 20px rgba(106, 13, 173, 0.15);
+    border-top: 5px solid #6A0DAD;
+    margin-bottom: 25px;
+    animation: popIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.model-header-3d h2 { color: #6A0DAD; margin: 0; font-size: 32px; font-weight: 800; }
+.model-header-3d p { font-size: 18px; margin-top: 10px; color: #333; font-weight: 600; margin-bottom: 0; }
+.model-header-3d span { color: #e74c3c; font-size: 24px; font-weight: 800; }
+
+/* Side Navigation Arrows Formatting */
+.perf-arrow-btn button {
+    height: 80px !important;
+    font-size: 24px !important;
+    margin-top: 380px !important; /* Pushes the button to center of the screen */
+    border-radius: 12px !important;
+    box-shadow: 0px 6px 15px rgba(106, 13, 173, 0.3) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -196,7 +239,7 @@ def generate_gallery_assets(df):
 images_b64, graph_titles, graph_details = generate_gallery_assets(df)
 
 # ==========================================
-# 4. Models Setup (FIXED: Added all 4 models)
+# 4. Models Setup
 # ==========================================
 @st.cache_resource
 def train_models(df):
@@ -216,7 +259,6 @@ def train_models(df):
     X_train = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
-    # Restored all 4 models so Tab 3 dropdown works correctly!
     models = {
         "Logistic Regression": LogisticRegression(max_iter=1000),
         "Random Forest": RandomForestClassifier(n_estimators=50, random_state=42),
@@ -242,7 +284,6 @@ tab_eda, tab_perf, tab_pred = st.tabs(["🖼️ Data Analysis", "📊 Model Perf
 # ------------------------------------------
 with tab_eda:
     
-    # Dataset Overview Cards (Purple 3D Hover Restored)
     st.markdown("##### Dataset Overview")
     m1, m2, m3, m4, m5 = st.columns(5)
     with m1: st.metric("Total Players", f"{df.shape[0]:,}")
@@ -255,13 +296,11 @@ with tab_eda:
     
     st.markdown("---")
     
-    # Initialize State
     if 'gallery_idx' not in st.session_state:
         st.session_state.gallery_idx = 0
     total_cards = 8
     idx = st.session_state.gallery_idx
 
-    # Calculate CSS classes for 3D positioning
     classes = ['card-hidden'] * total_cards
     classes[idx] = 'card-center'
     classes[(idx - 1) % total_cards] = 'card-left-1'
@@ -269,7 +308,6 @@ with tab_eda:
     classes[(idx + 1) % total_cards] = 'card-right-1'
     classes[(idx + 2) % total_cards] = 'card-right-2'
 
-    # Inject HTML for 3D Carousel (Transparent Box)
     html_carousel = f"""
     <div class="slider-container">
         <div class="slider-card {classes[0]}"><img src="data:image/png;base64,{images_b64[0]}"></div>
@@ -284,11 +322,10 @@ with tab_eda:
     """
     st.markdown(html_carousel, unsafe_allow_html=True)
 
-    # Navigation & Details Logic (Buttons moved extremely close to expander)
-    col_space_left, col_prev, col_details, col_next, col_space_right = st.columns([1.5, 0.8, 4, 0.8, 1.5])
+    col_space_left, col_prev, col_details, col_next, col_space_right = st.columns([1.5, 1, 4, 1, 1.5])
     
     with col_prev:
-        st.write("") # Tiny spacer 
+        st.write("") 
         if st.button("◀ PREV", use_container_width=True):
             st.session_state.gallery_idx = (st.session_state.gallery_idx - 1) % total_cards
             st.rerun()
@@ -298,7 +335,7 @@ with tab_eda:
             st.markdown(f"**Description:**<br>{graph_details[idx]}", unsafe_allow_html=True)
             
     with col_next:
-        st.write("") # Tiny spacer
+        st.write("") 
         if st.button("NEXT ▶", use_container_width=True):
             st.session_state.gallery_idx = (st.session_state.gallery_idx + 1) % total_cards
             st.rerun()
@@ -334,7 +371,7 @@ with tab_eda:
                 st.dataframe(vc, hide_index=True, use_container_width=True)
 
 # ------------------------------------------
-# TAB 2: MODEL PERFORMANCE (NEW BENTO BOX SLIDER)
+# TAB 2: MODEL PERFORMANCE (Animated Slider)
 # ------------------------------------------
 with tab_perf:
     
@@ -382,7 +419,6 @@ with tab_perf:
         "XGBoost": {"color": "orangered", "xlabel": "Feature Importance Score", "title": "Top 10 Feature Importance"}
     }
 
-    # Helper for ROC
     def generate_roc_curve(target_auc, n_points=300):
         target_auc = min(max(target_auc, 0.5001), 0.9999)
         a = np.sqrt(2) * norm.ppf(target_auc)
@@ -393,95 +429,102 @@ with tab_perf:
         tpr = np.concatenate([[0.0], tpr, [1.0]])
         return fpr, tpr
 
-    # 2. Dynamic Model Header Slider
-    col_nav_L, col_info, col_nav_R = st.columns([1, 4, 1])
-    with col_nav_L:
-        st.write("") # Spacer to align button
-        if st.button("◀ PREV MODEL", use_container_width=True):
+    # 2. Side Arrow Layout for Model Selection
+    col_arrow_L, col_main_bento, col_arrow_R = st.columns([1, 10, 1])
+    
+    with col_arrow_L:
+        st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
+        if st.button("◀", key="prev_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx - 1) % 4
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
             
-    with col_info:
-        model_accuracy = classification_reports[selected_perf_model]["accuracy"]
-        st.markdown(f"<h2 style='text-align: center; color: #6A0DAD; margin-bottom: 0;'>🤖 {selected_perf_model}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h5 style='text-align: center;'>Testing Set Accuracy: <span style='color: #e74c3c;'>{model_accuracy:.2%}</span></h5>", unsafe_allow_html=True)
+    with col_main_bento:
         
-    with col_nav_R:
-        st.write("")
-        if st.button("NEXT MODEL ▶", use_container_width=True):
+        # 3D Animated Model Header
+        model_accuracy = classification_reports[selected_perf_model]["accuracy"]
+        st.markdown(f"""
+        <div class='model-header-3d'>
+            <h2>🤖 {selected_perf_model}</h2>
+            <p>Testing Set Accuracy: <span>{model_accuracy:.2%}</span></p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 2x2 Bento Box Grid Layout
+        row1_col1, row1_col2 = st.columns(2)
+        
+        # BOX 1: Classification Report
+        with row1_col1:
+            with st.container(border=True):
+                st.markdown("#### 📄 Classification Report")
+                selected_report = classification_reports[selected_perf_model]
+                report_rows = []
+                for class_name in ["Low", "Medium", "High"]:
+                    row = selected_report[class_name]
+                    report_rows.append({"Class": class_name, "Precision": row["precision"], "Recall": row["recall"], "F1-Score": row["f1-score"], "Support": row["support"]})
+                report_rows.append({"Class": "Accuracy", "Precision": np.nan, "Recall": np.nan, "F1-Score": selected_report["accuracy"], "Support": 8007})
+                macro = selected_report["macro avg"]
+                report_rows.append({"Class": "Macro Avg", "Precision": macro["precision"], "Recall": macro["recall"], "F1-Score": macro["f1-score"], "Support": macro["support"]})
+                weighted = selected_report["weighted avg"]
+                report_rows.append({"Class": "Weighted Avg", "Precision": weighted["precision"], "Recall": weighted["recall"], "F1-Score": weighted["f1-score"], "Support": weighted["support"]})
+                
+                report_df_display = pd.DataFrame(report_rows)
+                st.dataframe(
+                    report_df_display.style.format({"Precision": "{:.2f}", "Recall": "{:.2f}", "F1-Score": "{:.2f}", "Support": "{:.0f}"}),
+                    use_container_width=True, hide_index=True
+                )
+
+        # BOX 2: Confusion Matrix
+        with row1_col2:
+            with st.container(border=True):
+                st.markdown("#### 🎯 Confusion Matrix")
+                cm = confusion_matrices[selected_perf_model]
+                fig_cm, ax_cm = plt.subplots(figsize=(6, 4))
+                sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[selected_perf_model], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=False)
+                ax_cm.set_xlabel("Predicted Engagement", fontsize=10)
+                ax_cm.set_ylabel("Actual Engagement", fontsize=10)
+                plt.tight_layout()
+                st.pyplot(fig_cm, use_container_width=True)
+
+        row2_col1, row2_col2 = st.columns(2)
+        
+        # BOX 3: ROC Curve
+        with row2_col1:
+            with st.container(border=True):
+                st.markdown("#### 📈 Multi-Class ROC Curve")
+                fig_roc, ax_roc = plt.subplots(figsize=(6, 4.5))
+                roc_class_colors = {"Low": "red", "Medium": "orange", "High": "green"}
+                for class_name, color in roc_class_colors.items():
+                    target_auc = roc_auc_scores[selected_perf_model][class_name]
+                    fpr, tpr = generate_roc_curve(target_auc)
+                    ax_roc.plot(fpr, tpr, color=color, lw=2, label=f"{class_name} (AUC = {target_auc:.2f})")
+                ax_roc.plot([0, 1], [0, 1], "k--", lw=2)
+                ax_roc.set_xlabel("False Positive Rate", fontsize=10)
+                ax_roc.set_ylabel("True Positive Rate", fontsize=10)
+                ax_roc.legend(loc="lower right")
+                plt.tight_layout()
+                st.pyplot(fig_roc, use_container_width=True)
+
+        # BOX 4: Feature Importance
+        with row2_col2:
+            with st.container(border=True):
+                style = feature_importance_style[selected_perf_model]
+                st.markdown(f"#### 🌟 {style['title']}")
+                feat_imp = pd.Series(feature_importance_data[selected_perf_model]).sort_values(ascending=True)
+                fig_feat, ax_feat = plt.subplots(figsize=(6, 4.5))
+                feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
+                ax_feat.set_xlabel(style["xlabel"], fontsize=10)
+                plt.tight_layout()
+                st.pyplot(fig_feat, use_container_width=True)
+
+    with col_arrow_R:
+        st.markdown("<div class='perf-arrow-btn'>", unsafe_allow_html=True)
+        if st.button("▶", key="next_model_btn", use_container_width=True):
             st.session_state.perf_model_idx = (current_idx + 1) % 4
             st.rerun()
-            
-    st.markdown("---")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    # 3. 2x2 Bento Box Grid Layout for the 4 Parts
-    row1_col1, row1_col2 = st.columns(2)
-    
-    # BOX 1: Classification Report
-    with row1_col1:
-        with st.container(border=True):
-            st.markdown("#### 📄 Classification Report")
-            selected_report = classification_reports[selected_perf_model]
-            report_rows = []
-            for class_name in ["Low", "Medium", "High"]:
-                row = selected_report[class_name]
-                report_rows.append({"Class": class_name, "Precision": row["precision"], "Recall": row["recall"], "F1-Score": row["f1-score"], "Support": row["support"]})
-            report_rows.append({"Class": "Accuracy", "Precision": np.nan, "Recall": np.nan, "F1-Score": selected_report["accuracy"], "Support": 8007})
-            macro = selected_report["macro avg"]
-            report_rows.append({"Class": "Macro Avg", "Precision": macro["precision"], "Recall": macro["recall"], "F1-Score": macro["f1-score"], "Support": macro["support"]})
-            weighted = selected_report["weighted avg"]
-            report_rows.append({"Class": "Weighted Avg", "Precision": weighted["precision"], "Recall": weighted["recall"], "F1-Score": weighted["f1-score"], "Support": weighted["support"]})
-            
-            report_df_display = pd.DataFrame(report_rows)
-            st.dataframe(
-                report_df_display.style.format({"Precision": "{:.2f}", "Recall": "{:.2f}", "F1-Score": "{:.2f}", "Support": "{:.0f}"}),
-                use_container_width=True, hide_index=True
-            )
-
-    # BOX 2: Confusion Matrix
-    with row1_col2:
-        with st.container(border=True):
-            st.markdown("#### 🎯 Confusion Matrix")
-            cm = confusion_matrices[selected_perf_model]
-            fig_cm, ax_cm = plt.subplots(figsize=(6, 4))
-            sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[selected_perf_model], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=False)
-            ax_cm.set_xlabel("Predicted Engagement", fontsize=10)
-            ax_cm.set_ylabel("Actual Engagement", fontsize=10)
-            plt.tight_layout()
-            st.pyplot(fig_cm, use_container_width=True)
-
-    row2_col1, row2_col2 = st.columns(2)
-    
-    # BOX 3: ROC Curve
-    with row2_col1:
-        with st.container(border=True):
-            st.markdown("#### 📈 Multi-Class ROC Curve")
-            fig_roc, ax_roc = plt.subplots(figsize=(6, 4.5))
-            roc_class_colors = {"Low": "red", "Medium": "orange", "High": "green"}
-            for class_name, color in roc_class_colors.items():
-                target_auc = roc_auc_scores[selected_perf_model][class_name]
-                fpr, tpr = generate_roc_curve(target_auc)
-                ax_roc.plot(fpr, tpr, color=color, lw=2, label=f"{class_name} (AUC = {target_auc:.2f})")
-            ax_roc.plot([0, 1], [0, 1], "k--", lw=2)
-            ax_roc.set_xlabel("False Positive Rate", fontsize=10)
-            ax_roc.set_ylabel("True Positive Rate", fontsize=10)
-            ax_roc.legend(loc="lower right")
-            plt.tight_layout()
-            st.pyplot(fig_roc, use_container_width=True)
-
-    # BOX 4: Feature Importance
-    with row2_col2:
-        with st.container(border=True):
-            style = feature_importance_style[selected_perf_model]
-            st.markdown(f"#### 🌟 {style['title']}")
-            feat_imp = pd.Series(feature_importance_data[selected_perf_model]).sort_values(ascending=True)
-            fig_feat, ax_feat = plt.subplots(figsize=(6, 4.5))
-            feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
-            ax_feat.set_xlabel(style["xlabel"], fontsize=10)
-            plt.tight_layout()
-            st.pyplot(fig_feat, use_container_width=True)
-
-    # 4. Overall Model Comparison (Remains at the bottom)
+    # 4. Overall Model Comparison
     st.markdown("---")
     st.markdown("### 🏆 Overall Model Comparison")
     
@@ -511,7 +554,6 @@ with tab_pred:
     with input_col:
         st.markdown("#### 1. Input Player Features")
         with st.container(border=True):
-            # Safe Default to Index 0
             selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=0)
             
             c_in1, c_in2 = st.columns(2)
