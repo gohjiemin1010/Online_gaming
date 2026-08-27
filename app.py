@@ -78,18 +78,16 @@ st.markdown("""
 /* ---------- MAIN HEADER ---------- */
 
 .gaming-header {
-    position: sticky;      /* 开启吸顶功能 */
-    top: 2.8rem;           /* 避开 Streamlit 默认右上角的菜单栏 */
-    z-index: 9999;         /* 确保层级最高，不被下方图表遮挡 */
+    position: sticky;      
+    top: 2.8rem;           
+    z-index: 9999;         
     
     width: 100%;
-    /* 修改前: padding: 28px 35px 25px 35px; */
-    padding: 45px 35px 40px 35px;  /* 上下数值调大，把框框稍微拉长 */
+    padding: 45px 35px 40px 35px;  
     margin-bottom: 25px;
     border-radius: 22px;
     overflow: hidden;
 
-    /* 下方的 background, box-shadow 保持你原本的代码不变 */
     background: radial-gradient(circle at 90% 20%, rgba(155, 89, 182, 0.25), transparent 35%),
                 radial-gradient(circle at 10% 80%, rgba(106, 13, 173, 0.18), transparent 35%),
                 linear-gradient(135deg, #16002b 0%, #26004a 45%, #12001f 100%);
@@ -190,20 +188,15 @@ st.markdown("""
 
 .header-title {
     margin: 0;
-
     color: white;
-
     font-size: 32px;
     font-weight: 800;
-
     letter-spacing: -0.5px;
 }
 
 .header-subtitle {
     margin-top: 5px;
-
     color: rgba(255,255,255,0.68);
-
     font-size: 14px;
     letter-spacing: 0.5px;
 }
@@ -218,38 +211,24 @@ st.markdown("""
 
 .status-badge {
     padding: 8px 15px;
-
     border-radius: 20px;
-
     color: #e8caff;
-
     font-size: 12px;
     font-weight: 700;
-
     letter-spacing: 1px;
-
     background: rgba(255,255,255,0.08);
-
     border: 1px solid rgba(255,255,255,0.15);
-
     backdrop-filter: blur(10px);
 }
 
 .status-dot {
     display: inline-block;
-
     width: 8px;
     height: 8px;
-
     margin-right: 6px;
-
     border-radius: 50%;
-
     background: #8cffc1;
-
-    box-shadow:
-        0 0 8px #8cffc1;
-
+    box-shadow: 0 0 8px #8cffc1;
     animation: pulse 2s infinite;
 }
 
@@ -258,12 +237,10 @@ st.markdown("""
         opacity: 1;
         transform: scale(1);
     }
-
     50% {
         opacity: 0.5;
         transform: scale(0.8);
     }
-
     100% {
         opacity: 1;
         transform: scale(1);
@@ -274,15 +251,10 @@ st.markdown("""
 
 .dataset-badge {
     padding: 8px 14px;
-
     border-radius: 20px;
-
     color: rgba(255,255,255,0.75);
-
     font-size: 12px;
-
     background: rgba(255,255,255,0.06);
-
     border: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -862,6 +834,16 @@ def generate_3d_slider_html():
 
 st.markdown("""
 <style>
+
+div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
+    position: sticky;
+    top: 165px; 
+    z-index: 9998;
+    background-color: white;
+    padding-top: 15px; 
+    padding-bottom: 15px;
+    margin-top: -15px;
+}
 
 /* Tab container */
 
