@@ -550,75 +550,78 @@ def generate_eda_slider_html(images_b64, titles):
 # PREMIUM NAVIGATION TABS (MOVED INTO HEADER)
 # ==========================================
 
-# ==========================================
-# PREMIUM NAVIGATION TABS (MOVED INTO HEADER)
-# ==========================================
-
 st.markdown("""
 <style>
 
-/* Tab container - 完美吸附并嵌入 Header 右侧 */
+/* Tab container - 使用负边距将其悬浮进 Header 的右侧 */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    transform: translateY(-118px) !important; /* 整体往上提，直接嵌入紫色背景 */
-    margin-bottom: -105px !important;          /* 消除下方多余的空白留白 */
-    padding-right: 35px !important;           /* 与紫色 Header 的右边距对齐 */
-    justify-content: flex-end !important;     /* 让选项卡靠右对齐 */
-    background-color: transparent !important;
+    position: sticky !important;
+    top: 4rem !important; 
+    margin-top: -105px !important; /* 向上拉，嵌进 Header */
+    margin-bottom: 20px !important; 
+    margin-right: 35px !important; /* 跟 Header 右侧对齐 */
+    justify-content: flex-end !important; /* 靠右对齐 */
+    z-index: 100000 !important;
+    background-color: transparent !important; /* 透明背景 */
     border-bottom: none !important;
-    z-index: 99999 !important;
-    position: relative !important;
     gap: 12px !important;
+    transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-/* 补偿下方内容区的位置，防止和内容重叠 */
+/* 补偿下方内容区的位置，以免重叠 */
 .stTabs [data-baseweb="tab-panel"] {
-    padding-top: 25px !important;
+    padding-top: 85px !important;
 }
 
-/* Individual tabs - 半透明的高级质感胶囊状 */
+/* Individual tabs - 变成半透明的高级质感胶囊状 */
 .stTabs [data-baseweb="tab"] {
-    height: 42px !important;
-    padding: 0 20px !important;
-    border-radius: 21px !important;
-    background: rgba(255, 255, 255, 0.12) !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    height: 48px !important;
+    padding: 0 24px !important;
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     backdrop-filter: blur(10px) !important;
     transition: all 0.3s ease !important;
 }
 
-/* 鼠标悬停效果 */
+/* Hover */
 .stTabs [data-baseweb="tab"]:hover {
-    background: rgba(255, 255, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
     transform: translateY(-2px) !important;
 }
 
-/* 选中状态的 Tab 变成纯白背景，深紫文字 */
+/* Active tab */
 .stTabs [data-baseweb="tab"][aria-selected="true"] {
     background: #ffffff !important;
     border-color: #ffffff !important;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.25) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
     transform: translateY(-2px) !important;
 }
 
-/* 移除默认的底边线 */
+/* Remove default underline */
 .stTabs [data-baseweb="tab-highlight"] {
     display: none !important;
 }
 
-/* 未选中时的文字颜色 */
+/* Tab text 颜色调整为适应暗色底色 */
 .stTabs [data-baseweb="tab"] p {
     color: #ebd9ff !important;
-    font-size: 14px !important;
 }
 
-/* 选中时的文字颜色 */
+/* Active text */
 .stTabs [data-baseweb="tab"][aria-selected="true"] p {
     color: #3a0a63 !important;
-    font-weight: 800 !important;
+}
+
+/* 移除底部指示线 */
+.stTabs [data-baseweb="tab"][aria-selected="true"]::after {
+    display: none !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
+
 
 # ==========================================
 # MODEL LAB — BENTO CARD SYSTEM
@@ -1359,14 +1362,22 @@ with tab_pred:
     # ==========================================
     st.markdown("""
     <style>
-    /* 用户输入档案的网格设计 */
+    /* 用户输入档案的网格设计 - 强制改为 6 列，让11个元素变成 6 + 5 的对称排版 */
     .profile-snapshot-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(6, 1fr);
         gap: 12px;
         margin-top: 15px;
         margin-bottom: 25px;
     }
+    
+    /* 适配稍小屏幕 */
+    @media (max-width: 1000px) {
+        .profile-snapshot-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
     .profile-item {
         background: linear-gradient(180deg, #ffffff 0%, #fcfaff 100%);
         border: 1px solid #eee2f7;
@@ -1383,7 +1394,7 @@ with tab_pred:
     .p-label { color: #8a7a99; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .p-val { color: #3a1050; font-size: 15px; font-weight: 800; }
     
-    /* 预测结果特大焦点卡片设计 */
+    /* 预测结果特大焦点卡片设计 (去掉了右侧 Emoji 后的清爽版) */
     .pred-hero-card {
         background: radial-gradient(circle at 90% 50%, rgba(106,13,173,0.08), transparent 50%),
                     linear-gradient(135deg, #ffffff 0%, #fdfbff 100%);
@@ -1469,7 +1480,7 @@ with tab_pred:
                     classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
                     prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
 
-                    # --- NEW: 保存用户的原始输入数据以便在结果页展示和导出 ---
+                    # --- 保存用户的原始输入数据以便在结果页展示和导出 ---
                     st.session_state.user_profile = {
                         "Age": str(age),
                         "Gender": gender,
@@ -1495,9 +1506,14 @@ with tab_pred:
 
     # 第二页： Prediction Insights (Result & Export)
     else:
+        # ⚠️ 防御性代码：防止刷新页面时丢失 user_profile 导致报错
+        if "user_profile" not in st.session_state:
+            st.session_state.show_prediction = False
+            st.rerun()
+
         st.markdown("#### 2. Prediction Insights")
         
-        # --- 模块 A: 还原显示 User Profile (让用户看到他们刚才预测的内容) ---
+        # --- 模块 A: 还原显示 User Profile ---
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
             st.markdown('<div class="section-header"><span class="dot"></span><span class="label">👤 Player Profile Snapshot</span></div>', unsafe_allow_html=True)
@@ -1511,7 +1527,7 @@ with tab_pred:
 
         st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
 
-        # --- 模块 B: Prediction Result & Graph (美化图表与排版) ---
+        # --- 模块 B: Prediction Result & Graph ---
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
             
@@ -1519,17 +1535,13 @@ with tab_pred:
             selected_model_name = st.session_state.pred_model
             prob_df = st.session_state.prob_df
 
-            # 美化的 Prediction Hero Card
-            icon_map = {"Low": "⚠️", "Medium": "📊", "High": "🔥"}
+            # 美化的 Prediction Hero Card (已去掉 Emoji)
             st.markdown(f"""
             <div class="pred-hero-card">
                 <div>
                     <div class="pred-title">Predicted Engagement Level</div>
                     <div class="pred-value">{prediction}</div>
                     <div class="pred-model-badge">⚡ Powered by {selected_model_name}</div>
-                </div>
-                <div style="font-size: 65px; opacity: 0.9; text-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-                    {icon_map.get(prediction, '✨')}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1573,9 +1585,9 @@ with tab_pred:
 
         st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
-        # --- 模块 C: Back & Export CSV Buttons (新增导出功能) ---
+        # --- 模块 C: Back & Export CSV Buttons ---
         
-        # 准备待导出的 CSV 数据：包含玩家基础特征 + 预测模型 + 结果 + 三个类别的概率
+        # 准备待导出的 CSV 数据
         export_df = pd.DataFrame([profile])
         export_df.insert(0, "Prediction_Model", selected_model_name)
         export_df.insert(1, "Predicted_Engagement", prediction)
@@ -1597,3 +1609,4 @@ with tab_pred:
                 mime="text/csv",
                 use_container_width=True
             )
+
