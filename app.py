@@ -27,7 +27,7 @@ plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
-# 🚀 SMART STICKY HEADER JAVASCRIPT LOGIC
+# SMART STICKY HEADER JAVASCRIPT LOGIC
 # Inject listener: Hide on scroll down, show on scroll up
 # ==========================================
 smart_scroll_js = """
@@ -266,7 +266,7 @@ st.markdown("""
 Online Gaming Analytics
 </div>
 <div class="header-subtitle">
-PLAYER BEHAVIOR • MACHINE LEARNING • ENGAGEMENT INTELLIGENCE
+PLAYER BEHAVIOR PREDICTION • MACHINE LEARNING • DATA SCIENCE
 </div>
 </div>
 </div>
@@ -624,7 +624,7 @@ div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
 
 
 # ==========================================
-# MODEL LAB — BENTO CARD SYSTEM
+# MODEL PERFORMANCE — BENTO CARD SYSTEM
 # ==========================================
 
 st.markdown("""
@@ -781,8 +781,8 @@ st.markdown("""
 
 tab_eda, tab_perf, tab_pred = st.tabs([
     "DATA ANALYSIS",
-    "MODEL LAB",
-    "AI PREDICTOR"
+    "MODEL PERFORMANCE",
+    "PREDICTOR"
 ])
 
 # ------------------------------------------
@@ -790,7 +790,7 @@ tab_eda, tab_perf, tab_pred = st.tabs([
 # ------------------------------------------
 with tab_eda:
 
-    st.markdown("##### Dataset Overview")
+    #st.markdown("##### Dataset Overview")
     m1, m2, m3, m4, m5 = st.columns(5)
     with m1: st.metric("Total Players", f"{df.shape[0]:,}")
     with m2: st.metric("Total Features", df.shape[1])
@@ -805,7 +805,7 @@ with tab_eda:
     # --- Dataset Preview Bento Card ---
     with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📋 Dataset Preview</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Dataset Preview</span></div>', unsafe_allow_html=True)
         st.write("Use the +/- buttons or type a number to view more rows.")
         row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
         st.dataframe(df.head(row_count), use_container_width=True)
@@ -815,7 +815,7 @@ with tab_eda:
     # --- Statistical Summaries Bento Card ---
     with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📊 Statistical Summaries</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Statistical Summaries</span></div>', unsafe_allow_html=True)
         
         summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
 
@@ -997,7 +997,7 @@ with tab_perf:
     with report_col:
       with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📄 Classification Report</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Classification Report</span></div>', unsafe_allow_html=True)
  
         report_rows = []
  
@@ -1063,7 +1063,7 @@ with tab_perf:
     with cm_col:
       with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">🎯 Confusion Matrix</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Confusion Matrix</span></div>', unsafe_allow_html=True)
  
         cm = confusion_matrices[selected_perf_model]
  
@@ -1105,7 +1105,7 @@ with tab_perf:
     with roc_col:
       with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📉 Multi-Class ROC Curve</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Multi-Class ROC Curve</span></div>', unsafe_allow_html=True)
  
         fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
  
@@ -1139,7 +1139,7 @@ with tab_perf:
       with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
         style = feature_importance_style[selected_perf_model]
-        st.markdown(f'<div class="section-header"><span class="dot"></span><span class="label">📈 {style["title"]}</span></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-header"><span class="dot"></span><span class="label"> {style["title"]}</span></div>', unsafe_allow_html=True)
  
         feat_imp = pd.Series(feature_importance_data[selected_perf_model])
         feat_imp = feat_imp.sort_values(ascending=True)
@@ -1189,17 +1189,16 @@ with tab_perf:
         }
     }
  
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    with st.container(border=True):
-        st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">⚙️ Optimized Hyperparameters</span></div>', unsafe_allow_html=True)
-
+    with st.expander(" Optimized Hyperparameters", expanded=False):
+ 
         params = model_parameters[selected_perf_model]
-        pills_html = "".join(
-            f'<div class="hparam-pill"><div class="pval">{v}</div><div class="pname">{k}</div></div>'
-            for k, v in params.items()
-        )
-        st.markdown(f"<div>{pills_html}</div>", unsafe_allow_html=True)
+ 
+        param_cols = st.columns(len(params))
+ 
+        for i, (param_name, param_value) in enumerate(params.items()):
+            with param_cols[i]:
+                st.metric(param_name, param_value)
+
  
     # =========================================================
     # 7. SUMMARY OF ALL MODELS
@@ -1263,7 +1262,7 @@ with tab_perf:
  
     with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📊 Performance Summary Table</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Performance Summary Table</span></div>', unsafe_allow_html=True)
 
         metric_cols = ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]
         styled_summary = (
@@ -1290,7 +1289,7 @@ with tab_perf:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     with st.container(border=True):
       st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-      st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📈 Final Algorithm Comparison</span></div>', unsafe_allow_html=True)
+      st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Final Algorithm Comparison</span></div>', unsafe_allow_html=True)
 
       # Convert to long format exactly like notebook
       plot_df = comparison_df.melt(
@@ -1359,7 +1358,7 @@ with tab_perf:
 # TAB 3: Prediction Result
 # ------------------------------------------
 with tab_pred:
-    st.markdown("### 🎯 Player Engagement Predictor")
+    st.markdown("###  Player Engagement Predictor")
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
 
     # ==========================================
@@ -1465,7 +1464,7 @@ with tab_pred:
             
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-            if st.button("🔮 Predict Engagement", use_container_width=True):
+            if st.button(" Predict Engagement", use_container_width=True):
                 # Show Loading animation and complete model prediction in the background
                 with st.spinner("Analyzing player profile..."):
                     time.sleep(0.8) 
@@ -1511,7 +1510,7 @@ with tab_pred:
 
     # Page 2: Prediction Insights (Result & Export)
     else:
-        # ⚠️ Defensive code: Prevent errors caused by losing user_profile upon page refresh
+        #  Defensive code: Prevent errors caused by losing user_profile upon page refresh
         if "user_profile" not in st.session_state:
             st.session_state.show_prediction = False
             st.rerun()
@@ -1521,7 +1520,7 @@ with tab_pred:
         # --- Module A: Restore and display User Profile ---
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-            st.markdown('<div class="section-header"><span class="dot"></span><span class="label">👤 Player Profile Snapshot</span></div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Player Profile Snapshot</span></div>', unsafe_allow_html=True)
             
             profile = st.session_state.user_profile
             grid_html = '<div class="profile-snapshot-grid">'
