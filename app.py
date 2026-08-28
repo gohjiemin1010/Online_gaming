@@ -1380,9 +1380,12 @@ with tab_perf:
         styled_summary = (
             comparison_df.style
             .format({c: "{:.2%}" for c in metric_cols})
-            .background_gradient(subset=metric_cols, cmap="Purples", vmin=0.80, vmax=1.0)
+            .highlight_max(subset=metric_cols, props="background-color:#f2e6ff; color:#6A0DAD; font-weight:700;")
             .set_properties(**{"text-align": "center"})
-            .set_table_styles([{"selector": "th", "props": [("text-align", "center")]}])
+            .set_table_styles([
+                {"selector": "th", "props": [("text-align", "center"), ("background-color", "#faf7ff"), ("color", "#5c1799")]},
+                {"selector": "tbody tr:nth-child(even)", "props": [("background-color", "#fcfaff")]},
+            ])
         )
 
         st.dataframe(
