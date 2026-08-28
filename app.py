@@ -553,24 +553,22 @@ def generate_eda_slider_html(images_b64, titles):
 st.markdown("""
 <style>
 
-/* Tab container - 使用负边距将其悬浮进 Header 的右侧 */
+/* Tab container - Forced into the header using transform */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    position: sticky !important;
-    top: 4rem !important; 
-    margin-top: -105px !important; /* 向上拉，嵌进 Header */
-    margin-bottom: 20px !important; 
-    margin-right: 35px !important; /* 跟 Header 右侧对齐 */
-    justify-content: flex-end !important; /* 靠右对齐 */
-    z-index: 100000 !important;
-    background-color: transparent !important; /* 透明背景 */
+    transform: translateY(-125px) !important; /* Pulls the tabs UP into the header */
+    margin-bottom: -105px !important; /* Removes the empty space left behind */
+    padding-right: 35px !important; /* Aligns with your header padding */
+    justify-content: flex-end !important; /* Pushes tabs to the right */
+    background-color: transparent !important;
     border-bottom: none !important;
+    z-index: 99999 !important;
+    position: relative !important;
     gap: 12px !important;
-    transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-/* 补偿下方内容区的位置，以免重叠 */
+/* Compensate for the content below so it doesn't overlap */
 .stTabs [data-baseweb="tab-panel"] {
-    padding-top: 85px !important;
+    padding-top: 30px !important;
 }
 
 /* Individual tabs - 变成半透明的高级质感胶囊状 */
