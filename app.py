@@ -59,12 +59,12 @@ div.stButton > button {
     background: linear-gradient(180deg, #3a0a63 0%, #26004a 55%, #16002b 100%) !important;
     color: white !important;
     border: none !important;
-    border-bottom: 3px solid #0c0018 !important;
+    border-bottom: 3px solid #4a0880 !important;
     font-weight: bold !important;
     border-radius: 10px !important;
     padding: 10px 24px !important;
     width: 100%;
-    box-shadow: 0 5px 0 #150029, 0 8px 16px rgba(38,0,74,0.4) !important;
+    box-shadow: 0 5px 0 #4a0880, 0 8px 16px rgba(106,13,173,0.35) !important;
     transform: translateY(0);
     transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease !important;
     position: relative;
@@ -72,14 +72,14 @@ div.stButton > button {
 div.stButton > button:hover {
     background: linear-gradient(180deg, #4d1080 0%, #32005c 55%, #1c0035 100%) !important;
     transform: translateY(-2px);
-    box-shadow: 0 7px 0 #150029, 0 14px 22px rgba(38,0,74,0.45) !important;
+    box-shadow: 0 7px 0 #4a0880, 0 14px 22px rgba(106,13,173,0.4) !important;
 }
 div.stButton > button:active {
     transform: translateY(3px);
-    box-shadow: 0 2px 0 #150029, 0 4px 8px rgba(38,0,74,0.35) !important;
+    box-shadow: 0 2px 0 #4a0880, 0 4px 8px rgba(106,13,173,0.3) !important;
 }
 div.stButton > button:focus:not(:active) {
-    box-shadow: 0 5px 0 #150029, 0 8px 16px rgba(38,0,74,0.4) !important;
+    box-shadow: 0 5px 0 #4a0880, 0 8px 16px rgba(106,13,173,0.35) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -816,8 +816,8 @@ st.markdown("""
 }
 .model-btn-marker.active + div[data-testid="stButton"] button {
     background: linear-gradient(180deg, #5c1799 0%, #38086b 55%, #26004a 100%) !important;
-    border-bottom: 3px solid #0c0018 !important;
-    box-shadow: 0 5px 0 #0c0018, 0 0 0 3px rgba(155,92,255,0.4), 0 12px 26px rgba(38,0,74,0.55) !important;
+    border-bottom: 3px solid #4a0880 !important;
+    box-shadow: 0 5px 0 #4a0880, 0 0 0 3px rgba(155,92,255,0.4), 0 12px 26px rgba(106,13,173,0.5) !important;
     transform: translateY(-3px);
     opacity: 1;
 }
@@ -854,7 +854,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div[data-testid="stV
 }
 .hero-model-card::after {
     content: "";
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
+    position: absolute; top: 0; left: 0; width: 100%; height: 3px;
     background: linear-gradient(90deg, #6A0DAD, #b45cff, #6A0DAD);
     background-size: 200% 100%;
     animation: gradientMove 4s linear infinite;
