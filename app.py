@@ -27,6 +27,54 @@ plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
+# SMART STICKY HEADER JAVASCRIPT LOGIC
+# Inject listener: Hide on scroll down, show on scroll up
+# ==========================================
+smart_scroll_js = """
+<script>
+const parentWin = window.parent;
+const parentDoc = window.parent.document;
+
+if (!parentWin._smartHeaderInitialized) {
+    let lastScrollY = 0;
+    let ticking = false;
+
+    const scrollHandler = function(e) {
+        if (!ticking) {
+            parentWin.requestAnimationFrame(function() {
+                let currentScrollY = parentWin.scrollY;
+                // Compatible with Streamlit internal scroll container
+                if (e.target && e.target.scrollTop !== undefined && e.target.tagName !== 'IFRAME') {
+                    currentScrollY = e.target.scrollTop;
+                }
+
+                // Core detection logic
+                if (currentScrollY <= 80) {
+                    // Reached the top, reset all to show
+                    parentDoc.body.classList.remove('hide-smart-header');
+                } else if (currentScrollY > lastScrollY + 15) {
+                    // Scrolling down (added buffer to prevent jittering) -> hide
+                    parentDoc.body.classList.add('hide-smart-header');
+                } else if (currentScrollY < lastScrollY - 15) {
+                    // Scrolling up -> show
+                    parentDoc.body.classList.remove('hide-smart-header');
+                }
+                lastScrollY = currentScrollY;
+                ticking = false;
+            });
+            ticking = true;
+        }
+    };
+
+    // Capture all scroll events
+    parentDoc.addEventListener('scroll', scrollHandler, true);
+    parentWin._smartHeaderInitialized = true;
+}
+</script>
+"""
+components.html(smart_scroll_js, height=0, width=0)
+
+# ==========================================
 # 2. Advanced CSS
 # ==========================================
 st.markdown("""
@@ -79,29 +127,6 @@ div.stButton > button:active {
 div.stButton > button:focus:not(:active) {
     box-shadow: 0 5px 0 #4a0880, 0 8px 16px rgba(106,13,173,0.35) !important;
 }
-
-/* ---- Reusable "what am I looking at" explanation note ---- */
-.explain-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background: #ffffff;
-    border: 1px solid #eeeeee;
-    border-left: 3px solid #8b5cf6;
-    color: #555555;
-    font-size: 13px;
-    line-height: 1.5;
-    padding: 9px 13px;
-    border-radius: 8px;
-    margin: 0 0 12px 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.explain-note .en-icon {
-    flex-shrink: 0;
-    font-size: 14px;
-    line-height: 1.55;
-}
-.explain-note b { color: #4c1d95; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -112,36 +137,40 @@ div.stButton > button:focus:not(:active) {
 st.markdown("""
 <style>
 
-/* ---------- Fixed Header + Fused Navigation ---------- */
+/* ---------- Smart sticky effect core control ---------- */
 
+/* 1. Accurately target the outer container of the Header to make it sticky */
 div.element-container:has(.gaming-header) {
     position: sticky !important;
-    top: 0 !important;
+    top: 1.5rem !important;
     z-index: 99999 !important;
-    margin: 0 !important;
+    transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-/* Create room at the bottom of the purple header for the tab navigation */
-.gaming-header {
-    padding: 30px 35px 78px 35px !important;
-    margin: 0 !important;
-    border-radius: 22px 22px 0 0 !important;
+/* 2. When JS detects scrolling down, add hidden translation animation */
+body.hide-smart-header div.element-container:has(.gaming-header) {
+    transform: translateY(-250px) !important;
+}
+
+/* Tabs hide along with it */
+body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
+    transform: translateY(-250px) !important;
 }
 
 /* ---------- MAIN HEADER ---------- */
 
 .gaming-header {
     width: 100%;
-    padding: 38px 35px 28px 35px;
+    padding: 45px 35px 45px 35px;
     margin-bottom: 0px; /* Remove bottom margin to make content below tighter */
-    border-radius: 22px 22px 0 0; /* Only round the top — the tab bar below rounds the bottom, so the two read as one block */
+    border-radius: 22px;
     overflow: hidden;
     position: relative;
 
     background: radial-gradient(circle at 90% 20%, rgba(155, 89, 182, 0.25), transparent 35%),
                 radial-gradient(circle at 10% 80%, rgba(106, 13, 173, 0.18), transparent 35%),
                 linear-gradient(135deg, #16002b 0%, #26004a 45%, #12001f 100%);
-    box-shadow: 0 15px 45px rgba(72, 0, 120, 0.18);
+    box-shadow: 0 15px 45px rgba(72, 0, 120, 0.25);
 }
 
 /* Decorative glow */
@@ -253,10 +282,6 @@ def load_data():
     return pd.read_csv('online_gaming_behavior_dataset.csv')
 
 df = load_data()
-
-def explain(text):
-    """Render a small contextual 'what this shows' note under a section header."""
-    st.markdown(f'<div class="explain-note"><span class="en-icon">💡</span><span>{text}</span></div>', unsafe_allow_html=True)
 
 def fig_to_base64(fig):
     buf = io.BytesIO()
@@ -522,104 +547,81 @@ def generate_eda_slider_html(images_b64, titles):
     return html
 
 # ==========================================
-# PREMIUM NAVIGATION TABS — INSIDE THE HEADER
+# PREMIUM NAVIGATION TABS (MOVED INTO HEADER)
 # ==========================================
 
 st.markdown("""
 <style>
-/* Visually pull the Streamlit tab block into the purple header */
-div.element-container:has(div[data-testid="stTabs"]) {
-    margin-top: -72px !important;
-    position: relative !important;
-    z-index: 100000 !important;
-}
 
-/* Transparent navigation strip = same purple background as the header */
+/* Tab container - Use negative margins to hover it into the right side of the Header */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     position: sticky !important;
-    top: 112px !important;
+    top: 4rem !important;
+    margin-top: -105px !important; /* Pull up, embed into the Header */
+    margin-bottom: 20px !important;
+    margin-right: 35px !important; /* Align with the right side of the Header */
+    justify-content: flex-end !important; /* Align to the right */
     z-index: 100000 !important;
-    width: 100% !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 0 22px 22px !important;
-    padding: 7px 35px 0 35px !important;
-    margin: 0 !important;
-    gap: 8px !important;
-    box-shadow: none !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    scrollbar-width: none !important;
+    background-color: transparent !important; /* Transparent background */
+    border-bottom: none !important;
+    gap: 12px !important;
+    transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-div[data-testid="stTabs"] > div[data-baseweb="tab-list"]::-webkit-scrollbar {
-    display: none !important;
-}
-
-.stTabs [data-baseweb="tab"] {
-    height: 42px !important;
-    padding: 0 5px !important;
-    margin-right: 25px !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    transition: all 0.2s ease !important;
-}
-
-.stTabs [data-baseweb="tab"]:hover {
-    background: transparent !important;
-}
-
-.stTabs [data-baseweb="tab"][aria-selected="true"] {
-    background: transparent !important;
-    border-bottom: 3px solid #d9a7ff !important;
-    box-shadow: none !important;
-}
-
-.stTabs [data-baseweb="tab-highlight"],
-.stTabs [data-baseweb="tab-border"] {
-    display: none !important;
-}
-
-.stTabs [data-baseweb="tab"] p {
-    color: rgba(255,255,255,0.62) !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.45px !important;
-    white-space: nowrap !important;
-}
-
-.stTabs [data-baseweb="tab"][aria-selected="true"] p {
-    color: #ffffff !important;
-}
-
+/* Compensate the position of the content area below to avoid overlap */
 .stTabs [data-baseweb="tab-panel"] {
-    padding-top: 25px !important;
+    padding-top: 85px !important;
 }
 
-@media (max-width: 900px) {
-    .gaming-header {
-        padding-left: 18px !important;
-        padding-right: 18px !important;
-        padding-bottom: 76px !important;
-    }
-
-    div.element-container:has(div[data-testid="stTabs"]) {
-        margin-top: -70px !important;
-    }
-
-    div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-        top: 108px !important;
-        padding-left: 18px !important;
-        padding-right: 18px !important;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        margin-right: 18px !important;
-    }
+/* Individual tabs - Transform into semi-transparent premium capsules */
+.stTabs [data-baseweb="tab"] {
+    height: 48px !important;
+    padding: 0 24px !important;
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: all 0.3s ease !important;
 }
+
+/* Hover */
+.stTabs [data-baseweb="tab"]:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Active tab */
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Remove default underline */
+.stTabs [data-baseweb="tab-highlight"] {
+    display: none !important;
+}
+
+/* Tab text color adjustment to fit dark background */
+.stTabs [data-baseweb="tab"] p {
+    color: #ebd9ff !important;
+}
+
+/* Active text */
+.stTabs [data-baseweb="tab"][aria-selected="true"] p {
+    color: #3a0a63 !important;
+}
+
+/* Remove bottom indicator line */
+.stTabs [data-baseweb="tab"][aria-selected="true"]::after {
+    display: none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
 
 # ==========================================
 # MODEL PERFORMANCE — BENTO CARD SYSTEM
@@ -777,11 +779,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-tab_eda, tab_perf, tab_pred, tab_why = st.tabs([
+tab_eda, tab_perf, tab_pred = st.tabs([
     "DATA ANALYSIS",
     "MODEL PERFORMANCE",
-    "PREDICTOR",
-    "MODEL SELECTION & JUSTIFICATION"
+    "PREDICTOR"
 ])
 
 # ------------------------------------------
@@ -805,7 +806,7 @@ with tab_eda:
     with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Dataset Preview</span></div>', unsafe_allow_html=True)
-        explain("This is a live sample of the raw dataset — one row per player, one column per feature. Every chart, model, and prediction in this dashboard is built from these records. Use the +/- buttons or type a number to view more rows.")
+        st.write("Use the +/- buttons or type a number to view more rows.")
         row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
         st.dataframe(df.head(row_count), use_container_width=True)
 
@@ -819,7 +820,6 @@ with tab_eda:
         summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
 
         if summary_choice == "Numerical Summary":
-            explain("Shows the center (mean, median/50%) and spread (std, min–max, range) of every numeric feature, so you can spot skew and outliers at a glance. <b>CV</b> (coefficient of variation = std ÷ mean) makes it easy to compare how spread out different features are, even when their units and scales differ — a higher CV means that feature varies more relative to its own average.")
             st.markdown("**Full Dataset Statistical Profile (Numerical)**")
             num_desc = df.describe().T
             num_desc['range'] = num_desc['max'] - num_desc['min']
@@ -828,7 +828,6 @@ with tab_eda:
             st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
 
         elif summary_choice == "Categorical Summary":
-            explain("Shows how many players fall into each category (e.g. how many are on each platform, genre, or region) — useful for spotting imbalanced groups before they skew the model.")
             st.markdown("**Categorical Features Value Counts**")
             cat_cols = df.select_dtypes(include=['object']).columns
             table_cols = st.columns(len(cat_cols))
@@ -841,15 +840,55 @@ with tab_eda:
 
     st.markdown("---")
 
-    st.markdown("#### Visual Insights")
-    explain("These 8 charts are the exploratory analysis (EDA) behind the model: how engagement, genre, age, and play time are distributed, how play time and purchases shift with engagement level, and — in the correlation heatmap — which numeric features move together. This is what guided which features were worth feeding into the model.")
-
     # Render seamless HTML/JS interactive component for the Graphs
-    st.markdown("<p style='text-align:center; color:#888; font-size:13px;'>Explore the key patterns across player behaviour and engagement.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #666;'>Click the arrows to navigate the visual insights.</p>", unsafe_allow_html=True)
 
     eda_slider_html = generate_eda_slider_html(images_b64, graph_titles)
     components.html(eda_slider_html, height=520, scrolling=False)
 
+
+    # ---- Integrated About Section ----
+    st.markdown("#### About This System")
+    st.markdown(f"""
+    <div class="about-intro">
+    To ensure users clearly grasp the system's overarching goals directly within the primary view,
+    this dashboard cleanly analyses the <b>Online Gaming Behavior Dataset</b> and predicts a player's <b>Engagement Level</b>.
+    It turns raw gaming activity into a clear read on how engaged a player really is — built end-to-end from EDA to a live predictor.
+    </div>
+    """, unsafe_allow_html=True)
+
+    steps = [
+        ("Explore the Data", "Understand player behaviour through distributions and correlations."),
+        ("Process Features", "Derive advanced variables to maximize prediction performance."),
+        ("Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
+        ("Predict Live", "Enter a player profile and get an instant engagement prediction."),
+    ]
+
+    step_cols = st.columns([1, 0.15, 1, 0.15, 1, 0.15, 1])
+    step_idx = 0
+    for i, col in enumerate(step_cols):
+        with col:
+            if i % 2 == 1:
+                st.markdown('<div class="step-arrow">➜</div>', unsafe_allow_html=True)
+            else:
+                title, desc = steps[step_idx]
+                step_idx += 1
+                st.markdown(f"""
+                <div class="about-card">
+                    <h5>{title}</h5>
+                    <p>{desc}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("##### Built With")
+    tech_stack = [
+        "Python", "Streamlit", "Pandas", "NumPy", "Scikit-learn",
+        "XGBoost", "Seaborn", "Matplotlib", "Plotly"
+    ]
+    badges_html = "".join([f'<span class="tech-badge">{t}</span>' for t in tech_stack])
+    st.markdown(f"<div>{badges_html}</div>", unsafe_allow_html=True)
 
 # ------------------------------------------
 # TAB 2: Model Performance
@@ -917,8 +956,6 @@ with tab_perf:
     }
     sel_extra = comparison_lookup[selected_perf_model]
 
-    explain("<b>Accuracy</b>: % of all players correctly classified. <b>Precision</b>: of the players predicted at a given level, how many actually were. <b>Recall</b>: of the players actually at a given level, how many the model caught. <b>AUC</b>: how well the model separates the three engagement levels across all decision thresholds — 1.00 is perfect, 0.50 is random guessing.")
-
     st.markdown(f"""
     <div class="hero-model-card">
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:18px;">
@@ -961,7 +998,6 @@ with tab_perf:
       with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Classification Report</span></div>', unsafe_allow_html=True)
-        explain("Precision, Recall and F1 broken down for each engagement class. <b>Support</b> is simply how many test-set players actually belong to that class — a helpful check for whether a class is under-represented.")
 
         report_rows = []
 
@@ -1028,7 +1064,6 @@ with tab_perf:
       with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Confusion Matrix</span></div>', unsafe_allow_html=True)
-        explain("Rows are the player's <b>actual</b> engagement level, columns are what the model <b>predicted</b>. The diagonal (top-left → bottom-right) is every correct prediction; any number off the diagonal is a mix-up between two levels.")
 
         cm = confusion_matrices[selected_perf_model]
 
@@ -1071,7 +1106,6 @@ with tab_perf:
       with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Multi-Class ROC Curve</span></div>', unsafe_allow_html=True)
-        explain("Each curve shows the trade-off between catching true cases of a class (True Positive Rate) and false alarms (False Positive Rate) as the model's confidence threshold changes. The dashed diagonal is a random guess — the closer a curve hugs the top-left corner, the better that class is being separated from the rest.")
 
         fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
 
@@ -1106,7 +1140,6 @@ with tab_perf:
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
         style = feature_importance_style[selected_perf_model]
         st.markdown(f'<div class="section-header"><span class="dot"></span><span class="label"> {style["title"]}</span></div>', unsafe_allow_html=True)
-        explain("Which inputs this model leans on most to tell Low / Medium / High engagement apart. A longer bar means that feature moves the prediction more — for every model here, weekly playtime dominates, which is a good sanity check that the model learned something sensible.")
 
         feat_imp = pd.Series(feature_importance_data[selected_perf_model])
         feat_imp = feat_imp.sort_values(ascending=True)
@@ -1157,7 +1190,6 @@ with tab_perf:
     }
 
     with st.expander(" Optimized Hyperparameters", expanded=False):
-        explain("The final settings used to train this model, selected via tuning/cross-validation to get the best balance of accuracy and generalization (avoiding overfitting to the training data).")
 
         params = model_parameters[selected_perf_model]
 
@@ -1231,7 +1263,6 @@ with tab_perf:
     with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Performance Summary Table</span></div>', unsafe_allow_html=True)
-        explain("All four models side-by-side on the same five metrics. Highlighted cells mark the best score in each column — useful for seeing at a glance whether one model wins outright or trade-offs exist.")
 
         metric_cols = ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]
         styled_summary = (
@@ -1259,7 +1290,6 @@ with tab_perf:
     with st.container(border=True):
       st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
       st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Final Algorithm Comparison</span></div>', unsafe_allow_html=True)
-      explain("The same comparison as the table above, plotted so the gaps between models are easier to read visually across Accuracy, F1-Score and AUC.")
 
       # Convert to long format exactly like notebook
       plot_df = comparison_df.melt(
@@ -1325,169 +1355,6 @@ with tab_perf:
 
 
 # ------------------------------------------
-# TAB 4: Model Selection & Justification
-# ------------------------------------------
-with tab_why:
-
-    st.markdown("#### Model Selection & Justification")
-    explain("This section compares four machine learning approaches and explains why XGBoost was selected as the final model based on overall predictive performance and suitability for the problem.")
-
-    model_rationale = [
-        {
-            "icon": "📐",
-            "name": "Logistic Regression — Baseline",
-            "why": "Provides a simple, interpretable linear benchmark. It is fast to train and establishes whether the data contains useful linear signals, but it is less effective when relationships are non-linear.",
-            "result": "90.4% accuracy and 0.957 AUC. This confirms meaningful linear patterns while leaving room for more flexible models."
-        },
-        {
-            "icon": "🌳",
-            "name": "Random Forest — Non-Linear Benchmark",
-            "why": "Tests whether an ensemble of decision trees can capture non-linear interactions and handle mixed categorical and numerical features more effectively than a linear model.",
-            "result": "95.1% accuracy and 0.985 AUC, substantially improving on the baseline and confirming the value of non-linear modelling."
-        },
-        {
-            "icon": "📍",
-            "name": "K-Nearest Neighbours — Distance-Based Contrast",
-            "why": "Provides a fundamentally different distance-based approach and tests the effect of feature scaling. KNN depends on comparable feature scales and local similarity.",
-            "result": "84.6% accuracy and 0.940 AUC — the weakest result, suggesting that raw distance is less effective for separating engagement tiers in this feature space."
-        },
-        {
-            "icon": "🚀",
-            "name": "XGBoost — Final Selected Model",
-            "why": "Uses sequentially boosted decision trees to correct previous errors while applying regularization to control overfitting. It is well suited to complex, non-linear relationships in this dataset.",
-            "result": "Best overall performance: 96.9% accuracy, 0.969 F1-Score and 0.989 AUC, with the fewest and least severe misclassifications."
-        },
-    ]
-
-    rc1, rc2 = st.columns(2)
-    rationale_cols = [rc1, rc2, rc1, rc2]
-    for i, item in enumerate(model_rationale):
-        with rationale_cols[i]:
-            with st.container(border=True):
-                st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-                st.markdown(f'<div class="section-header"><span class="dot"></span><span class="label">{item["icon"]} {item["name"]}</span></div>', unsafe_allow_html=True)
-                st.markdown(f"**Why it's here:** {item['why']}")
-                st.markdown(f"**What happened:** {item['result']}")
-
-    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-
-    # --- Comparative Model Performance Chart ---
-    with st.container(border=True):
-        st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Comparative Model Performance</span></div>', unsafe_allow_html=True)
-        explain("The comparison makes the selection decision explicit: XGBoost records the highest Accuracy, F1-Score and AUC among the four tested algorithms.")
-
-        plot_df_selection = comparison_df.melt(
-            id_vars="Model",
-            value_vars=["Accuracy", "F1-Score", "AUC"],
-            var_name="Metric",
-            value_name="Score"
-        )
-
-        fig_selection, ax_selection = plt.subplots(figsize=(12, 6))
-        sns.barplot(
-            data=plot_df_selection,
-            x="Model",
-            y="Score",
-            hue="Metric",
-            palette="viridis",
-            ax=ax_selection
-        )
-        ax_selection.set_title("Comparative Model Performance", fontsize=16, fontweight="bold", pad=15)
-        ax_selection.set_xlabel("Machine Learning Model", fontsize=12)
-        ax_selection.set_ylabel("Score", fontsize=12)
-        ax_selection.set_ylim(0, 1.15)
-        ax_selection.legend(bbox_to_anchor=(1.01, 1), loc="upper left", title="Metrics")
-
-        for container in ax_selection.containers:
-            ax_selection.bar_label(container, fmt="%.3f", padding=3)
-
-        sns.despine()
-        plt.tight_layout()
-        st.pyplot(fig_selection, use_container_width=True)
-
-    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-
-    # --- Final verdict, reusing the comparison table already built in the Model Performance tab ---
-    st.markdown('<div class="section-header" style="margin-top:6px;"><span class="dot"></span><span class="label" style="font-size:19px;">🏆 The Final Call</span></div>', unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div class="winner-banner">
-        <b>{best_row['Model']}</b> was chosen as the deployed model for this app. It posted the best score on every headline metric —
-        <b>{best_row['Accuracy']:.1%}</b> accuracy, <b>{comparison_df.loc[comparison_df['Model']==best_row['Model'], 'F1-Score'].values[0]:.3f}</b> macro F1-score, and
-        <b>{best_row['AUC']:.1%}</b> AUC — meaning it balances all three engagement tiers well rather than just favoring the majority class.
-    </div>
-    """, unsafe_allow_html=True)
-
-    explain("A single accuracy number can hide a model that only does well on the most common class. Macro F1-Score treats Low, Medium, and High equally, so a high macro F1 (like XGBoost's 0.969) means the model is genuinely reliable across every engagement tier — not just the easy majority one.")
-
-    with st.container(border=True):
-        st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> At a Glance</span></div>', unsafe_allow_html=True)
-        metric_cols_why = ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]
-        st.dataframe(
-            comparison_df.sort_values("Accuracy", ascending=False)
-                .style.format({c: "{:.2%}" for c in metric_cols_why})
-                .highlight_max(subset=metric_cols_why, props="background-color:#f2e6ff; color:#6A0DAD; font-weight:700;"),
-            use_container_width=True,
-            hide_index=True
-        )
-
-    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-
-    with st.expander("⚠️ Known Limitations & Where This Could Improve", expanded=False):
-        st.markdown("""
-- **Metric choice matters.** Because this is a 3-class problem, evaluation leans on F1-Score, the Confusion Matrix, and One-vs-Rest AUC rather than regression-style error metrics — those assume a continuous, ordered output, which engagement level isn't.
-- **More tuning headroom.** Random Forest and XGBoost could likely improve further with systematic hyperparameter search (e.g. Bayesian optimization) over tree depth, learning rate, and sampling ratios.
-- **KNN's ceiling.** KNN's accuracy is capped by the "curse of dimensionality" — dimensionality reduction or a learned distance metric could help it compete more closely with the tree-based models.
-- **Validation rigor.** Results come from a single stratified train/test split. Repeated k-fold cross-validation would give a tighter, more trustworthy estimate of how these numbers generalize to new players.
-        """)
-
-    # --- About This System ---
-    # ---- Integrated About Section ----
-    st.markdown("#### About This System")
-    st.markdown(f"""
-    <div class="about-intro">
-    To ensure users clearly grasp the system's overarching goals directly within the primary view,
-    this dashboard cleanly analyses the <b>Online Gaming Behavior Dataset</b> and predicts a player's <b>Engagement Level</b>.
-    It turns raw gaming activity into a clear read on how engaged a player really is — built end-to-end from EDA to a live predictor.
-    </div>
-    """, unsafe_allow_html=True)
-
-    steps = [
-        ("Explore the Data", "Understand player behaviour through distributions and correlations."),
-        ("Process Features", "Derive advanced variables to maximize prediction performance."),
-        ("Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
-        ("Predict Live", "Enter a player profile and get an instant engagement prediction."),
-    ]
-
-    step_cols = st.columns([1, 0.15, 1, 0.15, 1, 0.15, 1])
-    step_idx = 0
-    for i, col in enumerate(step_cols):
-        with col:
-            if i % 2 == 1:
-                st.markdown('<div class="step-arrow">➜</div>', unsafe_allow_html=True)
-            else:
-                title, desc = steps[step_idx]
-                step_idx += 1
-                st.markdown(f"""
-                <div class="about-card">
-                    <h5>{title}</h5>
-                    <p>{desc}</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("##### Built With")
-    tech_stack = [
-        "Python", "Streamlit", "Pandas", "NumPy", "Scikit-learn",
-        "XGBoost", "Seaborn", "Matplotlib", "Plotly"
-    ]
-    badges_html = "".join([f'<span class="tech-badge">{t}</span>' for t in tech_stack])
-    st.markdown(f"<div>{badges_html}</div>", unsafe_allow_html=True)
-
-# ------------------------------------------
 # TAB 3: Prediction Result
 # ------------------------------------------
 with tab_pred:
@@ -1495,7 +1362,7 @@ with tab_pred:
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
 
     # ==========================================
-    # TAB 4 Advanced CSS design injection (Fits Bento Style)
+    # TAB 3 Advanced CSS design injection (Fits Bento Style)
     # ==========================================
     st.markdown("""
     <style>
@@ -1564,16 +1431,6 @@ with tab_pred:
 
     .strategy-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; margin-bottom: 8px; color: #1a1a1a; }
     .strategy-text { color: #444; font-size: 14.5px; margin: 0; line-height: 1.5; }
-
-    /* ---- Grouped input sub-sections (Player / Game / Behavior) ---- */
-    .input-group-label {
-        display: flex; align-items: center; gap: 8px;
-        font-size: 13px; font-weight: 800; color: #6A0DAD;
-        text-transform: uppercase; letter-spacing: 0.6px;
-        margin: 4px 0 10px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px dashed #eee2f7;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1584,72 +1441,30 @@ with tab_pred:
     # Page 1: Only Input Player Features
     if not st.session_state.show_prediction:
         st.markdown("#### 1. Input Player Features")
-        explain("Build a hypothetical player below. The selected model reads these 11 features and estimates whether that player would be a Low, Medium, or High engagement player.")
+        with st.container(border=True):
+            st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
+            selected_model_name = st.selectbox(" Select Prediction Model", list(models_dict.keys()), index=0)
 
-        # --- Model selector as a clean pill bar (matches Model Performance tab) ---
-        if "predictor_model" not in st.session_state:
-            st.session_state.predictor_model = list(models_dict.keys())[0]
-
-        model_pill_cols = st.columns(len(models_dict))
-        for i, m_name in enumerate(models_dict.keys()):
-            with model_pill_cols[i]:
-                is_active = st.session_state.predictor_model == m_name
-                marker_class = "model-btn-marker active" if is_active else "model-btn-marker"
-                st.markdown(f'<div class="{marker_class}"></div>', unsafe_allow_html=True)
-                label = f"✓ {m_name}" if is_active else m_name
-                if st.button(label, key=f"pred_model_btn_{i}", use_container_width=True):
-                    st.session_state.predictor_model = m_name
-                    st.rerun()
-
-        selected_model_name = st.session_state.predictor_model
-
-        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-
-        # --- Three boxed input cards, side by side ---
-        g1, g2, g3 = st.columns(3)
-
-        with g1:
-            with st.container(border=True):
-                st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="section-header"><span class="dot"></span><span class="label">👤 Player Profile</span></div>', unsafe_allow_html=True)
+            c_in1, c_in2 = st.columns(2)
+            with c_in1:
                 age = st.slider("Age", int(df['Age'].min()), int(df['Age'].max()), 25)
                 gender = st.selectbox("Gender", df['Gender'].unique())
                 location = st.selectbox("Location", df['Location'].unique())
-
-        with g2:
-            with st.container(border=True):
-                st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="section-header"><span class="dot"></span><span class="label">🎮 Game Setup</span></div>', unsafe_allow_html=True)
                 genre = st.selectbox("Game Genre", df['GameGenre'].unique())
                 difficulty = st.selectbox("Game Difficulty", df['GameDifficulty'].unique())
+            with c_in2:
+                play_time = st.number_input("Play Time (Hrs)", 0.0, 24.0, 10.0)
                 in_purchases_label = st.selectbox("In-Game Purchases", ["No", "Yes"])
                 in_purchases = 1 if in_purchases_label == "Yes" else 0
-
-        with g3:
-            with st.container(border=True):
-                st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📊 Play Behavior</span></div>', unsafe_allow_html=True)
-                play_time = st.number_input("Play Time (Hrs/session)", 0.0, 24.0, 10.0)
                 sessions = st.slider("Sessions/Week", int(df['SessionsPerWeek'].min()), int(df['SessionsPerWeek'].max()), 5)
                 avg_duration = st.slider("Avg Session (Mins)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
-
-        # --- Progress: its own full-width boxed card ---
-        with st.container(border=True):
-            st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-            st.markdown('<div class="section-header"><span class="dot"></span><span class="label">🏆 Progress</span></div>', unsafe_allow_html=True)
-            p1, p2 = st.columns(2)
-            with p1:
                 player_level = st.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
-            with p2:
-                achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
 
-        # --- Clean, centered standalone CTA (kept out of the card grid on purpose) ---
-        st.markdown("<div style='height: 6px;'></div>", unsafe_allow_html=True)
-        cta_l, cta_mid, cta_r = st.columns([1, 1.4, 1])
-        with cta_mid:
-            predict_clicked = st.button("🎯 Predict Engagement", use_container_width=True)
+            achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
 
-        if predict_clicked:
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+            if st.button(" Predict Engagement", use_container_width=True):
                 # Show Loading animation and complete model prediction in the background
                 with st.spinner("Analyzing player profile..."):
                     time.sleep(0.8)
@@ -1706,7 +1521,6 @@ with tab_pred:
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
             st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Player Profile Snapshot</span></div>', unsafe_allow_html=True)
-            explain("The exact inputs you submitted — kept here so the prediction below is easy to trace back to.")
 
             profile = st.session_state.user_profile
             grid_html = '<div class="profile-snapshot-grid">'
@@ -1754,7 +1568,6 @@ with tab_pred:
                 margin=dict(l=0, r=0, t=10, b=0)
             )
             st.plotly_chart(fig_prob, use_container_width=True)
-            explain("The model's confidence across all three levels. It doesn't just pick a label — it estimates a probability for each, and the highest one becomes the prediction above. A close race between two bars means the model sees this player as a borderline case.")
 
             # --- Beautify Actionable Strategy module ---
             if prediction == "Low":
