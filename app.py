@@ -97,11 +97,9 @@ st.markdown("""
 
 /* Streamlit Native UI Overrides */
 button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
-    font-size: 20px !important;
+    font-size: 16px !important;
     font-weight: bold !important;
 }
-.stTabs [data-baseweb="tab-list"] button[aria-selected="true"] p { color: #6A0DAD !important; }
-.stTabs [data-baseweb="tab-list"] div[data-baseweb="tab-highlight"] { background-color: #6A0DAD !important; }
 
 div.stButton > button {
     background: linear-gradient(180deg, #3a0a63 0%, #26004a 55%, #16002b 100%) !important;
@@ -154,19 +152,20 @@ body.hide-smart-header div.element-container:has(.gaming-header) {
     transform: translateY(-250px) !important;
 }
 
+/* Tabs 也跟着一起隐藏 */
 body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    transform: translateY(-350px) !important;
+    transform: translateY(-250px) !important;
 }
 
 /* ---------- MAIN HEADER ---------- */
 
 .gaming-header {
     width: 100%;
-    padding: 45px 35px 40px 35px;  
-    margin-bottom: 25px;
+    padding: 45px 35px 45px 35px;  
+    margin-bottom: 0px; /* 移除底部 margin，让下方内容更紧凑 */
     border-radius: 22px;
     overflow: hidden;
-    position: relative; /* 恢复默认定位 */
+    position: relative; 
 
     background: radial-gradient(circle at 90% 20%, rgba(155, 89, 182, 0.25), transparent 35%),
                 radial-gradient(circle at 10% 80%, rgba(106, 13, 173, 0.18), transparent 35%),
@@ -194,17 +193,9 @@ body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] 
     position: absolute;
     bottom: 0;
     left: 0;
-
     width: 100%;
     height: 3px;
-
-    background: linear-gradient(
-        90deg,
-        #6A0DAD,
-        #b45cff,
-        #6A0DAD
-    );
-
+    background: linear-gradient(90deg, #6A0DAD, #b45cff, #6A0DAD);
     background-size: 200% 100%;
     animation: gradientMove 4s linear infinite;
 }
@@ -262,54 +253,6 @@ body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] 
     letter-spacing: 0.5px;
 }
 
-/* Status */
-
-.header-status {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.status-badge {
-    padding: 8px 15px;
-    border-radius: 20px;
-    color: #e8caff;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-}
-
-.status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    margin-right: 6px;
-    border-radius: 50%;
-    background: #8cffc1;
-    box-shadow: 0 0 8px #8cffc1;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-    100% { opacity: 1; transform: scale(1); }
-}
-
-/* Dataset badge */
-
-.dataset-badge {
-    padding: 8px 14px;
-    border-radius: 20px;
-    color: rgba(255,255,255,0.75);
-    font-size: 12px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -325,15 +268,6 @@ Online Gaming Analytics
 <div class="header-subtitle">
 PLAYER BEHAVIOR • MACHINE LEARNING • ENGAGEMENT INTELLIGENCE
 </div>
-</div>
-</div>
-<div class="header-status">
-<div class="status-badge">
-<span class="status-dot"></span>
-AI SYSTEM ONLINE
-</div>
-<div class="dataset-badge">
-3 ENGAGEMENT CLASSES
 </div>
 </div>
 </div>
@@ -364,16 +298,6 @@ def generate_gallery_assets(df):
         "1. Distribution of Engagement Level", "2. Popularity of Game Genre", "3. Player Age Distribution",
         "4. Play Time Hours Distribution", "5. Play Time Hours by Engagement Level", 
         "6. In-Game Purchase Rate by Game Genre", "7. Player Engagement Level by Geographic Location", "8. Correlation Heatmap"
-    ]
-    details = [
-        "Shows the target variable distribution. The dataset is balanced across Low, Medium, and High engagement players, providing a solid baseline for our ML predictions.",
-        "Displays the volume of players across different genres (Sports, Action, Strategy, etc.), revealing which game types drive the most traffic.",
-        "A density histogram representing the demographic spread. This highlights the core age groups making up our player base.",
-        "Illustrates the spread of play hours. The distribution helps identify the threshold between casual gamers and hardcore gamers.",
-        "A violin plot confirming that higher engagement levels naturally correlate with a denser distribution of higher play time hours.",
-        "Highlights commercial value by genre. It displays the average conversion rate (percentage) for in-game purchases.",
-        "Breaks down engagement levels across different geographical regions, useful for identifying regional retention strengths.",
-        "A high-level statistical matrix showing how numerical features relate. Values close to 1 or -1 indicate strong correlations."
     ]
 
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -419,9 +343,9 @@ def generate_gallery_assets(df):
     ax.set_title(titles[7], weight='bold')
     images_b64.append(fig_to_base64(fig))
 
-    return images_b64, titles, details
+    return images_b64, titles
 
-images_b64, graph_titles, graph_details = generate_gallery_assets(df)
+images_b64, graph_titles = generate_gallery_assets(df)
 
 # ==========================================
 # 4. Models Setup & Data Dictionaries
@@ -507,30 +431,19 @@ def generate_roc_curve(target_auc, n_points=300):
     return fpr, tpr
 
 # ----------------------------------------------------
-# 4.1 HTML/CSS Widget Generators
+# 4.1 HTML/CSS Widget Generators (Slider - No Flip)
 # ----------------------------------------------------
 
 @st.cache_data
-def generate_eda_slider_html(images_b64, titles, details):
+def generate_eda_slider_html(images_b64, titles):
     slides_html = ""
     for i in range(len(images_b64)):
         img = images_b64[i]
         title = titles[i]
-        detail = details[i]
         
         slides_html += f"""
-        <div class="slide eda-slide" onclick="toggleFlip(this)">
-            <div class="card-inner">
-                <div class="card-front">
-                    <img src="data:image/png;base64,{img}" alt="{title}">
-                    <div class="click-hint">🖱️ Click graph for details</div>
-                </div>
-                <div class="card-back">
-                    <h3>{title}</h3>
-                    <p>{detail}</p>
-                    <div class="click-hint">🖱️ Click to return to graph</div>
-                </div>
-            </div>
+        <div class="slide eda-slide">
+            <img src="data:image/png;base64,{img}" alt="{title}" class="slide-img">
         </div>
         """
 
@@ -543,64 +456,29 @@ def generate_eda_slider_html(images_b64, titles, details):
       body {{ margin: 0; padding: 0; font-family: 'Source Sans Pro', sans-serif; overflow: hidden; background: transparent; }}
 
       .slider-container {{ 
-          position: relative; width: 100%; height: 550px; 
+          position: relative; width: 100%; height: 500px; 
           display: flex; justify-content: center; align-items: center; 
           perspective: 1500px; overflow: hidden;
       }}
 
       .slide {{
-          position: absolute; width: 750px; height: 480px;
+          position: absolute; width: 750px; height: 450px;
           transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease;
           border-radius: 20px; 
+          background: #ffffff;
+          border-top: 5px solid #6A0DAD;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+          display: flex; justify-content: center; align-items: center;
+          padding: 20px; box-sizing: border-box;
       }}
+      
+      .slide-img {{ max-width: 100%; max-height: 100%; object-fit: contain; }}
 
       /* Coverflow states */
-      .slide.active {{ transform: translateX(0) scale(1) translateZ(0); opacity: 1; z-index: 10; cursor: pointer; }}
+      .slide.active {{ transform: translateX(0) scale(1) translateZ(0); opacity: 1; z-index: 10; }}
       .slide.left-1 {{ transform: translateX(-65%) scale(0.8) translateZ(-150px) rotateY(15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
       .slide.right-1 {{ transform: translateX(65%) scale(0.8) translateZ(-150px) rotateY(-15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
       .slide.hidden {{ transform: translateX(0) scale(0.6) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
-
-      /* Flip Card Logic */
-      .card-inner {{
-          position: relative; width: 100%; height: 100%;
-          transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
-          transform-style: preserve-3d;
-          border-radius: 20px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      }}
-      
-      .slide.active:hover .card-inner {{ box-shadow: 0 15px 40px rgba(106, 13, 173, 0.2); }}
-      .slide.active.flipped .card-inner {{ transform: rotateY(180deg); }}
-
-      .card-front, .card-back {{
-          position: absolute; width: 100%; height: 100%;
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
-          border-radius: 20px;
-          background: #ffffff;
-          display: flex; flex-direction: column; justify-content: center; align-items: center;
-          padding: 20px; box-sizing: border-box;
-          border-top: 5px solid #6A0DAD;
-      }}
-      
-      .card-front img {{ max-width: 100%; max-height: 90%; object-fit: contain; }}
-      
-      .card-back {{
-          transform: rotateY(180deg);
-          background: #fdfcff;
-          padding: 50px;
-          text-align: center;
-      }}
-      .card-back h3 {{ color: #6A0DAD; font-size: 26px; margin-bottom: 20px; font-weight: 800; }}
-      .card-back p {{ color: #444; font-size: 20px; line-height: 1.6; font-weight: 400; }}
-
-      .click-hint {{
-          position: absolute; bottom: 15px;
-          font-size: 13px; color: #6A0DAD; font-weight: 600;
-          background: rgba(240,230,255,0.9);
-          padding: 6px 14px; border-radius: 12px;
-          transition: 0.3s;
-      }}
       
       /* Navigation Arrows */
       .nav-btn {{
@@ -644,19 +522,9 @@ def generate_eda_slider_html(images_b64, titles, details):
         }}
 
         function move(dir, event) {{
-            if(event) event.stopPropagation(); // Prevent flipping when clicking arrows
-            
-            // Remove flip state from current before moving
-            slides[currentIndex].classList.remove('flipped');
-            
+            if(event) event.stopPropagation(); 
             currentIndex = (currentIndex + dir + slides.length) % slides.length;
             updateSlides();
-        }}
-
-        function toggleFlip(el) {{
-            if (el.classList.contains('active')) {{
-                el.classList.toggle('flipped');
-            }}
         }}
 
         // Swipe support for touch devices
@@ -679,51 +547,56 @@ def generate_eda_slider_html(images_b64, titles, details):
     return html
 
 # ==========================================
-# PREMIUM NAVIGATION TABS
+# PREMIUM NAVIGATION TABS (MOVED INTO HEADER)
 # ==========================================
 
 st.markdown("""
 <style>
 
-/* Tab container - 改为被 JS 控制，完美贴合在 Header 之下 */
+/* Tab container - 使用负边距将其悬浮进 Header 的右侧 */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     position: sticky !important;
-    top: 175px !important; /* 精确计算在 Header 下方 */
-    z-index: 99998 !important;
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px); /* 磨砂玻璃效果，增加一点通透感 */
-    padding-top: 15px; 
-    padding-bottom: 15px;
-    margin-top: -15px;
-    border-bottom: none;
+    top: 4rem !important; 
+    margin-top: -105px !important; /* 向上拉，嵌进 Header */
+    margin-bottom: 20px !important; 
+    margin-right: 35px !important; /* 跟 Header 右侧对齐 */
+    justify-content: flex-end !important; /* 靠右对齐 */
+    z-index: 100000 !important;
+    background-color: transparent !important; /* 透明背景 */
+    border-bottom: none !important;
+    gap: 12px !important;
     transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-/* Individual tabs */
+/* 补偿下方内容区的位置，以免重叠 */
+.stTabs [data-baseweb="tab-panel"] {
+    padding-top: 85px !important;
+}
+
+/* Individual tabs - 变成半透明的高级质感胶囊状 */
 .stTabs [data-baseweb="tab"] {
-    height: 78px;
-    padding: 8px 25px;
-    border-radius: 16px;
-    background: #f7f5fa;
-    border: 1px solid #eeeeee;
-    transition: all 0.3s ease;
-    position: relative;
+    height: 48px !important;
+    padding: 0 24px !important;
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: all 0.3s ease !important;
 }
 
 /* Hover */
 .stTabs [data-baseweb="tab"]:hover {
-    transform: translateY(-3px);
-    background: #faf7ff;
-    border-color: #d9c2ef;
-    box-shadow: 0 8px 20px rgba(106,13,173,0.10);
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-2px) !important;
 }
 
 /* Active tab */
 .stTabs [data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, #f7efff, #ffffff);
-    border: 1px solid #c99bea;
-    box-shadow: 0 8px 25px rgba(106,13,173,0.16);
-    transform: translateY(-3px);
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+    transform: translateY(-2px) !important;
 }
 
 /* Remove default underline */
@@ -731,35 +604,19 @@ div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     display: none !important;
 }
 
-/* Tab text */
+/* Tab text 颜色调整为适应暗色底色 */
 .stTabs [data-baseweb="tab"] p {
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    color: #777 !important;
-    margin: 0 !important;
+    color: #ebd9ff !important;
 }
 
 /* Active text */
 .stTabs [data-baseweb="tab"][aria-selected="true"] p {
-    color: #6A0DAD !important;
+    color: #3a0a63 !important;
 }
 
-/* Bottom active indicator */
+/* 移除底部指示线 */
 .stTabs [data-baseweb="tab"][aria-selected="true"]::after {
-    content: "";
-    position: absolute;
-    bottom: -10px;
-    left: 30%;
-    width: 40%;
-    height: 4px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #6A0DAD, #b45cff);
-    box-shadow: 0 0 10px rgba(106,13,173,0.45);
-}
-
-/* Content spacing */
-.stTabs [data-baseweb="tab-panel"] {
-    padding-top: 25px;
+    display: none !important;
 }
 
 </style>
@@ -899,13 +756,7 @@ st.markdown("""
 }
 .about-card h5 {
     display: flex; align-items: center; gap: 8px;
-    color: #3a1050; margin: 0 0 8px 0; font-size: 15px; font-weight: 800;
-}
-.about-card .step-num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
-    background: linear-gradient(135deg, #b45cff, #6A0DAD);
-    color: #fff; font-size: 12px; font-weight: 800;
+    color: #3a1050; margin: 0 0 8px 0; font-size: 16px; font-weight: 800;
 }
 .about-card p { color: #666; font-size: 13.5px; margin: 0; line-height: 1.5; }
 
@@ -929,9 +780,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 tab_eda, tab_perf, tab_pred = st.tabs([
-    "  DATA ANALYSIS",
-    "  MODEL LAB",
-    "  AI PREDICTOR"
+    "DATA ANALYSIS",
+    "MODEL LAB",
+    "AI PREDICTOR"
 ])
 
 # ------------------------------------------
@@ -982,10 +833,10 @@ with tab_eda:
     st.markdown("---")
 
     # Render seamless HTML/JS interactive component for the Graphs
-    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to navigate. <b>Click on a graph</b> to view its detailed insights.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to navigate the visual insights.</p>", unsafe_allow_html=True)
     
-    eda_slider_html = generate_eda_slider_html(images_b64, graph_titles, graph_details)
-    components.html(eda_slider_html, height=600, scrolling=False)
+    eda_slider_html = generate_eda_slider_html(images_b64, graph_titles)
+    components.html(eda_slider_html, height=520, scrolling=False)
 
 
     # ---- 5. Integrated About Section ----
@@ -998,11 +849,12 @@ with tab_eda:
     </div>
     """, unsafe_allow_html=True)
     
+    # 移除了圆圈数字
     steps = [
-        ("1", "Explore the Data", "Understand player behaviour through distributions and correlations."),
-        ("2", "Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
-        ("3", "Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
-        ("4", "Predict Live", "Enter a player profile and get an instant engagement prediction."),
+        ("Explore the Data", "Understand player behaviour through distributions and correlations."),
+        ("Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
+        ("Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
+        ("Predict Live", "Enter a player profile and get an instant engagement prediction."),
     ]
     
     # 4 step columns + 3 thin arrow columns in between
@@ -1013,11 +865,11 @@ with tab_eda:
             if i % 2 == 1:  # arrow slot
                 st.markdown('<div class="step-arrow">➜</div>', unsafe_allow_html=True)
             else:
-                num, title, desc = steps[step_idx]
+                title, desc = steps[step_idx]
                 step_idx += 1
                 st.markdown(f"""
                 <div class="about-card">
-                    <h5><span class="step-num">{num}</span>{title}</h5>
+                    <h5>{title}</h5>
                     <p>{desc}</p>
                 </div>
                 """, unsafe_allow_html=True)
