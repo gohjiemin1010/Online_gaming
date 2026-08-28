@@ -904,6 +904,67 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div[data-testid="stV
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* ---- About This System section ---- */
+.about-intro {
+    background: linear-gradient(180deg, #faf7ff 0%, #ffffff 100%);
+    border: 1px solid #eee2f7;
+    border-left: 4px solid #6A0DAD;
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin: 6px 0 24px 0;
+    color: #444;
+    font-size: 15px;
+    line-height: 1.65;
+}
+.about-intro b { color: #3a1050; }
+
+.about-card {
+    background: #ffffff;
+    border: 1px solid #eee2f7;
+    border-top: 3px solid #6A0DAD;
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 12px rgba(106,13,173,0.07);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+.about-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(106,13,173,0.15);
+}
+.about-card h5 {
+    display: flex; align-items: center; gap: 8px;
+    color: #3a1050; margin: 0 0 8px 0; font-size: 15px; font-weight: 800;
+}
+.about-card .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #b45cff, #6A0DAD);
+    color: #fff; font-size: 12px; font-weight: 800;
+}
+.about-card p { color: #666; font-size: 13.5px; margin: 0; line-height: 1.5; }
+
+.step-arrow {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; min-height: 70px;
+    color: #c9a6f0; font-size: 20px; font-weight: 800;
+}
+
+.tech-badge {
+    display: inline-block;
+    background: linear-gradient(180deg, #f7efff, #efe0ff);
+    border: 1px solid #e2c6ff;
+    color: #6A0DAD;
+    font-size: 12.5px; font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin: 4px 6px 4px 0;
+}
+</style>
+""", unsafe_allow_html=True)
+
 tab_eda, tab_perf, tab_pred = st.tabs([
     "  DATA ANALYSIS",
     "  MODEL LAB",
@@ -966,11 +1027,13 @@ with tab_eda:
 
     # ---- 5. Integrated About Section ----
     st.markdown("#### About This System")
-    st.write(
-        "To ensure users clearly grasp the system's overarching goals directly within the primary view, "
-        "this dashboard cleanly analyses the **Online Gaming Behavior Dataset** and predicts a player's **Engagement Level**. "
-        "It turns raw gaming activity into a clear read on how engaged a player really is — built end-to-end from EDA to a live predictor."
-    )
+    st.markdown(f"""
+    <div class="about-intro">
+    To ensure users clearly grasp the system's overarching goals directly within the primary view,
+    this dashboard cleanly analyses the <b>Online Gaming Behavior Dataset</b> and predicts a player's <b>Engagement Level</b>.
+    It turns raw gaming activity into a clear read on how engaged a player really is — built end-to-end from EDA to a live predictor.
+    </div>
+    """, unsafe_allow_html=True)
     
     steps = [
         ("1", "Explore the Data", "Understand player behaviour through distributions and correlations."),
@@ -979,16 +1042,22 @@ with tab_eda:
         ("4", "Predict Live", "Enter a player profile and get an instant engagement prediction."),
     ]
     
-    step_cols = st.columns(4)
-    for (num, title, desc), col in zip(steps, step_cols):
+    # 4 step columns + 3 thin arrow columns in between
+    step_cols = st.columns([1, 0.15, 1, 0.15, 1, 0.15, 1])
+    step_idx = 0
+    for i, col in enumerate(step_cols):
         with col:
-            # Reusing the existing CSS class for consistent design
-            step_html = (
-                f'<div class="about-card" style="margin-bottom: 15px;">'
-                f'<h5 style="color:#6A0DAD; margin-top:0;">Step {num}: {title}</h5>'
-                f'<p style="font-size: 14px; margin-bottom:0;">{desc}</p></div>'
-            )
-            st.markdown(step_html, unsafe_allow_html=True)
+            if i % 2 == 1:  # arrow slot
+                st.markdown('<div class="step-arrow">➜</div>', unsafe_allow_html=True)
+            else:
+                num, title, desc = steps[step_idx]
+                step_idx += 1
+                st.markdown(f"""
+                <div class="about-card">
+                    <h5><span class="step-num">{num}</span>{title}</h5>
+                    <p>{desc}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -1529,11 +1598,11 @@ with tab_pred:
                     st.session_state.show_prediction = True
                     st.rerun() # 重新加载组件，直接展示结果
 
-    # 第二页：只有 Prediction Insights
+    #  Prediction Insights
     else:
         st.markdown("#### 2. Prediction Insights")
         with st.container(border=True):
-            # 从 session_state 中调用刚才计算好的数据
+            # use session_state data
             prediction = st.session_state.prediction
             selected_model_name = st.session_state.pred_model
             prob_df = st.session_state.prob_df
@@ -1559,7 +1628,7 @@ with tab_pred:
 
             st.markdown("---")
             
-            # 返回按键：重置页面状态
-            if st.button("⬅️ 返回重测 (Back to Input)", use_container_width=True):
+            # return predict page
+            if st.button("⬅️ Back to Input)", use_container_width=True):
                 st.session_state.show_prediction = False
                 st.rerun()
