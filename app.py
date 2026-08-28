@@ -556,21 +556,29 @@ st.markdown("""
 /* Tab container - Use negative margins to hover it into the right side of the Header */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     position: sticky !important;
-    top: 4rem !important;
-    margin-top: -105px !important; /* Pull up, embed into the Header */
-    margin-bottom: 20px !important;
-    margin-right: 35px !important; /* Align with the right side of the Header */
-    justify-content: flex-end !important; /* Align to the right */
+    top: 4.2rem !important; /* Adjust to vertically align within the sticky header */
+    margin-top: -95px !important; /* Pull up, embed into the Header */
+    padding-right: 35px !important; /* Align with the right side padding of the Header */
+    width: 100% !important; /* Force full width to allow right-alignment */
+    display: flex !important;
+    justify-content: flex-end !important;
     z-index: 100000 !important;
     background-color: transparent !important; /* Transparent background */
     border-bottom: none !important;
-    gap: 12px !important;
     transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
+/* Target Streamlit's inner wrapper to properly float tabs to the right */
+div[data-testid="stTabs"] > div[data-baseweb="tab-list"] > div {
+    display: flex !important;
+    justify-content: flex-end !important; /* Align to the right */
+    width: 100% !important;
+    gap: 12px !important;
+}
+
 /* Compensate the position of the content area below to avoid overlap */
-.stTabs [data-baseweb="tab-panel"] {
-    padding-top: 85px !important;
+div[data-testid="stTabs"] [data-baseweb="tab-panel"] {
+    padding-top: 60px !important;
 }
 
 /* Individual tabs - Transform into semi-transparent premium capsules */
