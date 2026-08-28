@@ -987,7 +987,7 @@ with tab_eda:
         st.metric("Most Frequent Engagement", freq_eng)
 
     st.markdown("---")
-    st.markdown("### 📋 Dataset Preview")
+    st.markdown("#### Dataset Preview")
     st.write("Use the +/- buttons or type a number to view more rows.")
     row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
     st.dataframe(df.head(row_count), use_container_width=True)
@@ -1036,10 +1036,10 @@ with tab_eda:
     """, unsafe_allow_html=True)
     
     steps = [
-        ("1", "Explore the Data", "Understand player behaviour through distributions and correlations."),
-        ("2", "Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
-        ("3", "Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
-        ("4", "Predict Live", "Enter a player profile and get an instant engagement prediction."),
+        ("Explore the Data", "Understand player behaviour through distributions and correlations."),
+        ("Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
+        ("Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
+        ("Predict Live", "Enter a player profile and get an instant engagement prediction."),
     ]
     
     # 4 step columns + 3 thin arrow columns in between
