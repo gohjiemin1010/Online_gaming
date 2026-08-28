@@ -854,7 +854,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div[data-testid="stV
 }
 .hero-model-card::after {
     content: "";
-    position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
     background: linear-gradient(90deg, #6A0DAD, #b45cff, #6A0DAD);
     background-size: 200% 100%;
     animation: gradientMove 4s linear infinite;
