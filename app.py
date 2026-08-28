@@ -1061,7 +1061,7 @@ with tab_perf:
  
     selected_report = classification_reports[selected_perf_model]
     model_accuracy = selected_report["accuracy"]
-    model_icons = {"Logistic Regression": "📐", "Random Forest": "🌳", "KNN": "📍", "XGBoost": "⚡"}
+    #model_icons = {"Logistic Regression": "📐", "Random Forest": "🌳", "KNN": "📍", "XGBoost": "⚡"}
     comparison_lookup = {
         "Logistic Regression": {"Precision": 0.9051, "Recall": 0.9040, "F1-Score": 0.9041, "AUC": 0.9571},
         "Random Forest":       {"Precision": 0.9516, "Recall": 0.9510, "F1-Score": 0.9510, "AUC": 0.9852},
@@ -1076,7 +1076,6 @@ with tab_perf:
             <div style="display:flex; align-items:center; gap:16px;">
                 <div style="font-size:34px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18);
                             border-radius:16px; width:62px; height:62px; display:flex; align-items:center; justify-content:center;">
-                    {model_icons.get(selected_perf_model, "🤖")}
                 </div>
                 <div>
                     <p class="hero-model-name">{selected_perf_model}</p>
@@ -1309,24 +1308,23 @@ with tab_perf:
         }
     }
  
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    with st.container(border=True):
-        st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">⚙️ Optimized Hyperparameters</span></div>', unsafe_allow_html=True)
+    with st.expander("⚙️ Optimized Hyperparameters", expanded=False):
  
         params = model_parameters[selected_perf_model]
-        pills_html = "".join(
-            f'<div class="hparam-pill"><div class="pval">{v}</div><div class="pname">{k}</div></div>'
-            for k, v in params.items()
-        )
-        st.markdown(f"<div>{pills_html}</div>", unsafe_allow_html=True)
+ 
+        param_cols = st.columns(len(params))
+ 
+        for i, (param_name, param_value) in enumerate(params.items()):
+            with param_cols[i]:
+                st.metric(param_name, param_value)
+
  
     # =========================================================
     # 7. SUMMARY OF ALL MODELS
     # =========================================================
  
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-    st.markdown('<div class="section-header" style="margin-top:6px;"><span class="dot"></span><span class="label" style="font-size:19px;">🏆 Overall Model Comparison</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header" style="margin-top:6px;"><span class="dot"></span><span class="label" style="font-size:19px;"> Overall Model Comparison</span></div>', unsafe_allow_html=True)
  
     # Exact values from the notebook final comparison
     comparison_df = pd.DataFrame({
@@ -1383,7 +1381,7 @@ with tab_perf:
  
     with st.container(border=True):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📊 Performance Summary Table</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Performance Summary Table</span></div>', unsafe_allow_html=True)
  
         metric_cols = ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]
         styled_summary = (
@@ -1407,7 +1405,7 @@ with tab_perf:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     with st.container(border=True):
       st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-      st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📈 Final Algorithm Comparison</span></div>', unsafe_allow_html=True)
+      st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Final Algorithm Comparison</span></div>', unsafe_allow_html=True)
  
       # Convert to long format exactly like notebook
       plot_df = comparison_df.melt(
