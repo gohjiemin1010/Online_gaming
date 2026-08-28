@@ -1596,14 +1596,42 @@ with tab_pred:
             
         csv_data = export_df.to_csv(index=False).encode('utf-8')
 
+        st.markdown("""
+        <style>
+        div.stDownloadButton > button {
+            background: linear-gradient(180deg, #ffffff 0%, #f7f2fb 100%) !important;
+            color: #3a0a63 !important;
+            border: 1px solid #e2c6ff !important;
+            border-bottom: 3px solid #c9a6f0 !important; /* 白色卡片的 3D 底部厚度 */
+            font-weight: bold !important;
+            border-radius: 10px !important;
+            padding: 10px 24px !important;
+            width: 100%;
+            box-shadow: 0 5px 0 #c9a6f0, 0 8px 16px rgba(106,13,173,0.1) !important;
+            transform: translateY(0);
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease !important;
+        }
+        div.stDownloadButton > button:hover {
+            background: linear-gradient(180deg, #ffffff 0%, #eee3fa 100%) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #c9a6f0, 0 14px 22px rgba(106,13,173,0.18) !important;
+            border-color: #c9a6f0 !important;
+        }
+        div.stDownloadButton > button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #c9a6f0, 0 4px 8px rgba(106,13,173,0.15) !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
         col_back, col_export = st.columns(2)
         with col_back:
-            if st.button("⬅️ Back to Input", use_container_width=True):
+            if st.button(" Back to Input", use_container_width=True):
                 st.session_state.show_prediction = False
                 st.rerun()
         with col_export:
             st.download_button(
-                label="📥 Export Result (CSV)",
+                label=" Export Result (CSV)",
                 data=csv_data,
                 file_name=f"player_prediction_{selected_model_name.replace(' ', '_').lower()}.csv",
                 mime="text/csv",
