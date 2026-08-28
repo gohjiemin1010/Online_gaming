@@ -1443,7 +1443,7 @@ with tab_pred:
         st.markdown("#### 1. Input Player Features")
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-            selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=0)
+            selected_model_name = st.selectbox(" Select Prediction Model", list(models_dict.keys()), index=0)
 
             c_in1, c_in2 = st.columns(2)
             with c_in1:
