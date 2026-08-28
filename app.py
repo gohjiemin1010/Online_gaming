@@ -21,6 +21,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 # ==========================================
 st.set_page_config(page_title="Online Gaming Analytics", page_icon="🎮", layout="wide")
 
+# Set Seaborn theme
 sns.set_theme(style="white", context="notebook", font_scale=1.1)
 plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
@@ -64,22 +65,25 @@ div.stButton > button {
     width: 100%;
 }
 div.stButton > button:hover { background-color: #5b0b9c !important; }
+</style>
+""", unsafe_allow_html=True)
 
-/* ==========================================
-   PREMIUM HEADER & STICKY LOGIC
-========================================== */
+# ==========================================
+# PREMIUM HEADER
+# ==========================================
 
-/* Target Streamlit's outer container to force sticky behavior */
-div[data-testid="element-container"]:has(.gaming-header) {
-    position: sticky;
-    top: 2.8rem;
-    z-index: 9999;
-}
+st.markdown("""
+<style>
+
+/* ---------- MAIN HEADER ---------- */
 
 .gaming-header {
+    position: sticky;      
+    top: 2.8rem;           
+    z-index: 9999;         
+    
     width: 100%;
-    /* INCREASED PADDING TO MAKE THE HEADER TALLER */
-    padding: 55px 35px 50px 35px;  
+    padding: 45px 35px 40px 35px;  
     margin-bottom: 25px;
     border-radius: 22px;
     overflow: hidden;
@@ -90,6 +94,8 @@ div[data-testid="element-container"]:has(.gaming-header) {
     box-shadow: 0 15px 45px rgba(72, 0, 120, 0.25);
 }
 
+/* Decorative glow */
+
 .gaming-header::before {
     content: "";
     position: absolute;
@@ -98,6 +104,7 @@ div[data-testid="element-container"]:has(.gaming-header) {
     right: -100px;
     top: -130px;
     border-radius: 50%;
+
     background: rgba(190, 120, 255, 0.15);
     filter: blur(20px);
 }
@@ -107,25 +114,43 @@ div[data-testid="element-container"]:has(.gaming-header) {
     position: absolute;
     bottom: 0;
     left: 0;
+
     width: 100%;
     height: 3px;
-    background: linear-gradient(90deg, #6A0DAD, #b45cff, #6A0DAD);
+
+    background: linear-gradient(
+        90deg,
+        #6A0DAD,
+        #b45cff,
+        #6A0DAD
+    );
+
     background-size: 200% 100%;
     animation: gradientMove 4s linear infinite;
 }
 
 @keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 200% 50%;
+    }
 }
+
+/* Header content */
 
 .header-content {
     position: relative;
     z-index: 2;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
+
+/* Logo */
 
 .logo-area {
     display: flex;
@@ -136,15 +161,30 @@ div[data-testid="element-container"]:has(.gaming-header) {
 .logo-icon {
     width: 65px;
     height: 65px;
+
     border-radius: 18px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     font-size: 34px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05));
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,0.18),
+            rgba(255,255,255,0.05)
+        );
+
     border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25), inset 0 0 20px rgba(255,255,255,0.05);
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,0.25),
+        inset 0 0 20px rgba(255,255,255,0.05);
 }
+
+/* Title */
 
 .header-title {
     margin: 0;
@@ -160,6 +200,8 @@ div[data-testid="element-container"]:has(.gaming-header) {
     font-size: 14px;
     letter-spacing: 0.5px;
 }
+
+/* Status */
 
 .header-status {
     display: flex;
@@ -190,6 +232,23 @@ div[data-testid="element-container"]:has(.gaming-header) {
     animation: pulse 2s infinite;
 }
 
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Dataset badge */
+
 .dataset-badge {
     padding: 8px 14px;
     border-radius: 20px;
@@ -198,63 +257,6 @@ div[data-testid="element-container"]:has(.gaming-header) {
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1);
 }
-
-/* ==========================================
-   TABS STICKY LOGIC
-========================================== */
-div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    position: sticky;
-    top: 230px; /* Aligned right below the taller header */
-    z-index: 9998;
-    background-color: white;
-    padding-top: 15px; 
-    padding-bottom: 15px;
-    margin-top: -15px;
-    gap: 12px;
-    border-bottom: none;
-}
-
-.stTabs [data-baseweb="tab"] {
-    height: 78px;
-    padding: 8px 25px;
-    border-radius: 16px;
-    background: #f7f5fa;
-    border: 1px solid #eeeeee;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.stTabs [data-baseweb="tab"]:hover {
-    transform: translateY(-3px);
-    background: #faf7ff;
-    border-color: #d9c2ef;
-    box-shadow: 0 8px 20px rgba(106,13,173,0.10);
-}
-
-.stTabs [data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, #f7efff, #ffffff);
-    border: 1px solid #c99bea;
-    box-shadow: 0 8px 25px rgba(106,13,173,0.16);
-    transform: translateY(-3px);
-}
-
-.stTabs [data-baseweb="tab-highlight"] { display: none !important; }
-.stTabs [data-baseweb="tab"] p { font-size: 15px !important; font-weight: 700 !important; color: #777 !important; margin: 0 !important; }
-.stTabs [data-baseweb="tab"][aria-selected="true"] p { color: #6A0DAD !important; }
-
-.stTabs [data-baseweb="tab"][aria-selected="true"]::after {
-    content: "";
-    position: absolute;
-    bottom: -10px;
-    left: 30%;
-    width: 40%;
-    height: 4px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #6A0DAD, #b45cff);
-    box-shadow: 0 0 10px rgba(106,13,173,0.45);
-}
-
-.stTabs [data-baseweb="tab-panel"] { padding-top: 25px; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -503,11 +505,13 @@ def generate_eda_slider_html(images_b64, titles, details):
           border-radius: 20px; 
       }}
 
+      /* Coverflow states */
       .slide.active {{ transform: translateX(0) scale(1) translateZ(0); opacity: 1; z-index: 10; cursor: pointer; }}
       .slide.left-1 {{ transform: translateX(-65%) scale(0.8) translateZ(-150px) rotateY(15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
       .slide.right-1 {{ transform: translateX(65%) scale(0.8) translateZ(-150px) rotateY(-15deg); opacity: 0.5; z-index: 5; pointer-events: none; }}
       .slide.hidden {{ transform: translateX(0) scale(0.6) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
 
+      /* Flip Card Logic */
       .card-inner {{
           position: relative; width: 100%; height: 100%;
           transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
@@ -549,6 +553,7 @@ def generate_eda_slider_html(images_b64, titles, details):
           transition: 0.3s;
       }}
       
+      /* Navigation Arrows */
       .nav-btn {{
           position: absolute; top: 50%; transform: translateY(-50%);
           width: 50px; height: 50px; border-radius: 25px;
@@ -576,7 +581,7 @@ def generate_eda_slider_html(images_b64, titles, details):
 
         function updateSlides() {{
             slides.forEach((slide, index) => {{
-                slide.className = 'slide eda-slide'; 
+                slide.className = 'slide eda-slide'; // clear states
                 if (index === currentIndex) {{
                     slide.classList.add('active');
                 }} else if (index === (currentIndex - 1 + slides.length) % slides.length) {{
@@ -590,8 +595,11 @@ def generate_eda_slider_html(images_b64, titles, details):
         }}
 
         function move(dir, event) {{
-            if(event) event.stopPropagation(); 
+            if(event) event.stopPropagation(); // Prevent flipping when clicking arrows
+            
+            // Remove flip state from current before moving
             slides[currentIndex].classList.remove('flipped');
+            
             currentIndex = (currentIndex + dir + slides.length) % slides.length;
             updateSlides();
         }}
@@ -602,6 +610,7 @@ def generate_eda_slider_html(images_b64, titles, details):
             }}
         }}
 
+        // Swipe support for touch devices
         let startX = 0;
         const slider = document.getElementById('slider');
         slider.addEventListener('touchstart', e => {{
@@ -625,6 +634,7 @@ def generate_3d_slider_html():
     slides_html = ""
 
     for model_name in perf_models_list:
+        # 1. Classification Report Table (HTML)
         report_data = classification_reports[model_name]
 
         report_rows = ""
@@ -640,6 +650,7 @@ def generate_3d_slider_html():
         </table>
         """
 
+        # 2. Confusion Matrix Base64
         cm = confusion_matrices[model_name]
         fig_cm, ax_cm = plt.subplots(figsize=(5, 3.2))
         sns.heatmap(cm, annot=True, fmt="d", cmap=confusion_colors[model_name], xticklabels=["Low", "Medium", "High"], yticklabels=["Low", "Medium", "High"], ax=ax_cm, cbar=False)
@@ -648,6 +659,7 @@ def generate_3d_slider_html():
         plt.tight_layout()
         cm_b64 = fig_to_base64(fig_cm)
 
+        # 3. ROC Curve Base64
         fig_roc, ax_roc = plt.subplots(figsize=(5, 3.2))
         roc_colors = {"Low": "red", "Medium": "orange", "High": "green"}
         for cls, color in roc_colors.items():
@@ -661,6 +673,7 @@ def generate_3d_slider_html():
         plt.tight_layout()
         roc_b64 = fig_to_base64(fig_roc)
 
+        # 4. Feature Importance Base64
         style = feature_importance_style[model_name]
         feat_imp = pd.Series(feature_importance_data[model_name]).sort_values(ascending=True)
         fig_feat, ax_feat = plt.subplots(figsize=(5, 3.2))
@@ -670,6 +683,7 @@ def generate_3d_slider_html():
         plt.tight_layout()
         feat_b64 = fig_to_base64(fig_feat)
 
+        # Build Slide Template
         accuracy_percent = report_data["accuracy"]
         slides_html += f"""
         <div class="slide">
@@ -698,6 +712,7 @@ def generate_3d_slider_html():
         </div>
         """
 
+    # Assemble Full Widget HTML
     widget_html = f"""
     <!DOCTYPE html>
     <html>
@@ -719,6 +734,7 @@ def generate_3d_slider_html():
           padding: 20px 30px; box-sizing: border-box;
       }}
 
+      /* Active state is flat and centered */
       .slide.active {{ 
           transform: translateX(0) scale(1) translateZ(0); 
           opacity: 1; z-index: 10; 
@@ -726,6 +742,7 @@ def generate_3d_slider_html():
           border-top: 6px solid #6A0DAD; 
       }}
 
+      /* Adjacent models peek out with 3D rotation */
       .slide.left-1 {{ transform: translateX(-105%) scale(0.85) translateZ(-150px) rotateY(15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
       .slide.right-1 {{ transform: translateX(105%) scale(0.85) translateZ(-150px) rotateY(-15deg); opacity: 0.3; z-index: 5; pointer-events: none; border-top: 4px solid #aaa; box-shadow: 0 5px 20px rgba(0,0,0,0.1);}}
       .slide.hidden {{ transform: translateX(0) scale(0.6) translateZ(-400px); opacity: 0; z-index: 1; pointer-events: none; }}
@@ -755,6 +772,7 @@ def generate_3d_slider_html():
       th {{ font-weight: 600; color: #555; background: #fafafa; }}
       .highlight td {{ font-weight: bold; background: #fdfdfd; border-top: 2px solid #ddd; }}
 
+      /* Navigation Arrows */
       .nav-btn {{
           position: absolute; top: 50%; transform: translateY(-50%);
           width: 50px; height: 50px; border-radius: 25px;
@@ -779,11 +797,11 @@ def generate_3d_slider_html():
       </div>
       <script>
         const slides = document.querySelectorAll('.slide');
-        let currentIndex = 3; 
+        let currentIndex = 3; // Starts at XGBoost
 
         function updateSlides() {{
             slides.forEach((slide, index) => {{
-                slide.className = 'slide'; 
+                slide.className = 'slide'; // clear previous classes
                 if (index === currentIndex) {{
                     slide.classList.add('active');
                 }} else if (index === (currentIndex - 1 + slides.length) % slides.length) {{
@@ -801,12 +819,175 @@ def generate_3d_slider_html():
             updateSlides();
         }}
 
+        // Setup initial display
         updateSlides();
       </script>
     </body>
     </html>
     """
     return widget_html
+
+
+# ==========================================
+# PREMIUM NAVIGATION TABS
+# ==========================================
+
+st.markdown("""
+<style>
+
+div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
+    position: sticky;
+    top: 165px; 
+    z-index: 9998;
+    background-color: white;
+    padding-top: 15px; 
+    padding-bottom: 15px;
+    margin-top: -15px;
+}
+
+/* Tab container */
+
+.stTabs [data-baseweb="tab-list"] {
+
+    gap: 12px;
+
+    background: transparent;
+
+    padding: 5px 5px 12px 5px;
+
+    border-bottom: none;
+}
+
+
+/* Individual tabs */
+
+.stTabs [data-baseweb="tab"] {
+
+    height: 78px;
+
+    padding: 8px 25px;
+
+    border-radius: 16px;
+
+    background: #f7f5fa;
+
+    border: 1px solid #eeeeee;
+
+    transition:
+        all 0.3s ease;
+
+    position: relative;
+}
+
+
+/* Hover */
+
+.stTabs [data-baseweb="tab"]:hover {
+
+    transform: translateY(-3px);
+
+    background: #faf7ff;
+
+    border-color: #d9c2ef;
+
+    box-shadow:
+        0 8px 20px rgba(106,13,173,0.10);
+}
+
+
+/* Active tab */
+
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+
+    background:
+        linear-gradient(
+            135deg,
+            #f7efff,
+            #ffffff
+        );
+
+    border:
+        1px solid #c99bea;
+
+    box-shadow:
+        0 8px 25px rgba(106,13,173,0.16);
+
+    transform: translateY(-3px);
+}
+
+
+/* Remove default underline */
+
+.stTabs [data-baseweb="tab-highlight"] {
+
+    display: none !important;
+}
+
+
+/* Tab text */
+
+.stTabs [data-baseweb="tab"] p {
+
+    font-size: 15px !important;
+
+    font-weight: 700 !important;
+
+    color: #777 !important;
+
+    margin: 0 !important;
+}
+
+
+/* Active text */
+
+.stTabs [data-baseweb="tab"][aria-selected="true"] p {
+
+    color: #6A0DAD !important;
+
+}
+
+
+/* Bottom active indicator */
+
+.stTabs [data-baseweb="tab"][aria-selected="true"]::after {
+
+    content: "";
+
+    position: absolute;
+
+    bottom: -10px;
+
+    left: 30%;
+
+    width: 40%;
+
+    height: 4px;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #6A0DAD,
+            #b45cff
+        );
+
+    box-shadow:
+        0 0 10px rgba(106,13,173,0.45);
+}
+
+
+/* Content spacing */
+
+.stTabs [data-baseweb="tab-panel"] {
+
+    padding-top: 25px;
+
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 tab_eda, tab_perf, tab_pred = st.tabs([
     "  DATA ANALYSIS",
@@ -831,6 +1012,7 @@ with tab_eda:
 
     st.markdown("---")
 
+    # Render seamless HTML/JS interactive component for the Graphs
     st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to navigate. <b>Click on a graph</b> to view its detailed insights.</p>", unsafe_allow_html=True)
     
     eda_slider_html = generate_eda_slider_html(images_b64, graph_titles, graph_details)
@@ -866,12 +1048,17 @@ with tab_eda:
                 vc.columns = [col, 'Count']
                 st.dataframe(vc, hide_index=True, use_container_width=True)
 
+
 # ------------------------------------------
 # TAB 2: Model Performance
 # ------------------------------------------
 with tab_perf:
  
     st.markdown("### Model Performance Evaluation")
+ 
+    # =========================================================
+    # 1. HORIZONTAL MODEL BUTTON BAR
+    # =========================================================
  
     performance_models = [
         "Logistic Regression",
@@ -880,15 +1067,19 @@ with tab_perf:
         "XGBoost"
     ]
  
+    # Default selected model
     if "performance_model" not in st.session_state:
         st.session_state.performance_model = "XGBoost"
  
     current_perf_model = st.session_state.performance_model
  
+    # Four horizontal buttons
     btn_cols = st.columns(4)
  
     for i, model_name in enumerate(performance_models):
         with btn_cols[i]:
+ 
+            # Add check mark to currently selected model
             button_label = (
                 f"✓ {model_name}"
                 if current_perf_model == model_name
@@ -907,20 +1098,181 @@ with tab_perf:
  
     st.markdown("---")
  
+    # =========================================================
+    # 2. NOTEBOOK-BASED CLASSIFICATION REPORTS
+    # =========================================================
+ 
     classification_reports = {
-        "Logistic Regression": {"Low": {"precision": 0.89, "recall": 0.90, "f1-score": 0.90, "support": 2065}, "Medium": {"precision": 0.89, "recall": 0.92, "f1-score": 0.90, "support": 3875}, "High": {"precision": 0.95, "recall": 0.88, "f1-score": 0.91, "support": 2067}, "macro avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "weighted avg": {"precision": 0.91, "recall": 0.90, "f1-score": 0.90, "support": 8007}, "accuracy": 0.9040},
-        "Random Forest": {"Low": {"precision": 0.95, "recall": 0.96, "f1-score": 0.96, "support": 2065}, "Medium": {"precision": 0.94, "recall": 0.96, "f1-score": 0.95, "support": 3875}, "High": {"precision": 0.97, "recall": 0.92, "f1-score": 0.94, "support": 2067}, "macro avg": {"precision": 0.96, "recall": 0.95, "f1-score": 0.95, "support": 8007}, "weighted avg": {"precision": 0.95, "recall": 0.95, "f1-score": 0.95, "support": 8007}, "accuracy": 0.9510},
-        "KNN": {"Low": {"precision": 0.93, "recall": 0.71, "f1-score": 0.80, "support": 2065}, "Medium": {"precision": 0.78, "recall": 0.96, "f1-score": 0.86, "support": 3875}, "High": {"precision": 0.96, "recall": 0.78, "f1-score": 0.86, "support": 2067}, "macro avg": {"precision": 0.89, "recall": 0.81, "f1-score": 0.84, "support": 8007}, "weighted avg": {"precision": 0.86, "recall": 0.85, "f1-score": 0.84, "support": 8007}, "accuracy": 0.8461},
-        "XGBoost": {"Low": {"precision": 0.97, "recall": 0.98, "f1-score": 0.97, "support": 2065}, "Medium": {"precision": 0.96, "recall": 0.97, "f1-score": 0.97, "support": 3875}, "High": {"precision": 0.98, "recall": 0.95, "f1-score": 0.97, "support": 2067}, "macro avg": {"precision": 0.97, "recall": 0.97, "f1-score": 0.97, "support": 8007}, "weighted avg": {"precision": 0.97, "recall": 0.97, "f1-score": 0.97, "support": 8007}, "accuracy": 0.9694}
+ 
+        "Logistic Regression": {
+            "Low": {
+                "precision": 0.89,
+                "recall": 0.90,
+                "f1-score": 0.90,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.89,
+                "recall": 0.92,
+                "f1-score": 0.90,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.95,
+                "recall": 0.88,
+                "f1-score": 0.91,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.91,
+                "recall": 0.90,
+                "f1-score": 0.90,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.91,
+                "recall": 0.90,
+                "f1-score": 0.90,
+                "support": 8007
+            },
+            "accuracy": 0.9040
+        },
+ 
+        "Random Forest": {
+            "Low": {
+                "precision": 0.95,
+                "recall": 0.96,
+                "f1-score": 0.96,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.94,
+                "recall": 0.96,
+                "f1-score": 0.95,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.97,
+                "recall": 0.92,
+                "f1-score": 0.94,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.96,
+                "recall": 0.95,
+                "f1-score": 0.95,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.95,
+                "recall": 0.95,
+                "f1-score": 0.95,
+                "support": 8007
+            },
+            "accuracy": 0.9510
+        },
+ 
+        "KNN": {
+            "Low": {
+                "precision": 0.93,
+                "recall": 0.71,
+                "f1-score": 0.80,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.78,
+                "recall": 0.96,
+                "f1-score": 0.86,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.96,
+                "recall": 0.78,
+                "f1-score": 0.86,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.89,
+                "recall": 0.81,
+                "f1-score": 0.84,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.86,
+                "recall": 0.85,
+                "f1-score": 0.84,
+                "support": 8007
+            },
+            "accuracy": 0.8461
+        },
+ 
+        "XGBoost": {
+            "Low": {
+                "precision": 0.97,
+                "recall": 0.98,
+                "f1-score": 0.97,
+                "support": 2065
+            },
+            "Medium": {
+                "precision": 0.96,
+                "recall": 0.97,
+                "f1-score": 0.97,
+                "support": 3875
+            },
+            "High": {
+                "precision": 0.98,
+                "recall": 0.95,
+                "f1-score": 0.97,
+                "support": 2067
+            },
+            "macro avg": {
+                "precision": 0.97,
+                "recall": 0.97,
+                "f1-score": 0.97,
+                "support": 8007
+            },
+            "weighted avg": {
+                "precision": 0.97,
+                "recall": 0.97,
+                "f1-score": 0.97,
+                "support": 8007
+            },
+            "accuracy": 0.9694
+        }
     }
+ 
+    # =========================================================
+    # 3. NOTEBOOK-BASED CONFUSION MATRICES
+    # =========================================================
  
     confusion_matrices = {
-        "Logistic Regression": np.array([[1867, 198, 0], [220, 3555, 100], [6, 245, 1816]]),
-        "Random Forest": np.array([[1990, 75, 0], [94, 3731, 50], [0, 173, 1894]]),
-        "KNN": np.array([[1461, 603, 1], [102, 3708, 65], [13, 448, 1606]]),
-        "XGBoost": np.array([[2020, 45, 0], [70, 3773, 32], [0, 98, 1969]])
+ 
+        "Logistic Regression": np.array([
+            [1867, 198, 0],
+            [220, 3555, 100],
+            [6, 245, 1816]
+        ]),
+ 
+        "Random Forest": np.array([
+            [1990, 75, 0],
+            [94, 3731, 50],
+            [0, 173, 1894]
+        ]),
+ 
+        "KNN": np.array([
+            [1461, 603, 1],
+            [102, 3708, 65],
+            [13, 448, 1606]
+        ]),
+ 
+        "XGBoost": np.array([
+            [2020, 45, 0],
+            [70, 3773, 32],
+            [0, 98, 1969]
+        ])
     }
  
+    # Exact color schemes used in notebook
     confusion_colors = {
         "Logistic Regression": "Blues",
         "Random Forest": "Greens",
@@ -928,9 +1280,15 @@ with tab_perf:
         "XGBoost": "OrRd"
     }
  
+    # =========================================================
+    # 4. MODEL TITLE + ACCURACY
+    # =========================================================
+ 
     selected_report = classification_reports[selected_perf_model]
  
-    st.markdown(f"### {selected_perf_model}")
+    st.markdown(
+        f"### {selected_perf_model}"
+    )
  
     model_accuracy = selected_report["accuracy"]
  
@@ -939,13 +1297,25 @@ with tab_perf:
         value=f"{model_accuracy:.2%}"
     )
  
+    # =========================================================
+    # 5. CLASSIFICATION REPORT + CONFUSION MATRIX
+    # =========================================================
+ 
     report_col, cm_col = st.columns([1, 1])
  
+    # ---------------------------------------------------------
+    # LEFT: CLASSIFICATION REPORT
+    # ---------------------------------------------------------
     with report_col:
+ 
         st.markdown("#### Classification Report")
+ 
         report_rows = []
+ 
+        # Class rows
         for class_name in ["Low", "Medium", "High"]:
             row = selected_report[class_name]
+ 
             report_rows.append({
                 "Class": class_name,
                 "Precision": row["precision"],
@@ -954,6 +1324,7 @@ with tab_perf:
                 "Support": row["support"]
             })
  
+        # Accuracy row
         report_rows.append({
             "Class": "Accuracy",
             "Precision": np.nan,
@@ -962,7 +1333,9 @@ with tab_perf:
             "Support": 8007
         })
  
+        # Macro Average
         macro = selected_report["macro avg"]
+ 
         report_rows.append({
             "Class": "Macro Avg",
             "Precision": macro["precision"],
@@ -971,7 +1344,9 @@ with tab_perf:
             "Support": macro["support"]
         })
  
+        # Weighted Average
         weighted = selected_report["weighted avg"]
+ 
         report_rows.append({
             "Class": "Weighted Avg",
             "Precision": weighted["precision"],
@@ -993,9 +1368,15 @@ with tab_perf:
             hide_index=True
         )
  
+    # ---------------------------------------------------------
+    # RIGHT: CONFUSION MATRIX
+    # ---------------------------------------------------------
     with cm_col:
+ 
         st.markdown("#### Confusion Matrix")
+ 
         cm = confusion_matrices[selected_perf_model]
+ 
         fig_cm, ax_cm = plt.subplots(figsize=(6, 5))
  
         sns.heatmap(
@@ -1020,7 +1401,12 @@ with tab_perf:
         ax_cm.set_ylabel("Actual Engagement", fontsize=11)
  
         plt.tight_layout()
+ 
         st.pyplot(fig_cm, use_container_width=True)
+ 
+    # =========================================================
+    # 5b. ROC CURVE DATA (per-class AUC read from notebook plots)
+    # =========================================================
  
     roc_auc_scores = {
         "Logistic Regression": {"Low": 0.98, "Medium": 0.94, "High": 0.96},
@@ -1032,6 +1418,14 @@ with tab_perf:
     roc_class_colors = {"Low": "red", "Medium": "orange", "High": "green"}
  
     def generate_roc_curve(target_auc, n_points=300):
+        """
+        Reconstructs a smooth ROC curve shaped to hit an exact target AUC,
+        using the standard binormal ROC model. The notebook's roc_curve()
+        call produced thousands of raw (fpr, tpr) points from the test-set
+        probabilities that aren't stored anywhere except inside the plotted
+        PNG, so this regenerates a curve visually equivalent to the
+        notebook's, calibrated to the exact AUC the notebook reported.
+        """
         target_auc = min(max(target_auc, 0.5001), 0.9999)
         a = np.sqrt(2) * norm.ppf(target_auc)
         fpr = np.linspace(0.0001, 0.9999, n_points)
@@ -1040,6 +1434,10 @@ with tab_perf:
         fpr = np.concatenate([[0.0], fpr, [1.0]])
         tpr = np.concatenate([[0.0], tpr, [1.0]])
         return fpr, tpr
+ 
+    # =========================================================
+    # 5c. FEATURE IMPORTANCE DATA (read from notebook plots)
+    # =========================================================
  
     feature_importance_data = {
         "Logistic Regression": {
@@ -1092,6 +1490,7 @@ with tab_perf:
         },
     }
  
+    # Exact bar color + axis label + title used per model in the notebook
     feature_importance_style = {
         "Logistic Regression": {
             "color": "teal",
@@ -1117,8 +1516,13 @@ with tab_perf:
   
     roc_col, feat_col = st.columns([1, 1])
  
+    # ---------------------------------------------------------
+    # LEFT: MULTI-CLASS ROC CURVE
+    # ---------------------------------------------------------
     with roc_col:
+ 
         st.markdown("#### Multi-Class ROC Curve")
+ 
         fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
  
         for class_name, color in roc_class_colors.items():
@@ -1141,16 +1545,23 @@ with tab_perf:
         ax_roc.legend(loc="lower right")
  
         plt.tight_layout()
+ 
         st.pyplot(fig_roc, use_container_width=True)
  
+    # ---------------------------------------------------------
+    # RIGHT: TOP 10 FEATURE IMPORTANCE
+    # ---------------------------------------------------------
     with feat_col:
+ 
         style = feature_importance_style[selected_perf_model]
+ 
         st.markdown(f"#### {style['title']}")
  
         feat_imp = pd.Series(feature_importance_data[selected_perf_model])
         feat_imp = feat_imp.sort_values(ascending=True)
  
         fig_feat, ax_feat = plt.subplots(figsize=(6, 5))
+ 
         feat_imp.plot(kind="barh", ax=ax_feat, color=style["color"])
  
         ax_feat.set_title(
@@ -1160,24 +1571,33 @@ with tab_perf:
         ax_feat.set_xlabel(style["xlabel"], fontsize=11)
  
         plt.tight_layout()
+ 
         st.pyplot(fig_feat, use_container_width=True)
  
+    # =========================================================
+    # 6. MODEL PARAMETERS FROM NOTEBOOK
+    # =========================================================
+ 
     model_parameters = {
+ 
         "Logistic Regression": {
             "Regularization (C)": "0.1",
             "Solver": "lbfgs"
         },
+ 
         "Random Forest": {
             "Trees (n_estimators)": "100",
             "Max Depth": "20",
             "Min Samples Split": "5",
             "Min Samples Leaf": "2"
         },
+ 
         "KNN": {
             "K (n_neighbors)": "43",
             "Weights": "uniform",
             "Metric": "manhattan"
         },
+ 
         "XGBoost": {
             "Max Depth": "7",
             "Learning Rate": "0.1",
@@ -1186,15 +1606,23 @@ with tab_perf:
     }
  
     with st.expander("⚙️ Optimized Hyperparameters", expanded=False):
+ 
         params = model_parameters[selected_perf_model]
+ 
         param_cols = st.columns(len(params))
+ 
         for i, (param_name, param_value) in enumerate(params.items()):
             with param_cols[i]:
                 st.metric(param_name, param_value)
  
+    # =========================================================
+    # 7. SUMMARY OF ALL MODELS
+    # =========================================================
+ 
     st.markdown("---")
     st.markdown("##  Overall Model Comparison")
  
+    # Exact values from the notebook final comparison
     comparison_df = pd.DataFrame({
         "Model": [
             "Logistic Regression",
@@ -1202,21 +1630,64 @@ with tab_perf:
             "KNN",
             "XGBoost"
         ],
-        "Accuracy": [0.9040, 0.9510, 0.8461, 0.9694],
-        "Precision": [0.9051, 0.9516, 0.8641, 0.9696],
-        "Recall": [0.9040, 0.9510, 0.8461, 0.9694],
-        "F1-Score": [0.9041, 0.9510, 0.8444, 0.9694],
-        "AUC": [0.9571, 0.9852, 0.9404, 0.9892]
+        "Accuracy": [
+            0.9040,
+            0.9510,
+            0.8461,
+            0.9694
+        ],
+        "Precision": [
+            0.9051,
+            0.9516,
+            0.8641,
+            0.9696
+        ],
+        "Recall": [
+            0.9040,
+            0.9510,
+            0.8461,
+            0.9694
+        ],
+        "F1-Score": [
+            0.9041,
+            0.9510,
+            0.8444,
+            0.9694
+        ],
+        "AUC": [
+            0.9571,
+            0.9852,
+            0.9404,
+            0.9892
+        ]
     })
  
-    st.markdown("#### Performance Summary Table")
-    summary_display = comparison_df.copy()
-    for col in ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]:
-        summary_display[col] = summary_display[col].map(lambda x: f"{x:.2%}")
+    # ---------------------------------------------------------
+    # SUMMARY TABLE
+    # ---------------------------------------------------------
  
-    st.dataframe(summary_display, use_container_width=True, hide_index=True)
+    st.markdown("#### Performance Summary Table")
+ 
+    summary_display = comparison_df.copy()
+ 
+    for col in ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]:
+        summary_display[col] = summary_display[col].map(
+            lambda x: f"{x:.2%}"
+        )
+ 
+    st.dataframe(
+        summary_display,
+        use_container_width=True,
+        hide_index=True
+    )
+ 
+    # ---------------------------------------------------------
+    # SUMMARY GRAPH
+    # ---------------------------------------------------------
  
     st.markdown("#### Final Algorithm Comparison")
+ 
+    # Convert to long format exactly like notebook
     plot_df = comparison_df.melt(
         id_vars="Model",
         value_vars=["Accuracy", "F1-Score", "AUC"],
@@ -1225,27 +1696,59 @@ with tab_perf:
     )
  
     fig_summary, ax_summary = plt.subplots(figsize=(12, 7))
+ 
     sns.barplot(
-        data=plot_df, x="Model", y="Score", hue="Metric",
-        palette="viridis", ax=ax_summary
+        data=plot_df,
+        x="Model",
+        y="Score",
+        hue="Metric",
+        palette="viridis",
+        ax=ax_summary
     )
  
     ax_summary.set_title(
         "Final Algorithm Comparison: Accuracy, F1-Score & AUC",
-        fontsize=16, fontweight="bold", pad=15
+        fontsize=16,
+        fontweight="bold",
+        pad=15
     )
-    ax_summary.set_xlabel("Machine Learning Model", fontsize=12)
-    ax_summary.set_ylabel("Score (0.0 to 1.0)", fontsize=12)
+ 
+    ax_summary.set_xlabel(
+        "Machine Learning Model",
+        fontsize=12
+    )
+ 
+    ax_summary.set_ylabel(
+        "Score (0.0 to 1.0)",
+        fontsize=12
+    )
+ 
     ax_summary.set_ylim(0, 1.15)
  
-    ax_summary.legend(bbox_to_anchor=(1.01, 1), loc="upper left", title="Metrics")
+    # Legend outside the graph
+    ax_summary.legend(
+        bbox_to_anchor=(1.01, 1),
+        loc="upper left",
+        title="Metrics"
+    )
  
+    # Display exact values on top of bars
     for container in ax_summary.containers:
-        ax_summary.bar_label(container, fmt="%.3f", padding=3)
+        ax_summary.bar_label(
+            container,
+            fmt="%.3f",
+            padding=3
+        )
  
     sns.despine()
+ 
     plt.tight_layout()
-    st.pyplot(fig_summary, use_container_width=True)
+ 
+    st.pyplot(
+        fig_summary,
+        use_container_width=True
+    )
+
 
 # ------------------------------------------
 # TAB 3: Prediction Result
@@ -1277,6 +1780,7 @@ with tab_pred:
                 player_level = st.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
 
             achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
+
             predict_btn = st.button("🔮 Predict Engagement", use_container_width=True)
 
     with result_col:
@@ -1318,5 +1822,6 @@ with tab_pred:
                 st.info("**Steady Player.** Good potential for growth. Try offering limited-time quests or unlocking mid-tier achievements.")
             else:
                 st.success("**Highly Engaged!** Ideal target for premium in-game purchases, exclusive VIP events, or beta testing new features.")
+
         else:
             st.info("👈 Please enter player details on the left and click 'Predict Engagement' to see the model's analysis.")
