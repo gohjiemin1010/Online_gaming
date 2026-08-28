@@ -800,35 +800,43 @@ with tab_eda:
         freq_eng = df['EngagementLevel'].mode()[0]
         st.metric("Most Frequent Engagement", freq_eng)
 
-    st.markdown("---")
-    st.markdown("### 📋 Dataset Preview")
-    st.write("Use the +/- buttons or type a number to view more rows.")
-    row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
-    st.dataframe(df.head(row_count), use_container_width=True)
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-    st.markdown("---")
+    # --- Dataset Preview Bento Card ---
+    with st.container(border=True):
+        st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📋 Dataset Preview</span></div>', unsafe_allow_html=True)
+        st.write("Use the +/- buttons or type a number to view more rows.")
+        row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
+        st.dataframe(df.head(row_count), use_container_width=True)
 
-    st.markdown("####  Statistical Summaries")
-    summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-    if summary_choice == "Numerical Summary":
-        st.markdown("**Full Dataset Statistical Profile (Numerical)**")
-        num_desc = df.describe().T
-        num_desc['range'] = num_desc['max'] - num_desc['min']
-        num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
-        display_cols = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'range', 'cv']
-        st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
+    # --- Statistical Summaries Bento Card ---
+    with st.container(border=True):
+        st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📊 Statistical Summaries</span></div>', unsafe_allow_html=True)
+        
+        summary_choice = st.selectbox("Select Summary Type:", ["Numerical Summary", "Categorical Summary"])
 
-    elif summary_choice == "Categorical Summary":
-        st.markdown("**Categorical Features Value Counts**")
-        cat_cols = df.select_dtypes(include=['object']).columns
-        table_cols = st.columns(len(cat_cols))
-        for i, col in enumerate(cat_cols):
-            with table_cols[i]:
-                st.markdown(f"**{col}**")
-                vc = df[col].value_counts().reset_index()
-                vc.columns = [col, 'Count']
-                st.dataframe(vc, hide_index=True, use_container_width=True)
+        if summary_choice == "Numerical Summary":
+            st.markdown("**Full Dataset Statistical Profile (Numerical)**")
+            num_desc = df.describe().T
+            num_desc['range'] = num_desc['max'] - num_desc['min']
+            num_desc['cv'] = (num_desc['std'] / num_desc['mean'] * 100).round(1)
+            display_cols = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'range', 'cv']
+            st.dataframe(num_desc[display_cols].style.format("{:.2f}"), use_container_width=True)
+
+        elif summary_choice == "Categorical Summary":
+            st.markdown("**Categorical Features Value Counts**")
+            cat_cols = df.select_dtypes(include=['object']).columns
+            table_cols = st.columns(len(cat_cols))
+            for i, col in enumerate(cat_cols):
+                with table_cols[i]:
+                    st.markdown(f"**{col}**")
+                    vc = df[col].value_counts().reset_index()
+                    vc.columns = [col, 'Count']
+                    st.dataframe(vc, hide_index=True, use_container_width=True)
 
     st.markdown("---")
 
@@ -839,7 +847,7 @@ with tab_eda:
     components.html(eda_slider_html, height=520, scrolling=False)
 
 
-    # ---- 5. Integrated About Section ----
+    # ---- Integrated About Section ----
     st.markdown("#### About This System")
     st.markdown(f"""
     <div class="about-intro">
@@ -849,7 +857,6 @@ with tab_eda:
     </div>
     """, unsafe_allow_html=True)
     
-    # 移除了圆圈数字
     steps = [
         ("Explore the Data", "Understand player behaviour through distributions and correlations."),
         ("Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
@@ -857,12 +864,11 @@ with tab_eda:
         ("Predict Live", "Enter a player profile and get an instant engagement prediction."),
     ]
     
-    # 4 step columns + 3 thin arrow columns in between
     step_cols = st.columns([1, 0.15, 1, 0.15, 1, 0.15, 1])
     step_idx = 0
     for i, col in enumerate(step_cols):
         with col:
-            if i % 2 == 1:  # arrow slot
+            if i % 2 == 1:
                 st.markdown('<div class="step-arrow">➜</div>', unsafe_allow_html=True)
             else:
                 title, desc = steps[step_idx]
@@ -883,7 +889,6 @@ with tab_eda:
     ]
     badges_html = "".join([f'<span class="tech-badge">{t}</span>' for t in tech_stack])
     st.markdown(f"<div>{badges_html}</div>", unsafe_allow_html=True)
-
 
 # ------------------------------------------
 # TAB 2: Model Performance
