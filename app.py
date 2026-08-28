@@ -27,6 +27,54 @@ plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
+# 🚀 SMART STICKY HEADER JAVASCRIPT LOGIC
+# 注入监听器：往下拉隐藏，往上拉出现
+# ==========================================
+smart_scroll_js = """
+<script>
+const parentWin = window.parent;
+const parentDoc = window.parent.document;
+
+if (!parentWin._smartHeaderInitialized) {
+    let lastScrollY = 0;
+    let ticking = false;
+
+    const scrollHandler = function(e) {
+        if (!ticking) {
+            parentWin.requestAnimationFrame(function() {
+                let currentScrollY = parentWin.scrollY;
+                // 兼容 Streamlit 内部滚动容器
+                if (e.target && e.target.scrollTop !== undefined && e.target.tagName !== 'IFRAME') {
+                    currentScrollY = e.target.scrollTop;
+                }
+
+                // 核心判断逻辑
+                if (currentScrollY <= 80) {
+                    // 到达顶部，全部重置显示
+                    parentDoc.body.classList.remove('hide-smart-header');
+                } else if (currentScrollY > lastScrollY + 15) {
+                    // 往下滚 (加缓冲值防止抖动) -> 隐藏
+                    parentDoc.body.classList.add('hide-smart-header');
+                } else if (currentScrollY < lastScrollY - 15) {
+                    // 往上滚 -> 显示
+                    parentDoc.body.classList.remove('hide-smart-header');
+                }
+                lastScrollY = currentScrollY;
+                ticking = false;
+            });
+            ticking = true;
+        }
+    };
+
+    // 捕获所有的滚动事件
+    parentDoc.addEventListener('scroll', scrollHandler, true);
+    parentWin._smartHeaderInitialized = true;
+}
+</script>
+"""
+components.html(smart_scroll_js, height=0, width=0)
+
+# ==========================================
 # 2. Advanced CSS 
 # ==========================================
 st.markdown("""
@@ -91,22 +139,34 @@ div.stButton > button:focus:not(:active) {
 st.markdown("""
 <style>
 
-/* ---------- MAIN HEADER ---------- */
+/* ---------- 智能吸顶效果核心控制 ---------- */
 
-/* 【修改点 1】利用 :has 伪类直接选中 Streamlit 生成的外层容器，让它负责吸顶 */
+/* 1. 精准抓住 Header 的外层容器让他吸顶 */
 div.element-container:has(.gaming-header) {
-    position: sticky;      
-    top: 2.8rem;            
-    z-index: 9999; 
+    position: sticky !important;
+    top: 1.5rem !important;
+    z-index: 99999 !important;
+    transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
+
+/* 2. 当 JS 检测到往下滑动时，加上隐藏的位移动画 */
+body.hide-smart-header div.element-container:has(.gaming-header) {
+    transform: translateY(-250px) !important;
+}
+
+body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
+    transform: translateY(-350px) !important;
+}
+
+/* ---------- MAIN HEADER ---------- */
 
 .gaming-header {
     width: 100%;
-    /* 轻微缩减了上下的 padding 以节省吸顶时的屏幕垂直空间 */
-    padding: 30px 35px 30px 35px;  
+    padding: 45px 35px 40px 35px;  
     margin-bottom: 25px;
     border-radius: 22px;
     overflow: hidden;
+    position: relative; /* 恢复默认定位 */
 
     background: radial-gradient(circle at 90% 20%, rgba(155, 89, 182, 0.25), transparent 35%),
                 radial-gradient(circle at 10% 80%, rgba(106, 13, 173, 0.18), transparent 35%),
@@ -150,13 +210,8 @@ div.element-container:has(.gaming-header) {
 }
 
 @keyframes gradientMove {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    100% {
-        background-position: 200% 50%;
-    }
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
 }
 
 /* Header content */
@@ -164,7 +219,6 @@ div.element-container:has(.gaming-header) {
 .header-content {
     position: relative;
     z-index: 2;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -181,27 +235,14 @@ div.element-container:has(.gaming-header) {
 .logo-icon {
     width: 65px;
     height: 65px;
-
     border-radius: 18px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     font-size: 34px;
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,255,255,0.18),
-            rgba(255,255,255,0.05)
-        );
-
+    background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05));
     border: 1px solid rgba(255,255,255,0.2);
-
-    box-shadow:
-        0 8px 25px rgba(0,0,0,0.25),
-        inset 0 0 20px rgba(255,255,255,0.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25), inset 0 0 20px rgba(255,255,255,0.05);
 }
 
 /* Title */
@@ -253,18 +294,9 @@ div.element-container:has(.gaming-header) {
 }
 
 @keyframes pulse {
-    0% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.5;
-        transform: scale(0.8);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 /* Dataset badge */
@@ -653,157 +685,81 @@ def generate_eda_slider_html(images_b64, titles, details):
 st.markdown("""
 <style>
 
-/* 【修改点 2】精确调整高度，将背景强制设为纯白，防止滚动内容透出来 */
+/* Tab container - 改为被 JS 控制，完美贴合在 Header 之下 */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    position: sticky;
-    top: 185px; /* 精确计算出的高度，让它紧密贴合在 header 的正下方 */
-    z-index: 9998;
-    background-color: #ffffff; /* 使用不透明纯白色 */
+    position: sticky !important;
+    top: 175px !important; /* 精确计算在 Header 下方 */
+    z-index: 99998 !important;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px); /* 磨砂玻璃效果，增加一点通透感 */
     padding-top: 15px; 
     padding-bottom: 15px;
     margin-top: -15px;
-    /* 可选加一个非常轻柔的底部阴影，让滚动更有立体感 */
-    box-shadow: 0 5px 15px -10px rgba(0,0,0,0.15); 
-}
-
-/* Tab container */
-
-.stTabs [data-baseweb="tab-list"] {
-
-    gap: 12px;
-
-    background: transparent;
-
-    padding: 5px 5px 12px 5px;
-
     border-bottom: none;
+    transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
-
 
 /* Individual tabs */
-
 .stTabs [data-baseweb="tab"] {
-
     height: 78px;
-
     padding: 8px 25px;
-
     border-radius: 16px;
-
     background: #f7f5fa;
-
     border: 1px solid #eeeeee;
-
-    transition:
-        all 0.3s ease;
-
+    transition: all 0.3s ease;
     position: relative;
 }
 
-
 /* Hover */
-
 .stTabs [data-baseweb="tab"]:hover {
-
     transform: translateY(-3px);
-
     background: #faf7ff;
-
     border-color: #d9c2ef;
-
-    box-shadow:
-        0 8px 20px rgba(106,13,173,0.10);
+    box-shadow: 0 8px 20px rgba(106,13,173,0.10);
 }
-
 
 /* Active tab */
-
 .stTabs [data-baseweb="tab"][aria-selected="true"] {
-
-    background:
-        linear-gradient(
-            135deg,
-            #f7efff,
-            #ffffff
-        );
-
-    border:
-        1px solid #c99bea;
-
-    box-shadow:
-        0 8px 25px rgba(106,13,173,0.16);
-
+    background: linear-gradient(135deg, #f7efff, #ffffff);
+    border: 1px solid #c99bea;
+    box-shadow: 0 8px 25px rgba(106,13,173,0.16);
     transform: translateY(-3px);
 }
 
-
 /* Remove default underline */
-
 .stTabs [data-baseweb="tab-highlight"] {
-
     display: none !important;
 }
 
-
 /* Tab text */
-
 .stTabs [data-baseweb="tab"] p {
-
     font-size: 15px !important;
-
     font-weight: 700 !important;
-
     color: #777 !important;
-
     margin: 0 !important;
 }
 
-
 /* Active text */
-
 .stTabs [data-baseweb="tab"][aria-selected="true"] p {
-
     color: #6A0DAD !important;
-
 }
-
 
 /* Bottom active indicator */
-
 .stTabs [data-baseweb="tab"][aria-selected="true"]::after {
-
     content: "";
-
     position: absolute;
-
     bottom: -10px;
-
     left: 30%;
-
     width: 40%;
-
     height: 4px;
-
     border-radius: 10px;
-
-    background:
-        linear-gradient(
-            90deg,
-            #6A0DAD,
-            #b45cff
-        );
-
-    box-shadow:
-        0 0 10px rgba(106,13,173,0.45);
+    background: linear-gradient(90deg, #6A0DAD, #b45cff);
+    box-shadow: 0 0 10px rgba(106,13,173,0.45);
 }
 
-
 /* Content spacing */
-
 .stTabs [data-baseweb="tab-panel"] {
-
     padding-top: 25px;
-
 }
 
 </style>
