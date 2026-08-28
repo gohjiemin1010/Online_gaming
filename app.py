@@ -1357,6 +1357,71 @@ with tab_pred:
     st.markdown("### 🎯 Player Engagement Predictor")
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
 
+    # ==========================================
+    # TAB 3 高级 CSS 设计注入 (契合 Bento Style)
+    # ==========================================
+    st.markdown("""
+    <style>
+    /* 用户输入档案的网格设计 */
+    .profile-snapshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        margin-top: 15px;
+        margin-bottom: 25px;
+    }
+    .profile-item {
+        background: linear-gradient(180deg, #ffffff 0%, #fcfaff 100%);
+        border: 1px solid #eee2f7;
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 10px rgba(106,13,173,0.03);
+        border-bottom: 3px solid #e2c6ff;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .profile-item:hover {
+        border-bottom: 3px solid #6A0DAD;
+        transform: translateY(-2px);
+    }
+    .p-label { color: #8a7a99; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .p-val { color: #3a1050; font-size: 15px; font-weight: 800; }
+    
+    /* 预测结果特大焦点卡片设计 */
+    .pred-hero-card {
+        background: radial-gradient(circle at 90% 50%, rgba(106,13,173,0.08), transparent 50%),
+                    linear-gradient(135deg, #ffffff 0%, #fdfbff 100%);
+        border: 1px solid #eee2f7;
+        border-left: 6px solid #6A0DAD;
+        border-radius: 16px;
+        padding: 25px 30px;
+        margin-top: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 25px rgba(106,13,173,0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .pred-title { color: #8a7a99; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;}
+    .pred-value { color: #3a0a63; font-size: 42px; font-weight: 900; line-height: 1.1; margin-bottom: 8px;}
+    .pred-model-badge { display: inline-block; background: #f0e2ff; color: #6A0DAD; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2c6ff; }
+    
+    /* 预测策略动态卡片设计 */
+    .strategy-card {
+        background: #fffbfa;
+        border: 1px solid #ffe8e3;
+        border-left: 4px solid #ff6b6b;
+        border-radius: 12px;
+        padding: 18px 22px;
+        margin-top: 15px;
+    }
+    .strategy-card.Medium { background: #f4faff; border-color: #dcedff; border-left-color: #3498db; }
+    .strategy-card.High { background: #f4fff8; border-color: #d5ffe4; border-left-color: #2ecc71; }
+    
+    .strategy-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; margin-bottom: 8px; color: #1a1a1a; }
+    .strategy-text { color: #444; font-size: 14.5px; margin: 0; line-height: 1.5; }
+    </style>
+    """, unsafe_allow_html=True)
+
     # 1. 初始化 Session State 来控制页面跳转
     if "show_prediction" not in st.session_state:
         st.session_state.show_prediction = False
@@ -1365,6 +1430,7 @@ with tab_pred:
     if not st.session_state.show_prediction:
         st.markdown("#### 1. Input Player Features")
         with st.container(border=True):
+            st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
             selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=0)
 
             c_in1, c_in2 = st.columns(2)
@@ -1383,6 +1449,8 @@ with tab_pred:
                 player_level = st.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
 
             achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
+            
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
             if st.button("🔮 Predict Engagement", use_container_width=True):
                 # 展现 Loading 动画，并在后台完成模型预测
@@ -1404,6 +1472,21 @@ with tab_pred:
                     classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
                     prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
 
+                    # --- NEW: 保存用户的原始输入数据以便在结果页展示和导出 ---
+                    st.session_state.user_profile = {
+                        "Age": str(age),
+                        "Gender": gender,
+                        "Location": location,
+                        "Game Genre": genre,
+                        "Difficulty": difficulty,
+                        "Play Time": f"{play_time} hrs",
+                        "Purchases": in_purchases_label,
+                        "Sessions": f"{sessions} / wk",
+                        "Avg Session": f"{avg_duration} mins",
+                        "Player Level": str(player_level),
+                        "Achievements": str(achievements)
+                    }
+
                     # 将预测结果存入 session_state
                     st.session_state.prediction = prediction
                     st.session_state.pred_model = selected_model_name
@@ -1413,37 +1496,107 @@ with tab_pred:
                     st.session_state.show_prediction = True
                     st.rerun() # 重新加载组件，直接展示结果
 
-    #  Prediction Insights
+    # 第二页： Prediction Insights (Result & Export)
     else:
         st.markdown("#### 2. Prediction Insights")
+        
+        # --- 模块 A: 还原显示 User Profile (让用户看到他们刚才预测的内容) ---
         with st.container(border=True):
-            # use session_state data
+            st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-header"><span class="dot"></span><span class="label">👤 Player Profile Snapshot</span></div>', unsafe_allow_html=True)
+            
+            profile = st.session_state.user_profile
+            grid_html = '<div class="profile-snapshot-grid">'
+            for k, v in profile.items():
+                grid_html += f'<div class="profile-item"><div class="p-label">{k}</div><div class="p-val">{v}</div></div>'
+            grid_html += '</div>'
+            st.markdown(grid_html, unsafe_allow_html=True)
+
+        st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
+
+        # --- 模块 B: Prediction Result & Graph (美化图表与排版) ---
+        with st.container(border=True):
+            st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
+            
             prediction = st.session_state.prediction
             selected_model_name = st.session_state.pred_model
             prob_df = st.session_state.prob_df
 
-            st.metric(label=f"Predicted Engagement Level", value=prediction, delta=selected_model_name, delta_color="off")
+            # 美化的 Prediction Hero Card
+            icon_map = {"Low": "⚠️", "Medium": "📊", "High": "🔥"}
+            st.markdown(f"""
+            <div class="pred-hero-card">
+                <div>
+                    <div class="pred-title">Predicted Engagement Level</div>
+                    <div class="pred-value">{prediction}</div>
+                    <div class="pred-model-badge">⚡ Powered by {selected_model_name}</div>
+                </div>
+                <div style="font-size: 65px; opacity: 0.9; text-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                    {icon_map.get(prediction, '✨')}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
+            # 更新 Plotly 图表颜色 (Low红色, Medium蓝色, High绿色) 并取消冗杂的背景
+            color_discrete_map = {'Low': '#ff6b6b', 'Medium': '#3498db', 'High': '#2ecc71'}
             fig_prob = px.bar(
                 prob_df, x="Probability", y="Engagement Level", 
                 orientation='h', text_auto='.1%', 
                 color="Engagement Level",
-                color_discrete_map={'Low': '#ff9999', 'Medium': '#66b3ff', 'High': '#99ff99'}
+                color_discrete_map=color_discrete_map
             )
-            fig_prob.update_layout(xaxis=dict(range=[0, 1], tickformat=".0%"), showlegend=False, height=200, margin=dict(l=0, r=0, t=30, b=0))
+            fig_prob.update_layout(
+                xaxis=dict(range=[0, 1], tickformat=".0%", showgrid=True, gridcolor='#f2e6ff'),
+                yaxis=dict(title="", tickfont=dict(size=13, color='#3a0a63')),
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                showlegend=False, 
+                height=200, 
+                margin=dict(l=0, r=0, t=10, b=0)
+            )
             st.plotly_chart(fig_prob, use_container_width=True)
 
-            st.markdown("##### 💡 Actionable Strategy")
+            # --- Actionable Strategy 模块美化 ---
             if prediction == "Low":
-                st.warning("**Retention Risk!** Consider sending re-engagement emails, offering free starter packs, or suggesting easier game modes.")
+                s_icon, s_title = "🚨", "Retention Risk!"
+                s_text = "Consider sending re-engagement emails, offering free starter packs, or suggesting easier game modes."
             elif prediction == "Medium":
-                st.info("**Steady Player.** Good potential for growth. Try offering limited-time quests or unlocking mid-tier achievements.")
+                s_icon, s_title = "📈", "Steady Player"
+                s_text = "Good potential for growth. Try offering limited-time quests or unlocking mid-tier achievements."
             else:
-                st.success("**Highly Engaged!** Ideal target for premium in-game purchases, exclusive VIP events, or beta testing new features.")
+                s_icon, s_title = "⭐", "Highly Engaged!"
+                s_text = "Ideal target for premium in-game purchases, exclusive VIP events, or beta testing new features."
 
-            st.markdown("---")
+            st.markdown(f"""
+            <div class="strategy-card {prediction}">
+                <div class="strategy-title"><span>{s_icon}</span> {s_title}</div>
+                <div class="strategy-text">{s_text}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+
+        # --- 模块 C: Back & Export CSV Buttons (新增导出功能) ---
+        
+        # 准备待导出的 CSV 数据：包含玩家基础特征 + 预测模型 + 结果 + 三个类别的概率
+        export_df = pd.DataFrame([profile])
+        export_df.insert(0, "Prediction_Model", selected_model_name)
+        export_df.insert(1, "Predicted_Engagement", prediction)
+        for index, row in prob_df.iterrows():
+            export_df[f"Prob_{row['Engagement Level']}"] = f"{row['Probability']:.2%}"
             
-            # return predict page
-            if st.button("⬅️ Back to Input)", use_container_width=True):
+        csv_data = export_df.to_csv(index=False).encode('utf-8')
+
+        col_back, col_export = st.columns(2)
+        with col_back:
+            if st.button("⬅️ Back to Input", use_container_width=True):
                 st.session_state.show_prediction = False
                 st.rerun()
+        with col_export:
+            st.download_button(
+                label="📥 Export Result (CSV)",
+                data=csv_data,
+                file_name=f"player_prediction_{selected_model_name.replace(' ', '_').lower()}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
