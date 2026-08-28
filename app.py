@@ -93,13 +93,17 @@ st.markdown("""
 
 /* ---------- MAIN HEADER ---------- */
 
-.gaming-header {
+/* 【修改点 1】利用 :has 伪类直接选中 Streamlit 生成的外层容器，让它负责吸顶 */
+div.element-container:has(.gaming-header) {
     position: sticky;      
-    top: 2.8rem;           
-    z-index: 9999;         
-    
+    top: 2.8rem;            
+    z-index: 9999; 
+}
+
+.gaming-header {
     width: 100%;
-    padding: 45px 35px 40px 35px;  
+    /* 轻微缩减了上下的 padding 以节省吸顶时的屏幕垂直空间 */
+    padding: 30px 35px 30px 35px;  
     margin-bottom: 25px;
     border-radius: 22px;
     overflow: hidden;
@@ -649,14 +653,17 @@ def generate_eda_slider_html(images_b64, titles, details):
 st.markdown("""
 <style>
 
+/* 【修改点 2】精确调整高度，将背景强制设为纯白，防止滚动内容透出来 */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     position: sticky;
-    top: 165px; 
+    top: 185px; /* 精确计算出的高度，让它紧密贴合在 header 的正下方 */
     z-index: 9998;
-    background-color: white;
+    background-color: #ffffff; /* 使用不透明纯白色 */
     padding-top: 15px; 
     padding-bottom: 15px;
     margin-top: -15px;
+    /* 可选加一个非常轻柔的底部阴影，让滚动更有立体感 */
+    box-shadow: 0 5px 15px -10px rgba(0,0,0,0.15); 
 }
 
 /* Tab container */
