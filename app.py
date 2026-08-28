@@ -1473,9 +1473,12 @@ with tab_pred:
     st.markdown("### 🎯 Player Engagement Predictor")
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
 
-    input_col, result_col = st.columns([1, 1.2])
+    # 1. 初始化 Session State 来控制页面跳转
+    if "show_prediction" not in st.session_state:
+        st.session_state.show_prediction = False
 
-    with input_col:
+    # 第一页：只有 Input Player Features
+    if not st.session_state.show_prediction:
         st.markdown("#### 1. Input Player Features")
         with st.container(border=True):
             selected_model_name = st.selectbox("🤖 Select Prediction Model", list(models_dict.keys()), index=0)
@@ -1497,28 +1500,43 @@ with tab_pred:
 
             achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
 
-            predict_btn = st.button("🔮 Predict Engagement", use_container_width=True)
+            if st.button("🔮 Predict Engagement", use_container_width=True):
+                # 展现 Loading 动画，并在后台完成模型预测
+                with st.spinner("Analyzing player profile..."):
+                    time.sleep(0.8) 
 
-    with result_col:
+                    input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
+                                                difficulty, sessions, avg_duration, player_level, achievements]], 
+                                              columns=feature_cols)
+                    for col in ['Gender', 'Location', 'GameGenre', 'GameDifficulty']:
+                        input_data[col] = le_dict[col].transform(input_data[col])
+
+                    input_scaled = scaler.transform(input_data)
+                    model = models_dict[selected_model_name]
+
+                    pred_encoded = model.predict(input_scaled)[0]
+                    prediction = le_dict['EngagementLevel'].inverse_transform([pred_encoded])[0]
+                    probabilities = model.predict_proba(input_scaled)[0]
+                    classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
+                    prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
+
+                    # 将预测结果存入 session_state
+                    st.session_state.prediction = prediction
+                    st.session_state.pred_model = selected_model_name
+                    st.session_state.prob_df = prob_df
+                    
+                    # 切换状态变量，准备跳转第二页
+                    st.session_state.show_prediction = True
+                    st.rerun() # 重新加载组件，直接展示结果
+
+    # 第二页：只有 Prediction Insights
+    else:
         st.markdown("#### 2. Prediction Insights")
-        if predict_btn:
-            with st.spinner("Analyzing player profile..."):
-                time.sleep(0.8) 
-
-            input_data = pd.DataFrame([[age, gender, location, genre, play_time, in_purchases, 
-                                        difficulty, sessions, avg_duration, player_level, achievements]], 
-                                      columns=feature_cols)
-            for col in ['Gender', 'Location', 'GameGenre', 'GameDifficulty']:
-                input_data[col] = le_dict[col].transform(input_data[col])
-
-            input_scaled = scaler.transform(input_data)
-            model = models_dict[selected_model_name]
-
-            pred_encoded = model.predict(input_scaled)[0]
-            prediction = le_dict['EngagementLevel'].inverse_transform([pred_encoded])[0]
-            probabilities = model.predict_proba(input_scaled)[0]
-            classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
-            prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
+        with st.container(border=True):
+            # 从 session_state 中调用刚才计算好的数据
+            prediction = st.session_state.prediction
+            selected_model_name = st.session_state.pred_model
+            prob_df = st.session_state.prob_df
 
             st.metric(label=f"Predicted Engagement Level", value=prediction, delta=selected_model_name, delta_color="off")
 
@@ -1539,5 +1557,9 @@ with tab_pred:
             else:
                 st.success("**Highly Engaged!** Ideal target for premium in-game purchases, exclusive VIP events, or beta testing new features.")
 
-        else:
-            st.info("👈 Please enter player details on the left and click 'Predict Engagement' to see the model's analysis.")
+            st.markdown("---")
+            
+            # 返回按键：重置页面状态
+            if st.button("⬅️ 返回重测 (Back to Input)", use_container_width=True):
+                st.session_state.show_prediction = False
+                st.rerun()
