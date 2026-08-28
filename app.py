@@ -28,7 +28,7 @@ plt.rcParams['axes.spines.right'] = False
 
 # ==========================================
 # 🚀 SMART STICKY HEADER JAVASCRIPT LOGIC
-# 注入监听器：往下拉隐藏，往上拉出现
+# Inject listener: Hide on scroll down, show on scroll up
 # ==========================================
 smart_scroll_js = """
 <script>
@@ -43,20 +43,20 @@ if (!parentWin._smartHeaderInitialized) {
         if (!ticking) {
             parentWin.requestAnimationFrame(function() {
                 let currentScrollY = parentWin.scrollY;
-                // 兼容 Streamlit 内部滚动容器
+                // Compatible with Streamlit internal scroll container
                 if (e.target && e.target.scrollTop !== undefined && e.target.tagName !== 'IFRAME') {
                     currentScrollY = e.target.scrollTop;
                 }
 
-                // 核心判断逻辑
+                // Core detection logic
                 if (currentScrollY <= 80) {
-                    // 到达顶部，全部重置显示
+                    // Reached the top, reset all to show
                     parentDoc.body.classList.remove('hide-smart-header');
                 } else if (currentScrollY > lastScrollY + 15) {
-                    // 往下滚 (加缓冲值防止抖动) -> 隐藏
+                    // Scrolling down (added buffer to prevent jittering) -> hide
                     parentDoc.body.classList.add('hide-smart-header');
                 } else if (currentScrollY < lastScrollY - 15) {
-                    // 往上滚 -> 显示
+                    // Scrolling up -> show
                     parentDoc.body.classList.remove('hide-smart-header');
                 }
                 lastScrollY = currentScrollY;
@@ -66,7 +66,7 @@ if (!parentWin._smartHeaderInitialized) {
         }
     };
 
-    // 捕获所有的滚动事件
+    // Capture all scroll events
     parentDoc.addEventListener('scroll', scrollHandler, true);
     parentWin._smartHeaderInitialized = true;
 }
@@ -137,9 +137,9 @@ div.stButton > button:focus:not(:active) {
 st.markdown("""
 <style>
 
-/* ---------- 智能吸顶效果核心控制 ---------- */
+/* ---------- Smart sticky effect core control ---------- */
 
-/* 1. 精准抓住 Header 的外层容器让他吸顶 */
+/* 1. Accurately target the outer container of the Header to make it sticky */
 div.element-container:has(.gaming-header) {
     position: sticky !important;
     top: 1.5rem !important;
@@ -147,12 +147,12 @@ div.element-container:has(.gaming-header) {
     transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-/* 2. 当 JS 检测到往下滑动时，加上隐藏的位移动画 */
+/* 2. When JS detects scrolling down, add hidden translation animation */
 body.hide-smart-header div.element-container:has(.gaming-header) {
     transform: translateY(-250px) !important;
 }
 
-/* Tabs 也跟着一起隐藏 */
+/* Tabs hide along with it */
 body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     transform: translateY(-250px) !important;
 }
@@ -162,7 +162,7 @@ body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] 
 .gaming-header {
     width: 100%;
     padding: 45px 35px 45px 35px;  
-    margin-bottom: 0px; /* 移除底部 margin，让下方内容更紧凑 */
+    margin-bottom: 0px; /* Remove bottom margin to make content below tighter */
     border-radius: 22px;
     overflow: hidden;
     position: relative; 
@@ -553,27 +553,27 @@ def generate_eda_slider_html(images_b64, titles):
 st.markdown("""
 <style>
 
-/* Tab container - 使用负边距将其悬浮进 Header 的右侧 */
+/* Tab container - Use negative margins to hover it into the right side of the Header */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     position: sticky !important;
     top: 4rem !important; 
-    margin-top: -105px !important; /* 向上拉，嵌进 Header */
+    margin-top: -105px !important; /* Pull up, embed into the Header */
     margin-bottom: 20px !important; 
-    margin-right: 35px !important; /* 跟 Header 右侧对齐 */
-    justify-content: flex-end !important; /* 靠右对齐 */
+    margin-right: 35px !important; /* Align with the right side of the Header */
+    justify-content: flex-end !important; /* Align to the right */
     z-index: 100000 !important;
-    background-color: transparent !important; /* 透明背景 */
+    background-color: transparent !important; /* Transparent background */
     border-bottom: none !important;
     gap: 12px !important;
     transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-/* 补偿下方内容区的位置，以免重叠 */
+/* Compensate the position of the content area below to avoid overlap */
 .stTabs [data-baseweb="tab-panel"] {
     padding-top: 85px !important;
 }
 
-/* Individual tabs - 变成半透明的高级质感胶囊状 */
+/* Individual tabs - Transform into semi-transparent premium capsules */
 .stTabs [data-baseweb="tab"] {
     height: 48px !important;
     padding: 0 24px !important;
@@ -604,7 +604,7 @@ div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     display: none !important;
 }
 
-/* Tab text 颜色调整为适应暗色底色 */
+/* Tab text color adjustment to fit dark background */
 .stTabs [data-baseweb="tab"] p {
     color: #ebd9ff !important;
 }
@@ -614,7 +614,7 @@ div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     color: #3a0a63 !important;
 }
 
-/* 移除底部指示线 */
+/* Remove bottom indicator line */
 .stTabs [data-baseweb="tab"][aria-selected="true"]::after {
     display: none !important;
 }
@@ -859,7 +859,7 @@ with tab_eda:
     
     steps = [
         ("Explore the Data", "Understand player behaviour through distributions and correlations."),
-        ("Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
+        ("Process Features", "Derive advanced variables to maximize prediction performance."),
         ("Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
         ("Predict Live", "Enter a player profile and get an instant engagement prediction."),
     ]
@@ -952,7 +952,7 @@ with tab_perf:
         "Logistic Regression": {"Precision": 0.9051, "Recall": 0.9040, "F1-Score": 0.9041, "AUC": 0.9571},
         "Random Forest":       {"Precision": 0.9516, "Recall": 0.9510, "F1-Score": 0.9510, "AUC": 0.9852},
         "KNN":                 {"Precision": 0.8641, "Recall": 0.8461, "F1-Score": 0.8444, "AUC": 0.9404},
-        "XGBoost":              {"Precision": 0.9696, "Recall": 0.9694, "F1-Score": 0.9694, "AUC": 0.9892},
+        "XGBoost":             {"Precision": 0.9696, "Recall": 0.9694, "F1-Score": 0.9694, "AUC": 0.9892},
     }
     sel_extra = comparison_lookup[selected_perf_model]
  
@@ -1363,11 +1363,11 @@ with tab_pred:
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
 
     # ==========================================
-    # TAB 3 高级 CSS 设计注入 (契合 Bento Style)
+    # TAB 3 Advanced CSS design injection (Fits Bento Style)
     # ==========================================
     st.markdown("""
     <style>
-    /* 用户输入档案的网格设计 - 强制改为 6 列，让11个元素变成 6 + 5 的对称排版 */
+    /* Grid design for user input profile - forced to 6 columns, turning 11 elements into a 6 + 5 symmetrical layout */
     .profile-snapshot-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -1376,7 +1376,7 @@ with tab_pred:
         margin-bottom: 25px;
     }
     
-    /* 适配稍小屏幕 */
+    /* Adapt to slightly smaller screens */
     @media (max-width: 1000px) {
         .profile-snapshot-grid {
             grid-template-columns: repeat(4, 1fr);
@@ -1399,7 +1399,7 @@ with tab_pred:
     .p-label { color: #8a7a99; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .p-val { color: #3a1050; font-size: 15px; font-weight: 800; }
     
-    /* 预测结果特大焦点卡片设计 (去掉了右侧 Emoji 后的清爽版) */
+    /* Giant focus card design for prediction results (Clean version without right Emoji) */
     .pred-hero-card {
         background: radial-gradient(circle at 90% 50%, rgba(106,13,173,0.08), transparent 50%),
                     linear-gradient(135deg, #ffffff 0%, #fdfbff 100%);
@@ -1418,7 +1418,7 @@ with tab_pred:
     .pred-value { color: #3a0a63; font-size: 42px; font-weight: 900; line-height: 1.1; margin-bottom: 8px;}
     .pred-model-badge { display: inline-block; background: #f0e2ff; color: #6A0DAD; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2c6ff; }
     
-    /* 预测策略动态卡片设计 */
+    /* Dynamic strategy card design for predictions */
     .strategy-card {
         background: #fffbfa;
         border: 1px solid #ffe8e3;
@@ -1435,11 +1435,11 @@ with tab_pred:
     </style>
     """, unsafe_allow_html=True)
 
-    # 1. 初始化 Session State 来控制页面跳转
+    # 1. Initialize Session State to control page transitions
     if "show_prediction" not in st.session_state:
         st.session_state.show_prediction = False
 
-    # 第一页：只有 Input Player Features
+    # Page 1: Only Input Player Features
     if not st.session_state.show_prediction:
         st.markdown("#### 1. Input Player Features")
         with st.container(border=True):
@@ -1466,7 +1466,7 @@ with tab_pred:
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
             if st.button("🔮 Predict Engagement", use_container_width=True):
-                # 展现 Loading 动画，并在后台完成模型预测
+                # Show Loading animation and complete model prediction in the background
                 with st.spinner("Analyzing player profile..."):
                     time.sleep(0.8) 
 
@@ -1485,7 +1485,7 @@ with tab_pred:
                     classes = le_dict['EngagementLevel'].inverse_transform(model.classes_)
                     prob_df = pd.DataFrame({'Engagement Level': classes, 'Probability': probabilities})
 
-                    # --- 保存用户的原始输入数据以便在结果页展示和导出 ---
+                    # --- Save the user's raw input data for display and export on the results page ---
                     st.session_state.user_profile = {
                         "Age": str(age),
                         "Gender": gender,
@@ -1500,25 +1500,25 @@ with tab_pred:
                         "Achievements": str(achievements)
                     }
 
-                    # 将预测结果存入 session_state
+                    # Store the prediction results in session_state
                     st.session_state.prediction = prediction
                     st.session_state.pred_model = selected_model_name
                     st.session_state.prob_df = prob_df
                     
-                    # 切换状态变量，准备跳转第二页
+                    # Switch state variables, prepare to jump to the second page
                     st.session_state.show_prediction = True
-                    st.rerun() # 重新加载组件，直接展示结果
+                    st.rerun() # Reload components, directly display results
 
-    # 第二页： Prediction Insights (Result & Export)
+    # Page 2: Prediction Insights (Result & Export)
     else:
-        # ⚠️ 防御性代码：防止刷新页面时丢失 user_profile 导致报错
+        # ⚠️ Defensive code: Prevent errors caused by losing user_profile upon page refresh
         if "user_profile" not in st.session_state:
             st.session_state.show_prediction = False
             st.rerun()
 
         st.markdown("#### 2. Prediction Insights")
         
-        # --- 模块 A: 还原显示 User Profile ---
+        # --- Module A: Restore and display User Profile ---
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
             st.markdown('<div class="section-header"><span class="dot"></span><span class="label">👤 Player Profile Snapshot</span></div>', unsafe_allow_html=True)
@@ -1532,7 +1532,7 @@ with tab_pred:
 
         st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
 
-        # --- 模块 B: Prediction Result & Graph ---
+        # --- Module B: Prediction Result & Graph ---
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
             
@@ -1540,7 +1540,7 @@ with tab_pred:
             selected_model_name = st.session_state.pred_model
             prob_df = st.session_state.prob_df
 
-            # 美化的 Prediction Hero Card (已去掉 Emoji)
+            # Beautified Prediction Hero Card (Emoji removed)
             st.markdown(f"""
             <div class="pred-hero-card">
                 <div>
@@ -1551,7 +1551,7 @@ with tab_pred:
             </div>
             """, unsafe_allow_html=True)
 
-            # 更新 Plotly 图表颜色 (Low红色, Medium蓝色, High绿色) 并取消冗杂的背景
+            # Update Plotly chart colors (Low: Red, Medium: Blue, High: Green) and remove cluttered backgrounds
             color_discrete_map = {'Low': '#ff6b6b', 'Medium': '#3498db', 'High': '#2ecc71'}
             fig_prob = px.bar(
                 prob_df, x="Probability", y="Engagement Level", 
@@ -1570,7 +1570,7 @@ with tab_pred:
             )
             st.plotly_chart(fig_prob, use_container_width=True)
 
-            # --- Actionable Strategy 模块美化 ---
+            # --- Beautify Actionable Strategy module ---
             if prediction == "Low":
                 s_icon, s_title = "🚨", "Retention Risk!"
                 s_text = "Consider sending re-engagement emails, offering free starter packs, or suggesting easier game modes."
@@ -1590,9 +1590,9 @@ with tab_pred:
 
         st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
-        # --- 模块 C: Back & Export CSV Buttons ---
+        # --- Module C: Back & Export CSV Buttons ---
         
-        # 准备待导出的 CSV 数据
+        # Prepare CSV data for export
         export_df = pd.DataFrame([profile])
         export_df.insert(0, "Prediction_Model", selected_model_name)
         export_df.insert(1, "Predicted_Engagement", prediction)
@@ -1607,7 +1607,7 @@ with tab_pred:
             background: linear-gradient(180deg, #ffffff 0%, #f7f2fb 100%) !important;
             color: #3a0a63 !important;
             border: 1px solid #e2c6ff !important;
-            border-bottom: 3px solid #4a0880 !important; /* 白色卡片的 3D 底部厚度 */
+            border-bottom: 3px solid #4a0880 !important; /* 3D bottom thickness of the white card */
             font-weight: bold !important;
             border-radius: 10px !important;
             padding: 10px 24px !important;
@@ -1642,4 +1642,3 @@ with tab_pred:
                 mime="text/csv",
                 use_container_width=True
             )
-
