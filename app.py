@@ -1074,7 +1074,9 @@ with tab_perf:
     <div class="hero-model-card">
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:18px;">
             <div style="display:flex; align-items:center; gap:16px;">
-        
+                <div style="font-size:34px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18);
+                            border-radius:16px; width:62px; height:62px; display:flex; align-items:center; justify-content:center;">
+                </div>
                 <div>
                     <p class="hero-model-name">{selected_perf_model}</p>
                     <p class="hero-model-sub">TESTING SET PERFORMANCE • 8,007 PLAYERS</p>
