@@ -550,15 +550,19 @@ def generate_eda_slider_html(images_b64, titles):
 # PREMIUM NAVIGATION TABS (MOVED INTO HEADER)
 # ==========================================
 
+# ==========================================
+# PREMIUM NAVIGATION TABS (MOVED INTO HEADER)
+# ==========================================
+
 st.markdown("""
 <style>
 
-/* Tab container - Forced into the header using transform */
+/* Tab container - 完美吸附并嵌入 Header 右侧 */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    transform: translateY(-125px) !important; /* Pulls the tabs UP into the header */
-    margin-bottom: -105px !important; /* Removes the empty space left behind */
-    padding-right: 35px !important; /* Aligns with your header padding */
-    justify-content: flex-end !important; /* Pushes tabs to the right */
+    transform: translateY(-118px) !important; /* 整体往上提，直接嵌入紫色背景 */
+    margin-bottom: -105px !important;          /* 消除下方多余的空白留白 */
+    padding-right: 35px !important;           /* 与紫色 Header 的右边距对齐 */
+    justify-content: flex-end !important;     /* 让选项卡靠右对齐 */
     background-color: transparent !important;
     border-bottom: none !important;
     z-index: 99999 !important;
@@ -566,60 +570,55 @@ div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
     gap: 12px !important;
 }
 
-/* Compensate for the content below so it doesn't overlap */
+/* 补偿下方内容区的位置，防止和内容重叠 */
 .stTabs [data-baseweb="tab-panel"] {
-    padding-top: 30px !important;
+    padding-top: 25px !important;
 }
 
-/* Individual tabs - 变成半透明的高级质感胶囊状 */
+/* Individual tabs - 半透明的高级质感胶囊状 */
 .stTabs [data-baseweb="tab"] {
-    height: 48px !important;
-    padding: 0 24px !important;
-    border-radius: 24px !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    height: 42px !important;
+    padding: 0 20px !important;
+    border-radius: 21px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     backdrop-filter: blur(10px) !important;
     transition: all 0.3s ease !important;
 }
 
-/* Hover */
+/* 鼠标悬停效果 */
 .stTabs [data-baseweb="tab"]:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.25) !important;
     transform: translateY(-2px) !important;
 }
 
-/* Active tab */
+/* 选中状态的 Tab 变成纯白背景，深紫文字 */
 .stTabs [data-baseweb="tab"][aria-selected="true"] {
     background: #ffffff !important;
     border-color: #ffffff !important;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.25) !important;
     transform: translateY(-2px) !important;
 }
 
-/* Remove default underline */
+/* 移除默认的底边线 */
 .stTabs [data-baseweb="tab-highlight"] {
     display: none !important;
 }
 
-/* Tab text 颜色调整为适应暗色底色 */
+/* 未选中时的文字颜色 */
 .stTabs [data-baseweb="tab"] p {
     color: #ebd9ff !important;
+    font-size: 14px !important;
 }
 
-/* Active text */
+/* 选中时的文字颜色 */
 .stTabs [data-baseweb="tab"][aria-selected="true"] p {
     color: #3a0a63 !important;
-}
-
-/* 移除底部指示线 */
-.stTabs [data-baseweb="tab"][aria-selected="true"]::after {
-    display: none !important;
+    font-weight: 800 !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
-
 
 # ==========================================
 # MODEL LAB — BENTO CARD SYSTEM
