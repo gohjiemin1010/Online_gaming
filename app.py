@@ -841,7 +841,7 @@ with tab_eda:
     st.markdown("---")
 
     # Render seamless HTML/JS interactive component for the Graphs
-    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to navigate the visual insights.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #666;'>Click the arrows to navigate the visual insights.</p>", unsafe_allow_html=True)
 
     eda_slider_html = generate_eda_slider_html(images_b64, graph_titles)
     components.html(eda_slider_html, height=520, scrolling=False)
