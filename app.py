@@ -1011,14 +1011,6 @@ with tab_eda:
         st.metric("Most Frequent Engagement", freq_eng)
 
     st.markdown("---")
-
-    # Render seamless HTML/JS interactive component for the Graphs
-    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to navigate. <b>Click on a graph</b> to view its detailed insights.</p>", unsafe_allow_html=True)
-    
-    eda_slider_html = generate_eda_slider_html(images_b64, graph_titles, graph_details)
-    components.html(eda_slider_html, height=600, scrolling=False)
-
-    st.markdown("---")
     st.markdown("### 📋 Dataset Preview")
     st.write("Use the +/- buttons or type a number to view more rows.")
     row_count = st.number_input("Number of rows to display:", min_value=5, max_value=len(df), value=100, step=10)
@@ -1047,6 +1039,51 @@ with tab_eda:
                 vc = df[col].value_counts().reset_index()
                 vc.columns = [col, 'Count']
                 st.dataframe(vc, hide_index=True, use_container_width=True)
+
+    st.markdown("---")
+
+    # Render seamless HTML/JS interactive component for the Graphs
+    st.markdown("<p style='text-align: center; color: #666;'>Drag or click the arrows to navigate. <b>Click on a graph</b> to view its detailed insights.</p>", unsafe_allow_html=True)
+    
+    eda_slider_html = generate_eda_slider_html(images_b64, graph_titles, graph_details)
+    components.html(eda_slider_html, height=600, scrolling=False)
+
+
+    # ---- 5. Integrated About Section ----
+    st.markdown("#### About This System")
+    st.write(
+        "To ensure users clearly grasp the system's overarching goals directly within the primary view, "
+        "this dashboard cleanly analyses the **Online Gaming Behavior Dataset** and predicts a player's **Engagement Level**. "
+        "It turns raw gaming activity into a clear read on how engaged a player really is — built end-to-end from EDA to a live predictor."
+    )
+    
+    steps = [
+        ("1", "Explore the Data", "Understand player behaviour through distributions and correlations."),
+        ("2", "Engineer Features", "Derive TotalWeeklyMinutes, AchievementRate, and AgeGroup."),
+        ("3", "Train & Compare", "Tune and benchmark 4 models: Logistic Regression, Random Forest, KNN, XGBoost."),
+        ("4", "Predict Live", "Enter a player profile and get an instant engagement prediction."),
+    ]
+    
+    step_cols = st.columns(4)
+    for (num, title, desc), col in zip(steps, step_cols):
+        with col:
+            # Reusing the existing CSS class for consistent design
+            step_html = (
+                f'<div class="about-card" style="margin-bottom: 15px;">'
+                f'<h5 style="color:#6A0DAD; margin-top:0;">Step {num}: {title}</h5>'
+                f'<p style="font-size: 14px; margin-bottom:0;">{desc}</p></div>'
+            )
+            st.markdown(step_html, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    st.markdown("##### Built With")
+    tech_stack = [
+        "Python", "Streamlit", "Pandas", "NumPy", "Scikit-learn",
+        "XGBoost", "Seaborn", "Matplotlib", "Plotly"
+    ]
+    badges_html = "".join([f'<span class="tech-badge">{t}</span>' for t in tech_stack])
+    st.markdown(f"<div>{badges_html}</div>", unsafe_allow_html=True)
 
 
 # ------------------------------------------
