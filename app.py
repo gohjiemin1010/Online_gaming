@@ -318,10 +318,10 @@ def train_models(df):
     X_test_scaled = scaler.transform(X_test)
 
     models = {
-        "Logistic Regression": LogisticRegression(max_iter=1000),
-        "Random Forest": RandomForestClassifier(n_estimators=50, random_state=42),
-        "KNN": KNeighborsClassifier(n_neighbors=5),
-        "XGBoost": xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss', random_state=42)
+        "Logistic Regression": LogisticRegression(C=0.1, solver='lbfgs', max_iter=1000, random_state=42),
+        "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=20, min_samples_split=5, min_samples_leaf=2, random_state=42),
+        "KNN": KNeighborsClassifier(n_neighbors=43, weights='uniform', metric='manhattan'),
+        "XGBoost": xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss', random_state=42, max_depth=7, learning_rate=0.1, n_estimators=100)
     }
     trained_models = {}
     for name, model in models.items():
