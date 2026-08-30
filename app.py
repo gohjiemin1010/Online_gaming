@@ -1100,6 +1100,7 @@ with tab_perf:
         "Logistic Regression": {
             "Regularization (C)": "0.1",
             "Solver": "lbfgs"
+            "Max Iterations": "1000"
         },
 
         "Random Forest": {
@@ -1107,6 +1108,7 @@ with tab_perf:
             "Max Depth": "20",
             "Min Samples Split": "5",
             "Min Samples Leaf": "2"
+            "Random State": "42"
         },
 
         "KNN": {
@@ -1119,10 +1121,12 @@ with tab_perf:
             "Max Depth": "7",
             "Learning Rate": "0.1",
             "Trees (n_estimators)": "100"
+            "Random State": "42"
+            "Eval Metric": "mlogloss"
         }
     }
 
-    with st.expander(" Optimized Hyperparameters", expanded=False):
+    with st.expander("Hyperparameters", expanded=False):
 
         params = model_parameters[selected_perf_model]
 
@@ -1400,7 +1404,7 @@ with tab_pred:
     st.markdown("Adjust the player features below to simulate and predict their engagement level.")
 
     # ==========================================
-    # TAB 4 Advanced CSS design injection (Fits Bento Style)
+    # TAB 3 Advanced CSS design injection (Fits Bento Style)
     # ==========================================
     st.markdown("""
     <style>
@@ -1469,16 +1473,6 @@ with tab_pred:
 
     .strategy-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; margin-bottom: 8px; color: #1a1a1a; }
     .strategy-text { color: #444; font-size: 14.5px; margin: 0; line-height: 1.5; }
-
-    /* ---- Grouped input sub-sections (Player / Game / Behavior) ---- */
-    .input-group-label {
-        display: flex; align-items: center; gap: 8px;
-        font-size: 13px; font-weight: 800; color: #6A0DAD;
-        text-transform: uppercase; letter-spacing: 0.6px;
-        margin: 4px 0 10px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px dashed #eee2f7;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1489,72 +1483,30 @@ with tab_pred:
     # Page 1: Only Input Player Features
     if not st.session_state.show_prediction:
         st.markdown("#### 1. Input Player Features")
-        explain("Build a hypothetical player below. The selected model reads these 11 features and estimates whether that player would be a Low, Medium, or High engagement player.")
+        with st.container(border=True):
+            st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
+            selected_model_name = st.selectbox(" Select Prediction Model", list(models_dict.keys()), index=0)
 
-        # --- Model selector as a clean pill bar (matches Model Performance tab) ---
-        if "predictor_model" not in st.session_state:
-            st.session_state.predictor_model = list(models_dict.keys())[0]
-
-        model_pill_cols = st.columns(len(models_dict))
-        for i, m_name in enumerate(models_dict.keys()):
-            with model_pill_cols[i]:
-                is_active = st.session_state.predictor_model == m_name
-                marker_class = "model-btn-marker active" if is_active else "model-btn-marker"
-                st.markdown(f'<div class="{marker_class}"></div>', unsafe_allow_html=True)
-                label = f"✓ {m_name}" if is_active else m_name
-                if st.button(label, key=f"pred_model_btn_{i}", use_container_width=True):
-                    st.session_state.predictor_model = m_name
-                    st.rerun()
-
-        selected_model_name = st.session_state.predictor_model
-
-        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-
-        # --- Three boxed input cards, side by side ---
-        g1, g2, g3 = st.columns(3)
-
-        with g1:
-            with st.container(border=True):
-                st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="section-header"><span class="dot"></span><span class="label">👤 Player Profile</span></div>', unsafe_allow_html=True)
+            c_in1, c_in2 = st.columns(2)
+            with c_in1:
                 age = st.slider("Age", int(df['Age'].min()), int(df['Age'].max()), 25)
                 gender = st.selectbox("Gender", df['Gender'].unique())
                 location = st.selectbox("Location", df['Location'].unique())
-
-        with g2:
-            with st.container(border=True):
-                st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="section-header"><span class="dot"></span><span class="label">🎮 Game Setup</span></div>', unsafe_allow_html=True)
                 genre = st.selectbox("Game Genre", df['GameGenre'].unique())
                 difficulty = st.selectbox("Game Difficulty", df['GameDifficulty'].unique())
+            with c_in2:
+                play_time = st.number_input("Play Time (Hrs)", 0.0, 24.0, 10.0)
                 in_purchases_label = st.selectbox("In-Game Purchases", ["No", "Yes"])
                 in_purchases = 1 if in_purchases_label == "Yes" else 0
-
-        with g3:
-            with st.container(border=True):
-                st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="section-header"><span class="dot"></span><span class="label">📊 Play Behavior</span></div>', unsafe_allow_html=True)
-                play_time = st.number_input("Play Time (Hrs/session)", 0.0, 24.0, 10.0)
                 sessions = st.slider("Sessions/Week", int(df['SessionsPerWeek'].min()), int(df['SessionsPerWeek'].max()), 5)
                 avg_duration = st.slider("Avg Session (Mins)", int(df['AvgSessionDurationMinutes'].min()), int(df['AvgSessionDurationMinutes'].max()), 60)
-
-        # --- Progress: its own full-width boxed card ---
-        with st.container(border=True):
-            st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-            st.markdown('<div class="section-header"><span class="dot"></span><span class="label">🏆 Progress</span></div>', unsafe_allow_html=True)
-            p1, p2 = st.columns(2)
-            with p1:
                 player_level = st.slider("Player Level", int(df['PlayerLevel'].min()), int(df['PlayerLevel'].max()), 30)
-            with p2:
-                achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
 
-        # --- Clean, centered standalone CTA (kept out of the card grid on purpose) ---
-        st.markdown("<div style='height: 6px;'></div>", unsafe_allow_html=True)
-        cta_l, cta_mid, cta_r = st.columns([1, 1.4, 1])
-        with cta_mid:
-            predict_clicked = st.button("🎯 Predict Engagement", use_container_width=True)
+            achievements = st.slider("Achievements Unlocked", int(df['AchievementsUnlocked'].min()), int(df['AchievementsUnlocked'].max()), 15)
 
-        if predict_clicked:
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+            if st.button(" Predict Engagement", use_container_width=True):
                 # Show Loading animation and complete model prediction in the background
                 with st.spinner("Analyzing player profile..."):
                     time.sleep(0.8)
@@ -1611,7 +1563,6 @@ with tab_pred:
         with st.container(border=True):
             st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
             st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Player Profile Snapshot</span></div>', unsafe_allow_html=True)
-            explain("The exact inputs you submitted — kept here so the prediction below is easy to trace back to.")
 
             profile = st.session_state.user_profile
             grid_html = '<div class="profile-snapshot-grid">'
@@ -1659,7 +1610,6 @@ with tab_pred:
                 margin=dict(l=0, r=0, t=10, b=0)
             )
             st.plotly_chart(fig_prob, use_container_width=True)
-            explain("The model's confidence across all three levels. It doesn't just pick a label — it estimates a probability for each, and the highest one becomes the prediction above. A close race between two bars means the model sees this player as a borderline case.")
 
             # --- Beautify Actionable Strategy module ---
             if prediction == "Low":
