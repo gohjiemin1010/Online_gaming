@@ -131,146 +131,93 @@ div.stButton > button:focus:not(:active) {
 """, unsafe_allow_html=True)
 
 # ==========================================
-# PREMIUM HEADER
+# PREMIUM HEADER (NEON GAMING STYLE)
 # ==========================================
 
 st.markdown("""
 <style>
-
-/* ---------- Smart sticky effect core control ---------- */
-
-/* 1. Accurately target the outer container of the Header to make it sticky */
+/* Smart sticky effect core control */
 div.element-container:has(.gaming-header) {
     position: sticky !important;
     top: 1.5rem !important;
     z-index: 99999 !important;
     transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
-
-/* 2. When JS detects scrolling down, add hidden translation animation */
-body.hide-smart-header div.element-container:has(.gaming-header) {
+body.hide-smart-header div.element-container:has(.gaming-header),
+body.hide-smart-header div[data-testid="stTabs"] > div[role="tablist"] {
     transform: translateY(-250px) !important;
 }
 
-/* Tabs hide along with it */
-body.hide-smart-header div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    transform: translateY(-250px) !important;
-}
-
-/* ---------- MAIN HEADER ---------- */
-
+/* MAIN HEADER */
 .gaming-header {
     width: 100%;
-    padding: 45px 35px 45px 35px;
-    margin-bottom: 0px; /* Remove bottom margin to make content below tighter */
-    border-radius: 22px;
+    padding: 30px 40px;
+    margin-bottom: 0px !important;
+    border-radius: 16px 16px 0 0; /* Flat bottom to connect to tabs */
+    position: relative;
     overflow: hidden;
-    position: relative;
-
-    background: radial-gradient(circle at 90% 20%, rgba(155, 89, 182, 0.25), transparent 35%),
-                radial-gradient(circle at 10% 80%, rgba(106, 13, 173, 0.18), transparent 35%),
-                linear-gradient(135deg, #16002b 0%, #26004a 45%, #12001f 100%);
-    box-shadow: 0 15px 45px rgba(72, 0, 120, 0.25);
-}
-
-/* Decorative glow */
-
-.gaming-header::before {
-    content: "";
-    position: absolute;
-    width: 280px;
-    height: 280px;
-    right: -100px;
-    top: -130px;
-    border-radius: 50%;
-
-    background: rgba(190, 120, 255, 0.15);
-    filter: blur(20px);
-}
-
-.gaming-header::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, #6A0DAD, #b45cff, #6A0DAD);
-    background-size: 200% 100%;
-    animation: gradientMove 4s linear infinite;
-}
-
-@keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
-}
-
-/* Header content */
-
-.header-content {
-    position: relative;
-    z-index: 2;
+    
+    /* Deep purple gradient matching the design */
+    background: linear-gradient(90deg, #10002b 0%, #240046 50%, #10002b 100%);
+    border: 1px solid #3c096c;
+    border-bottom: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(123, 44, 191, 0.2);
+    
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-/* Logo */
-
-.logo-area {
-    display: flex;
-    align-items: center;
-    gap: 18px;
+/* Center Text Alignments */
+.header-center {
+    text-align: center;
+    flex-grow: 1;
+    z-index: 2;
 }
-
-.logo-icon {
-    width: 65px;
-    height: 65px;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05));
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25), inset 0 0 20px rgba(255,255,255,0.05);
-}
-
-/* Title */
 
 .header-title {
     margin: 0;
-    color: white;
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+    color: #ffffff;
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 15px rgba(224, 170, 255, 0.6), 0 0 30px rgba(157, 78, 221, 0.4);
 }
 
 .header-subtitle {
-    margin-top: 5px;
-    color: rgba(255,255,255,0.68);
-    font-size: 14px;
-    letter-spacing: 0.5px;
+    margin-top: 8px;
+    color: #c8b6ff;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 1px;
 }
 
+/* Left & Right Decorative Elements (CSS approximations of your 3D assets) */
+.decor-left, .decor-right {
+    font-size: 55px;
+    opacity: 0.9;
+    z-index: 2;
+    filter: drop-shadow(0 0 15px rgba(157, 78, 221, 0.8));
+}
+
+/* Background glows */
+.gaming-header::before {
+    content: ""; position: absolute; left: 10%; top: -50px; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(123,44,191,0.4) 0%, transparent 70%);
+}
+.gaming-header::after {
+    content: ""; position: absolute; right: 10%; top: -50px; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(123,44,191,0.4) 0%, transparent 70%);
+}
 </style>
-""", unsafe_allow_html=True)
 
-
-st.markdown("""
 <div class="gaming-header">
-<div class="header-content">
-<div class="logo-area">
-<div>
-<div class="header-title">
-Online Gaming Analytics
-</div>
-<div class="header-subtitle">
-PLAYER BEHAVIOR PREDICTION • MACHINE LEARNING • DATA SCIENCE
-</div>
-</div>
-</div>
-</div>
+    <div class="decor-left"></div>
+    <div class="header-center">
+        <div class="header-title">Online Gaming Analytics</div>
+        <div class="header-subtitle">Player Behavior Prediction • Machine Learning • Data Science</div>
+    </div>
+    <div class="decor-right"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -545,83 +492,69 @@ def generate_eda_slider_html(images_b64, titles):
     </html>
     """
     return html
-
+    
 # ==========================================
 # PREMIUM NAVIGATION TABS (MOVED INTO HEADER)
 # ==========================================
 
 st.markdown("""
 <style>
-
-/* Tab container - Use negative margins to hover it into the right side of the Header */
+/* 1. Pull the entire tab list up into the banner area */
 div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-    position: sticky !important;
-    top: 4rem !important;
-    margin-top: -105px !important; /* Pull up, embed into the Header */
-    margin-bottom: 20px !important;
-    margin-right: 35px !important; /* Align with the right side of the Header */
-    justify-content: flex-end !important; /* Align to the right */
-    z-index: 100000 !important;
-    background-color: transparent !important; /* Transparent background */
+    margin-top: -65px !important; /* Pulls the tabs over the banner */
+    padding-left: 35px !important; /* Aligns with the banner text */
+    background-color: transparent !important;
     border-bottom: none !important;
+    z-index: 99999 !important;
+    position: relative !important;
     gap: 12px !important;
-    transition: transform 0.4s cubic-bezier(0.3, 0, 0.2, 1) !important;
 }
 
-/* Compensate the position of the content area below to avoid overlap */
-.stTabs [data-baseweb="tab-panel"] {
-    padding-top: 85px !important;
+/* 2. Push the content below the tabs down so it doesn't overlap the header */
+div[data-testid="stTabs"] > div[data-baseweb="tab-panel"] {
+    padding-top: 35px !important;
 }
 
-/* Individual tabs - Transform into semi-transparent premium capsules */
-.stTabs [data-baseweb="tab"] {
-    height: 48px !important;
-    padding: 0 24px !important;
-    border-radius: 24px !important;
+/* 3. Style the tabs as semi-transparent capsules to contrast with the dark banner */
+div[data-testid="stTabs"] [data-baseweb="tab"] {
     background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 20px !important;
+    padding: 6px 20px !important;
+    height: auto !important;
+    min-height: 40px !important;
     transition: all 0.3s ease !important;
 }
 
-/* Hover */
-.stTabs [data-baseweb="tab"]:hover {
+div[data-testid="stTabs"] [data-baseweb="tab"]:hover {
     background: rgba(255, 255, 255, 0.2) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-    transform: translateY(-2px) !important;
+    transform: translateY(-2px);
 }
 
-/* Active tab */
-.stTabs [data-baseweb="tab"][aria-selected="true"] {
+/* 4. Active Tab styling (Solid White) */
+div[data-testid="stTabs"] [data-baseweb="tab"][aria-selected="true"] {
     background: #ffffff !important;
     border-color: #ffffff !important;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
-    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
 }
 
-/* Remove default underline */
-.stTabs [data-baseweb="tab-highlight"] {
-    display: none !important;
-}
-
-/* Tab text color adjustment to fit dark background */
-.stTabs [data-baseweb="tab"] p {
+/* 5. Text coloring inside the tabs */
+div[data-testid="stTabs"] [data-baseweb="tab"] p {
     color: #ebd9ff !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
 }
-
-/* Active text */
-.stTabs [data-baseweb="tab"][aria-selected="true"] p {
+div[data-testid="stTabs"] [data-baseweb="tab"][aria-selected="true"] p {
     color: #3a0a63 !important;
+    font-weight: 800 !important;
 }
 
-/* Remove bottom indicator line */
-.stTabs [data-baseweb="tab"][aria-selected="true"]::after {
+/* 6. Hide the default Streamlit red/blue bottom indicator line */
+div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
     display: none !important;
 }
-
 </style>
 """, unsafe_allow_html=True)
-
 
 # ==========================================
 # MODEL PERFORMANCE — BENTO CARD SYSTEM
@@ -1257,35 +1190,140 @@ with tab_perf:
     """, unsafe_allow_html=True)
 
     # ---------------------------------------------------------
-    # SUMMARY TABLE
+    # SUMMARY CARDS 
     # ---------------------------------------------------------
 
-    with st.container(border=True):
+    # ---------------------------------------------------------
+    # SUMMARY CARDS (Replacing Dataframe Table)
+    # ---------------------------------------------------------
+
+    with st.container(border=False):
         st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Performance Summary Table</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header"><span class="dot"></span><span class="label"> Performance Summary Cards</span></div>', unsafe_allow_html=True)
 
-        metric_cols = ["Accuracy", "Precision", "Recall", "F1-Score", "AUC"]
-        styled_summary = (
-            comparison_df.style
-            .format({c: "{:.2%}" for c in metric_cols})
-            .highlight_max(subset=metric_cols, props="background-color:#f2e6ff; color:#6A0DAD; font-weight:700;")
-            .set_properties(**{"text-align": "center"})
-            .set_table_styles([
-                {"selector": "th", "props": [("text-align", "center"), ("background-color", "#faf7ff"), ("color", "#5c1799")]},
-                {"selector": "tbody tr:nth-child(even)", "props": [("background-color", "#fcfaff")]},
-            ])
-        )
+        cards_html = """<style>
+.summary-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+/* Box styling */
+.summary-box {
+    background: #ffffff;
+    border: 1px solid #f0e6fa;
+    border-bottom: 4px solid #c9a6f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 15px rgba(106, 13, 173, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+}
+.summary-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(106, 13, 173, 0.12);
+    border-bottom: 4px solid #6A0DAD;
+}
+/* Highlight the top performer */
+.summary-box.winner-box {
+    border-bottom: 4px solid #6A0DAD;
+    background: linear-gradient(180deg, #ffffff 0%, #fdfbff 100%);
+}
+.box-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a0b2e;
+    margin-bottom: 2px;
+}
+.box-sub {
+    font-size: 11px;
+    color: #8a7a99;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+}
+.metric-row {
+    margin-bottom: 14px;
+}
+.metric-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: #3a1050;
+    margin-bottom: 6px;
+}
+.metric-val {
+    color: #6A0DAD; 
+    font-weight: 800;
+}
+.metric-bar-bg {
+    width: 100%;
+    height: 5px;
+    background: #f3ebfa;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.metric-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #b45cff, #6A0DAD);
+    border-radius: 3px;
+}
+.winner-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #6A0DAD;
+    color: white;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(106, 13, 173, 0.3);
+}
+</style>
+<div class="summary-card-grid">
+"""
 
-        st.dataframe(
-            styled_summary,
-            use_container_width=True,
-            hide_index=True
-        )
+        # Generate a styled card for each model
+        for _, row in comparison_df.iterrows():
+            model_name = row['Model']
+            is_winner = (model_name == best_row['Model'])
+            winner_class = "winner-box" if is_winner else ""
+            badge_html = '<div class="winner-badge">🏆 Top Performer</div>' if is_winner else ''
 
+            cards_html += f"""<div class="summary-box {winner_class}">
+{badge_html}
+<div class="box-title">{model_name}</div>
+<div class="box-sub">Testing Set Performance</div>
+"""
+
+            # Iterate over metrics to build the inner bars
+            for metric in ["Accuracy", "Precision", "Recall", "AUC"]:
+                val = row[metric]
+                pct_str = f"{val:.2%}"
+                cards_html += f"""<div class="metric-row">
+<div class="metric-labels">
+<span>{metric}</span>
+<span class="metric-val">{pct_str}</span>
+</div>
+<div class="metric-bar-bg">
+<div class="metric-bar-fill" style="width: {val * 100}%;"></div>
+</div>
+</div>
+"""
+            cards_html += "</div>"
+
+        cards_html += "</div>"
+        
+        # Render the custom HTML grid
+        st.markdown(cards_html, unsafe_allow_html=True)
+        
     # ---------------------------------------------------------
-    # SUMMARY GRAPH
+    # SUMMARY CARDS (End)
     # ---------------------------------------------------------
-
+        
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     with st.container(border=True):
       st.markdown('<div class="bento-marker"></div>', unsafe_allow_html=True)
