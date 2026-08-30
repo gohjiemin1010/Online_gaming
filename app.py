@@ -1099,7 +1099,7 @@ with tab_perf:
 
         "Logistic Regression": {
             "Regularization (C)": "0.1",
-            "Solver": "lbfgs"
+            "Solver": "lbfgs",
             "Max Iterations": "1000"
         },
 
@@ -1107,7 +1107,7 @@ with tab_perf:
             "Trees (n_estimators)": "100",
             "Max Depth": "20",
             "Min Samples Split": "5",
-            "Min Samples Leaf": "2"
+            "Min Samples Leaf": "2",
             "Random State": "42"
         },
 
@@ -1120,8 +1120,8 @@ with tab_perf:
         "XGBoost": {
             "Max Depth": "7",
             "Learning Rate": "0.1",
-            "Trees (n_estimators)": "100"
-            "Random State": "42"
+            "Trees (n_estimators)": "100",
+            "Random State": "42",
             "Eval Metric": "mlogloss"
         }
     }
