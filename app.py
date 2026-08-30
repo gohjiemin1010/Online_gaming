@@ -9,6 +9,8 @@ import xgboost as xgb
 import time
 import io
 import base64
+from sklearn.metrics import roc_curve, auc
+from sklearn.preprocessing import label_binarize
 from scipy.stats import norm
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -326,9 +328,9 @@ def train_models(df):
         model.fit(X_train, y_train)
         trained_models[name] = model
 
-    return trained_models, le_dict, scaler, X.columns
+    return trained_models, le_dict, scaler, X.columns, X_test_scaled, y_test
 
-models_dict, le_dict, scaler, feature_cols = train_models(df)
+models_dict, le_dict, scaler, feature_cols, X_test_scaled, y_test = train_models(df)
 
 perf_models_list = ["Logistic Regression", "Random Forest", "KNN", "XGBoost"]
 
@@ -1042,27 +1044,42 @@ with tab_perf:
 
         fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
 
-        for class_name, color in roc_class_colors.items():
-            target_auc = roc_auc_scores[selected_perf_model][class_name]
-            fpr, tpr = generate_roc_curve(target_auc)
+        # 提取真实模型和预测概率
+        model = models_dict[selected_perf_model]
+        y_proba = model.predict_proba(X_test_scaled)
+        
+        # 将真实标签二值化
+        y_test_bin = label_binarize(y_test, classes=model.classes_)
+        
+        # 颜色和线条样式配置 (把 High 设为虚线 '--'，防止覆盖红线)
+        color_map = {"Low": "red", "Medium": "orange", "High": "green"}
+        ls_map = {"Low": "-", "Medium": "-", "High": "--"} 
+        
+        for i, cls_idx in enumerate(model.classes_):
+            # 获取对应的类别名称 (Low, Medium, High)
+            class_name = le_dict['EngagementLevel'].inverse_transform([cls_idx])[0]
+            
+            # 计算真实的 FPR, TPR 和 AUC
+            fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_proba[:, i])
+            roc_auc = auc(fpr, tpr)
+            
+            # 画线
             ax_roc.plot(
                 fpr, tpr,
-                color=color, lw=2,
-                label=f"{class_name} (AUC = {target_auc:.2f})"
+                color=color_map[class_name], 
+                lw=2.5, 
+                linestyle=ls_map[class_name],
+                label=f"{class_name} (AUC = {roc_auc:.2f})"
             )
 
         ax_roc.plot([0, 1], [0, 1], "k--", lw=2)
 
-        ax_roc.set_title(
-            f"Multi-Class ROC Curve ({selected_perf_model})",
-            fontsize=14, fontweight="bold", pad=15
-        )
+        ax_roc.set_title(f"Multi-Class ROC Curve ({selected_perf_model})", fontsize=14, fontweight="bold", pad=15)
         ax_roc.set_xlabel("False Positive Rate", fontsize=11)
         ax_roc.set_ylabel("True Positive Rate", fontsize=11)
         ax_roc.legend(loc="lower right")
 
         plt.tight_layout()
-
         st.pyplot(fig_roc, use_container_width=True)
 
     # ---------------------------------------------------------
