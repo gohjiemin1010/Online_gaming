@@ -1044,18 +1044,14 @@ with tab_perf:
 
         fig_roc, ax_roc = plt.subplots(figsize=(6, 5))
 
-        # 颜色和线条样式配置
         color_map = {"Low": "red", "Medium": "orange", "High": "green"}
         ls_map = {"Low": "-", "Medium": "-", "High": "-"} 
         
-        # 直接获取当前模型在 Jupyter 中的真实 AUC 字典
         jupyter_aucs = roc_auc_scores[selected_perf_model]
 
-        # 遍历三个类别，强制使用拟合函数生成 Jupyter 级别的 ROC
         for class_name in ["Low", "Medium", "High"]:
             target_auc = jupyter_aucs[class_name]
             
-            # 使用顶部的平滑函数根据目标 AUC 还原曲线
             fpr, tpr = generate_roc_curve(target_auc)
             
             ax_roc.plot(
