@@ -1053,7 +1053,7 @@ with tab_perf:
         
         # 颜色和线条样式配置 (把 High 设为虚线 '--'，防止覆盖红线)
         color_map = {"Low": "red", "Medium": "orange", "High": "green"}
-        ls_map = {"Low": "-", "Medium": "-", "High": "--"} 
+        ls_map = {"Low": "-", "Medium": "-", "High": "-"} 
         
         for i, cls_idx in enumerate(model.classes_):
             # 获取对应的类别名称 (Low, Medium, High)
